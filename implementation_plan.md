@@ -1,65 +1,55 @@
-# Implementation Plan: Full Pipeline Documentation, Prompts & Instruction Upgrade for Native Rust Toolchain
+# Implementation Plan: Worker 00 -- OEM Prose / BOM Ingestion & Initial SysML v2 Model Synthesis (Step 0.0)
 
 ## 1. Context & Objectives
-Now that the core pipeline toolchain has been ported to high-performance native Rust:
-1. **Ground 0.0 Ingestion:** `crates/ingest-sysml` (`./target/release/ingest-sysml`)
-2. **Model Compilation & STPA Transpilation:** `crates/compile-sysml` (`./target/release/compile-sysml`)
-3. **Downstream Baseline Quality Gate Verifier:** `crates/verify-baseline` (`./target/release/verify-baseline`)
-
-The repository documentation, operator prompt catalog, agent instructions, and skills must be updated so that autonomous agents and human operators use the compiled Rust toolchain as the primary execution commands while retaining transparent Python backwards compatibility.
-
----
-
-## 2. Target Documentation & Prompt Files
-
-| File | Target Sections | Key Updates |
-|---|---|---|
-| [`README.md`](README.md) | Universal Initialization, Pipeline 0 & 1, Section 9 Operator Prompts | Introduce the Cargo workspace architecture; update operator prompts to use native Rust commands (`ingest-sysml`, `compile-sysml`, `verify-baseline`). |
-| [`docs/OPERATOR_PROMPT_CATALOG.md`](docs/OPERATOR_PROMPT_CATALOG.md) | Pipeline 0 Prompts (Worker 00, Step 0), Pipeline 1 Forward/Reverse Sync | Update canonical agent prompts to execute `./target/release/ingest-sysml` and `./target/release/compile-sysml`. |
-| [`AGENTS.md`](AGENTS.md) | Mandatory Session Initialization Gate (Step 5), Acceptance Testing | Update baseline verification to document `./target/release/verify-baseline . --no-domain`. |
-| [`CLAUDE.md`](CLAUDE.md) | Universal Initialization & Verification commands | Document native Rust binary commands for baseline verification and model compilation. |
-| [`skills/spec-orchestrator/SKILL.md`](skills/spec-orchestrator/SKILL.md) | Step 0.0 (OEM Ingestion), Step 0 (Compilation Gate), Sync cycles | Update orchestrator sequence diagrams and worker instructions to reference `ingest-sysml` and `compile-sysml`. |
+The repository currently contains 199 normative requirement documents under `schema/` (`REQ-0001.md` through `REQ-0199.md`).
+In accordance with `skills/spec-orchestrator/SKILL.md` (Step 0.0 Level 0 OEM Ground Truth Ingestion) and the operator prompt catalog:
+1. **Ground 0.0 Ingestion**: Use `./target/release/ingest-sysml` to ingest all 199 requirement files in `schema/` and synthesize the canonical SysML v2 textual model in `schema/model.sysml`.
+2. **Step 0 SysML Compilation Gate**: Use `./target/release/compile-sysml --compile --schema schema/model.sysml` to validate semantics, build the formal AST, serialize `.pipeline/schema.sysml`, and generate `.pipeline/schema-digest.json`.
+3. **Baseline Conformance & Remote Sync**: Verify baseline quality gates via `./target/release/verify-baseline . --no-domain`, commit generated models, and push to `origin/main`.
 
 ---
 
-## 3. Work Packages (Micro-Tasks)
+## 2. Work Packages (Micro-Tasks)
 
-All file writing operations will be executed by context-isolated subagents in accordance with `AGENTS.md` and `rules/subagent-dispatch-standards.md`.
+All file writing and model synthesis operations will be executed by context-isolated subagents in accordance with `AGENTS.md` and `rules/subagent-dispatch-standards.md`.
 
-### Work Package 1: Update Operational Prompts & Catalog [COMPLETE]
-- **Target Files:** `docs/OPERATOR_PROMPT_CATALOG.md`
-- **Deliverables:**
-  - [x] Update Worker 00 prompt to instruct execution of `./target/release/ingest-sysml --schema schema/ --out schema/model.sysml` (with fallback to `python3 skills/spec-orchestrator/scripts/sysmlv2_ingest.py`).
-  - [x] Update Step 0 SysML Compilation Gate prompt to execute `./target/release/compile-sysml --compile --schema schema/model.sysml`.
-  - [x] Update Forward-Sync and Reverse-Sync prompts to execute `./target/release/compile-sysml --forward-sync` and `--reverse-sync`.
-  - [x] Update baseline verification prompts to execute `./target/release/verify-baseline . --no-domain`.
-- **Verification:** Grep checks and syntax inspection confirmed zero em dashes and valid markdown links.
+### Work Package 1: Ground 0.0 Schema Ingestion Subagent Dispatch [COMPLETE]
+- **Role**: `Worker 00 -- OEM Ingestion & Model Synthesis Worker`
+- **Target Ingestion Command**:
+  ```bash
+  ./target/release/ingest-sysml --schema schema/ --format markdown --out schema/model.sysml
+  ```
+- **Expected Outputs**:
+  - `schema/model.sysml`: Synthesized SysML v2 textual model defining system `package`, subsystem packages, `part def` components, `port def` interfaces, attributes, and constraints extracted from all 199 requirement specifications.
+- **Verification**:
+  - [x] File existence check on `schema/model.sysml` (1,114,845 bytes).
+  - [x] Non-empty model verification with valid SysML v2 package boundaries across all 199 specifications.
 
-### Work Package 2: Update Repository README & Multi-Pipeline Architecture [COMPLETE]
-- **Target Files:** `README.md`
-- **Deliverables:**
-  - [x] Add "High-Performance Native Rust Toolchain" section describing `crates/deap-core`, `crates/compile-sysml`, `crates/verify-baseline`, and `crates/ingest-sysml`.
-  - [x] Update Section 5 (Universal Initialization Sequence) with `./target/release/verify-baseline . --no-domain`.
-  - [x] Update Section 9 (Multi-Pipeline Operator Prompt Catalog) matching `docs/OPERATOR_PROMPT_CATALOG.md`.
-- **Verification:** Markdown lint, link validation, and zero em dash audit.
+### Work Package 2: Step 0 SysML Compilation Gate Execution [COMPLETE]
+- **Target Compilation Command**:
+  ```bash
+  ./target/release/compile-sysml --compile --schema schema/model.sysml
+  ```
+- **Expected Outputs**:
+  - `.pipeline/schema.sysml`: Canonical serialized AST representation.
+  - `.pipeline/schema-digest.json`: Canonical SHA-256 integrity hash and node population inventory.
+- **Verification**:
+  - [x] Compiler exit code 0.
+  - [x] Non-empty digest JSON (1,222,467 bytes) with verified node counts (793 elements, SHA-256: 6080a00c...).
 
-### Work Package 3: Update Agent Instructions (`AGENTS.md`, `CLAUDE.md`, and `skills/spec-orchestrator/SKILL.md`) [COMPLETE]
-- **Target Files:** `AGENTS.md`, `CLAUDE.md`, `skills/spec-orchestrator/SKILL.md`
-- **Deliverables:**
-  - [x] Update Section 3.3 Step 5 in `AGENTS.md` to reference `./target/release/verify-baseline . --no-domain`.
-  - [x] Update `CLAUDE.md` initialization commands with `./target/release/verify-baseline . --no-domain`.
-  - [x] Update Step 0.0 and Step 0 in `skills/spec-orchestrator/SKILL.md` sequence diagrams and text to cite `ingest-sysml` and `compile-sysml`.
-- **Verification:** Rule compliance checks via `cargo test --workspace` and baseline verification.
-
-### Work Package 4: Verification & Final Quality Gate Audit [COMPLETE]
-- **Deliverables:**
-  - [x] Run `./target/release/verify-baseline . --no-domain` to ensure 100% compliance across all 22 quality gates.
-  - [x] Verify zero Unicode em dashes (`\u2014`) across all documentation files.
-  - [x] Test the updated prompt instructions with a live dry-run verification.
+### Work Package 3: Baseline Quality Gate Verification & Remote Synchronization [COMPLETE]
+- **Verification Commands**:
+  - [x] `./target/release/verify-baseline . --no-domain` (All 22 active checks pass with exit code 0).
+  - [x] Check zero Unicode em dashes (`\u2014`) across modified/generated files.
+  - [x] Stage, commit with non-auto-closing message:
+    `git commit -m "feat(schema): synthesize canonical model.sysml from schema specifications via ingest-sysml"`
+  - [x] Remote sync: `git push origin main`.
+  - [x] Verify `git diff origin/main` is empty.
 
 ---
 
-## 4. Strict Governance Invariants
-- **Zero Em Dashes:** Strict prohibition of `\u2014`.
-- **Document References Must Resolve:** All links must resolve to existing files.
-- **TDD & Baseline Gate:** Exit code 0 across all checks before completion.
+## 3. Strict Governance Invariants
+- **Zero Em Dashes**: Strict prohibition of `\u2014`.
+- **Pure Schema-Driven**: All synthesized components and ports derive deterministically from `schema/REQ-*.md` inputs.
+- **Coordinator Direct Writing Lock**: Synthesis operations delegated exclusively to context-isolated subagents.
+- **Remote Synchronization**: Task is not complete until successfully pushed and verified on `origin/main`.
