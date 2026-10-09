@@ -481,7 +481,7 @@ pub fn parse_attribute_defs(content: &str) -> Vec<AttributeDef> {
 /// Parse port definitions from SysML v2 source text.
 pub fn parse_port_defs(content: &str) -> Vec<PortDef> {
     let re = Regex::new(
-        r#"(?m)(?:doc\s*/\*(?P<doc>.*?)\*/\s*)?port\s+(?:def\s+)?(?:(?P<dir>in|out|inout)\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<conj>~)?(?P<type>[A-Za-z0-9_]+);"#,
+        r#"(?m)(?:doc\s*/\*(?P<doc>[\s\S]*?)\*/\s*)?(?:(?P<dir1>in|out|inout)\s+)?port(?:\s+def)?(?:\s+(?P<dir2>in|out|inout))?(?:\s+def)?\s+(?P<conj1>~)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<conj2>~)?(?P<type>[A-Za-z0-9_]+)\s*(?:\{[^{}]*\}|;)"#,
     )
     .unwrap();
 
@@ -490,10 +490,11 @@ pub fn parse_port_defs(content: &str) -> Vec<PortDef> {
         let name = cap["name"].to_string();
         let type_name = cap["type"].to_string();
         let direction = cap
-            .name("dir")
+            .name("dir1")
+            .or_else(|| cap.name("dir2"))
             .map(|d| d.as_str().trim().to_string())
             .unwrap_or_else(|| "inout".to_string());
-        let is_conjugated = cap.name("conj").is_some();
+        let is_conjugated = cap.name("conj1").is_some() || cap.name("conj2").is_some();
         let doc = cap.name("doc").map(|d| d.as_str().trim().to_string());
 
         ports.push(PortDef {
@@ -993,4 +994,40 @@ part def VehicleSystem {
         assert_eq!(model.package_name.as_deref(), Some("AutonomousVehicle_SSOT"));
         assert_eq!(model.parts.len(), 2);
     }
+
+    #[test]
+    fn test_parse_port_defs_syntax_variants() {
+        let text = r#"
+            out port rules_out : CompilerRulePort {
+            }
+            port out token_out : TokenStreamPort;
+            in port schema_in : RawSchemaStreamPort {
+                attribute protocol_family : String = "CAN";
+            }
+            port in data_in : DataPortType;
+            port cmd : Command;
+        "#;
+        let ports = parse_port_defs(text);
+        assert_eq!(ports.len(), 5);
+        assert_eq!(ports[0].name, "rules_out");
+        assert_eq!(ports[0].direction, "out");
+        assert_eq!(ports[0].type_name, "CompilerRulePort");
+
+        assert_eq!(ports[1].name, "token_out");
+        assert_eq!(ports[1].direction, "out");
+        assert_eq!(ports[1].type_name, "TokenStreamPort");
+
+        assert_eq!(ports[2].name, "schema_in");
+        assert_eq!(ports[2].direction, "in");
+        assert_eq!(ports[2].type_name, "RawSchemaStreamPort");
+
+        assert_eq!(ports[3].name, "data_in");
+        assert_eq!(ports[3].direction, "in");
+        assert_eq!(ports[3].type_name, "DataPortType");
+
+        assert_eq!(ports[4].name, "cmd");
+        assert_eq!(ports[4].direction, "inout");
+        assert_eq!(ports[4].type_name, "Command");
+    }
 }
+

@@ -100,7 +100,8 @@ fn main() {
 /// - Invariant: In the event of an error, temporary staging files are cleaned up and target files are untouched.
 pub fn run_ingestion(args: CliArgs) -> Result<(), String> {
     // Step 1: Discover schema targets and detect input format
-    let (disc_fmt, disc_files) = discover_schema_targets(args.schema.as_deref())?;
+    let (disc_fmt, disc_files) =
+        discover_schema_targets(args.schema.as_deref(), Some(&args.format))?;
 
     if disc_files.is_empty() {
         let target_desc = args
@@ -118,7 +119,7 @@ pub fn run_ingestion(args: CliArgs) -> Result<(), String> {
         args.format.to_ascii_lowercase()
     };
 
-    let is_dir = args.schema.as_ref().map_or(false, |p| p.is_dir());
+    let is_dir = args.schema.as_ref().is_some_and(|p| p.is_dir());
     let mut pkg: PackageDef;
 
     // Step 3: Dispatch translation based on format and file cardinality

@@ -2353,7 +2353,7 @@ class SysMLParser:
 
         is_conjugated = bool('~' in stmt)
 
-        m = re.search(r'\bport\s+(?:def\s+)?~?\s*([a-zA-Z0-9_]+)', stmt)
+        m = re.search(r'\b(?:(?:in|out|inout)\s+)?port\s+(?:def\s+)?(?:(?:in|out|inout)\s+)?~?\s*([a-zA-Z0-9_]+)', stmt)
         name = m.group(1) if m else "Port"
 
         type_m = re.search(r':\s*~?\s*([a-zA-Z0-9_<>:]+)', stmt)

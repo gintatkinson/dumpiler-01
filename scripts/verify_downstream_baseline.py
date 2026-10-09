@@ -3695,7 +3695,7 @@ def check_dual_schema_ssot_parity(repo_root=None):
 
     constructs_to_compare = [
         ("part def", "part_defs", r'\bpart\s+(?:def\s+)?([a-zA-Z0-9_]+)'),
-        ("port def", "port_defs", r'\b(?:in|out|inout)?\s*port\s+(?:def\s+)?([a-zA-Z0-9_]+)'),
+        ("port def", "port_defs", r'\b(?:(?:in|out|inout)\s+)?port\s+(?:def\s+)?(?:(?:in|out|inout)\s+)?([a-zA-Z0-9_]+)'),
         ("action def", "action_defs", r'\baction\s+(?:def\s+)?([a-zA-Z0-9_]+)'),
         ("item def", "item_defs", r'\bitem\s+(?:def\s+)?([a-zA-Z0-9_]+)'),
     ]

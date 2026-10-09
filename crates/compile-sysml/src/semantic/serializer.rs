@@ -73,7 +73,7 @@ impl SysmlSerializable for PortDef {
         };
         let conj = if self.is_conjugated { "~" } else { "" };
         let has_body = !self.protocol_family.is_empty()
-            || !self.port_category.is_empty()
+            || (!self.port_category.is_empty() && self.port_category != "DataPort")
             || !self.electrical_attributes.is_empty()
             || !self.item_flows.is_empty();
 
@@ -82,7 +82,7 @@ impl SysmlSerializable for PortDef {
             if !doc.is_empty() {
                 lines.push(doc.trim_end().to_string());
             }
-            lines.push(format!("{}{}port {}{} : {}{} {{", pad, dir, conj, self.name, self.type_name, ""));
+            lines.push(format!("{}port {}{}{} : {} {{", pad, dir, conj, self.name, self.type_name));
             if !self.protocol_family.is_empty() {
                 lines.push(format!("{}    attribute protocol_family : String = \"{}\";", pad, self.protocol_family));
             }
@@ -98,7 +98,7 @@ impl SysmlSerializable for PortDef {
             lines.push(format!("{}}}", pad));
             lines.join("\n")
         } else {
-            format!("{}{}port {}{} : {}{};", doc, pad, dir, self.name, conj, self.type_name)
+            format!("{}{}port {}{}{} : {};", doc, pad, dir, conj, self.name, self.type_name)
         }
     }
 }
@@ -484,4 +484,33 @@ mod tests {
         assert!(sysml_text.contains("part def Airframe {"));
         assert!(sysml_text.contains("port out bus : CAN;"));
     }
+
+    #[test]
+    fn test_serialize_port_def_dataport_no_empty_body() {
+        let port = PortDef {
+            name: "rules_out".to_string(),
+            type_name: "CompilerRulePort".to_string(),
+            direction: "out".to_string(),
+            port_category: "DataPort".to_string(),
+            ..Default::default()
+        };
+        let sysml = port.to_sysml(4);
+        assert_eq!(sysml, "    port out rules_out : CompilerRulePort;");
+    }
+
+    #[test]
+    fn test_serialize_port_def_with_body_standard_syntax() {
+        let port = PortDef {
+            name: "rules_out".to_string(),
+            type_name: "CompilerRulePort".to_string(),
+            direction: "out".to_string(),
+            protocol_family: "CAN".to_string(),
+            ..Default::default()
+        };
+        let sysml = port.to_sysml(4);
+        assert!(sysml.starts_with("    port out rules_out : CompilerRulePort {"));
+        assert!(sysml.contains("attribute protocol_family : String = \"CAN\";"));
+        assert!(sysml.ends_with("    }"));
+    }
 }
+

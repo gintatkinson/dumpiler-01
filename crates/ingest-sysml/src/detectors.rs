@@ -112,24 +112,79 @@ pub fn detect_format(schema_path: &str, content: &str) -> Result<String, String>
     ))
 }
 
+/// Identifies whether a given path is an output or intermediate SysML file rather than an input schema.
+fn is_output_sysml(p: &Path) -> bool {
+    if let Some(name) = p.file_name().and_then(|s| s.to_str()) {
+        name == "model.sysml" || name == "schema.sysml"
+    } else {
+        false
+    }
+}
+
+/// Discovers markdown files under search_dir/extracted or search_dir, ignoring README.md.
+fn discover_markdown_files(search_dir: &Path) -> Vec<PathBuf> {
+    let extracted_dir = if search_dir.ends_with("extracted") {
+        search_dir.to_path_buf()
+    } else {
+        search_dir.join("extracted")
+    };
+    if extracted_dir.exists() {
+        let mut extracted_md = find_files_with_ext(&extracted_dir, "md");
+        extracted_md.retain(|p| p.file_name().and_then(|s| s.to_str()) != Some("README.md"));
+        if !extracted_md.is_empty() {
+            extracted_md.sort();
+            return extracted_md;
+        }
+    }
+
+    let mut root_md = find_files_with_ext(search_dir, "md");
+    root_md.retain(|p| p.file_name().and_then(|s| s.to_str()) != Some("README.md"));
+    root_md.sort();
+    root_md
+}
+
 /// Discovers specification files or target directories adhering to deterministic search precedence.
 ///
 /// /// Realises: [REQ-0001/discover_schema_targets]
 ///
 /// ### Search Precedence Order:
 /// 1. Direct file input (if `path_opt` is an explicit single file).
-/// 2. Native SysML v2 models (`*.sysml` in search root).
-/// 3. Extracted Markdown specifications (`schema/extracted/*.md`).
-/// 4. Root Markdown specifications (`schema/*.md`).
-/// 5. Heterogeneous Interface Definitions (`*.idl`, `*.arxml`, `*.proto`, `*.yaml`, `*.json`).
+/// 2. Explicit format override (if `format_hint` is provided and not `"auto"`).
+/// 3. Native SysML v2 models (`*.sysml` in search root, excluding output files if markdown specs exist).
+/// 4. Extracted Markdown specifications (`schema/extracted/*.md`).
+/// 5. Root Markdown specifications (`schema/*.md`).
+/// 6. Heterogeneous Interface Definitions (`*.idl`, `*.arxml`, `*.proto`, `*.yaml`, `*.json`).
+/// 7. Existing model fallback (`model.sysml` if no primary specifications exist).
 ///
 /// ### Invariant:
 /// All returned file paths are sorted lexicographically to eliminate filesystem traversal jitter.
-pub fn discover_schema_targets(path_opt: Option<&Path>) -> Result<(String, Vec<PathBuf>), String> {
+pub fn discover_schema_targets(
+    path_opt: Option<&Path>,
+    format_hint: Option<&str>,
+) -> Result<(String, Vec<PathBuf>), String> {
+    let normalized_hint = format_hint.map(|h| h.trim().to_ascii_lowercase());
+    let is_explicit = normalized_hint
+        .as_deref()
+        .map_or(false, |h| !h.is_empty() && h != "auto");
+
     if let Some(p) = path_opt {
         if p.is_file() {
-            let content = fs::read_to_string(p).unwrap_or_default();
-            let fmt = detect_format(p.to_str().unwrap_or(""), &content)?;
+            let fmt = if is_explicit {
+                let hint = normalized_hint.unwrap();
+                match hint.as_str() {
+                    "markdown" | "md" => "markdown".to_string(),
+                    "sysml" => "sysml".to_string(),
+                    "idl" => "idl".to_string(),
+                    "autosar" | "arxml" => "autosar".to_string(),
+                    "protobuf" | "proto" => "protobuf".to_string(),
+                    "openapi" => "openapi".to_string(),
+                    "raw" => "raw".to_string(),
+                    other => other.to_string(),
+                }
+            } else {
+                let content = fs::read_to_string(p).unwrap_or_default();
+                detect_format(p.to_str().unwrap_or(""), &content)?
+            };
             return Ok((fmt, vec![p.to_path_buf()]));
         }
     }
@@ -142,37 +197,73 @@ pub fn discover_schema_targets(path_opt: Option<&Path>) -> Result<(String, Vec<P
         return Ok(("unknown".to_string(), Vec::new()));
     }
 
-    // 1. Check for native .sysml models
-    let mut sysml_files = find_files_with_ext(&search_dir, "sysml");
-    if !sysml_files.is_empty() {
-        sysml_files.sort();
-        return Ok(("sysml".to_string(), sysml_files));
-    }
+    // Branch A: Explicit format hint specified by caller
+    if is_explicit {
+        let hint = normalized_hint.unwrap();
+        let canonical_fmt = match hint.as_str() {
+            "markdown" | "md" => "markdown",
+            "sysml" => "sysml",
+            "idl" => "idl",
+            "autosar" | "arxml" => "autosar",
+            "protobuf" | "proto" => "protobuf",
+            "openapi" => "openapi",
+            "raw" => "raw",
+            other => other,
+        };
 
-    // 2. Check for extracted markdown specifications in schema/extracted/*.md
-    let extracted_dir = if search_dir.ends_with("extracted") {
-        search_dir.clone()
-    } else {
-        search_dir.join("extracted")
-    };
-    if extracted_dir.exists() {
-        let mut extracted_md = find_files_with_ext(&extracted_dir, "md");
-        extracted_md.retain(|p| p.file_name().and_then(|s| s.to_str()) != Some("README.md"));
-        if !extracted_md.is_empty() {
-            extracted_md.sort();
-            return Ok(("markdown".to_string(), extracted_md));
+        if canonical_fmt == "markdown" {
+            let files = discover_markdown_files(&search_dir);
+            return Ok(("markdown".to_string(), files));
         }
+
+        let exts: &[&str] = match canonical_fmt {
+            "sysml" => &["sysml"],
+            "idl" => &["idl"],
+            "autosar" => &["arxml", "xml"],
+            "protobuf" => &["proto"],
+            "openapi" => &["yaml", "yml", "json"],
+            "raw" => &["pdf", "txt", "doc", "docx"],
+            other => &[other],
+        };
+
+        let mut matching_files = Vec::new();
+        for ext in exts {
+            matching_files.extend(find_files_with_ext(&search_dir, ext));
+        }
+        matching_files.retain(|p| p.file_name().and_then(|s| s.to_str()) != Some("README.md"));
+
+        if canonical_fmt == "sysml" {
+            let (non_output, output): (Vec<_>, Vec<_>) =
+                matching_files.into_iter().partition(|p| !is_output_sysml(p));
+            matching_files = if !non_output.is_empty() {
+                non_output
+            } else {
+                output
+            };
+        }
+
+        matching_files.sort();
+        return Ok((canonical_fmt.to_string(), matching_files));
     }
 
-    // 3. Check for markdown files in schema/*.md
-    let mut root_md = find_files_with_ext(&search_dir, "md");
-    root_md.retain(|p| p.file_name().and_then(|s| s.to_str()) != Some("README.md"));
-    if !root_md.is_empty() {
-        root_md.sort();
-        return Ok(("markdown".to_string(), root_md));
+    // Branch B: Auto-discovery precedence
+    // 1. Check for native .sysml models (excluding generated output files like model.sysml)
+    let sysml_files = find_files_with_ext(&search_dir, "sysml");
+    let (mut non_output_sysml, mut output_sysml): (Vec<_>, Vec<_>) =
+        sysml_files.into_iter().partition(|p| !is_output_sysml(p));
+
+    if !non_output_sysml.is_empty() {
+        non_output_sysml.sort();
+        return Ok(("sysml".to_string(), non_output_sysml));
     }
 
-    // 4. Check for other schema types (IDL, ARXML, Protobuf, OpenAPI)
+    // 2. Check for markdown specifications in schema/extracted/*.md or schema/*.md
+    let md_files = discover_markdown_files(&search_dir);
+    if !md_files.is_empty() {
+        return Ok(("markdown".to_string(), md_files));
+    }
+
+    // 3. Check for other schema types (IDL, ARXML, Protobuf, OpenAPI)
     let format_exts = [
         ("idl", "idl"),
         ("arxml", "autosar"),
@@ -188,6 +279,12 @@ pub fn discover_schema_targets(path_opt: Option<&Path>) -> Result<(String, Vec<P
             other_files.sort();
             return Ok((fmt.to_string(), other_files));
         }
+    }
+
+    // 4. Fallback to existing output SysML model if present and no primary schemas exist
+    if !output_sysml.is_empty() {
+        output_sysml.sort();
+        return Ok(("sysml".to_string(), output_sysml));
     }
 
     Ok(("unknown".to_string(), Vec::new()))
@@ -262,16 +359,61 @@ mod tests {
         );
     }
 
+    fn get_schema_dir() -> PathBuf {
+        let p = Path::new("schema");
+        if p.exists() {
+            p.to_path_buf()
+        } else {
+            Path::new("../../schema").to_path_buf()
+        }
+    }
+
     #[test]
     fn test_discover_schema_targets_req1() {
-        let path = Path::new("schema/REQ-0001.md");
+        let schema_dir = get_schema_dir();
+        let path = schema_dir.join("REQ-0001.md");
         if path.exists() {
-            let res = discover_schema_targets(Some(path));
+            let res = discover_schema_targets(Some(&path), None);
             assert!(res.is_ok());
             let (fmt, files) = res.unwrap();
             assert_eq!(fmt, "markdown");
             assert_eq!(files.len(), 1);
             assert_eq!(files[0], path);
         }
+    }
+
+    #[test]
+    fn test_discover_schema_targets_with_format_hint_markdown() {
+        let schema_dir = get_schema_dir();
+        assert!(schema_dir.exists());
+        let res = discover_schema_targets(Some(&schema_dir), Some("markdown"));
+        assert!(res.is_ok());
+        let (fmt, files) = res.unwrap();
+        assert_eq!(fmt, "markdown");
+        assert_eq!(files.len(), 199);
+        assert!(!files.contains(&schema_dir.join("model.sysml")));
+    }
+
+    #[test]
+    fn test_discover_schema_targets_auto_markdown_not_masked_by_model_sysml() {
+        let schema_dir = get_schema_dir();
+        assert!(schema_dir.exists());
+        let res = discover_schema_targets(Some(&schema_dir), Some("auto"));
+        assert!(res.is_ok());
+        let (fmt, files) = res.unwrap();
+        assert_eq!(fmt, "markdown");
+        assert_eq!(files.len(), 199);
+        assert!(!files.contains(&schema_dir.join("model.sysml")));
+    }
+
+    #[test]
+    fn test_discover_schema_targets_explicit_sysml() {
+        let schema_dir = get_schema_dir();
+        assert!(schema_dir.exists());
+        let res = discover_schema_targets(Some(&schema_dir), Some("sysml"));
+        assert!(res.is_ok());
+        let (fmt, files) = res.unwrap();
+        assert_eq!(fmt, "sysml");
+        assert_eq!(files, vec![schema_dir.join("model.sysml")]);
     }
 }

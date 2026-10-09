@@ -39,6 +39,7 @@ use regex::Regex;
 
 use deap_core::sysml_ast::{
     AttributeDef, ConnectionDef, ConstraintDef, FlowDef, PackageDef, PartDef, PortDef,
+    RequirementDef,
 };
 use crate::table::{
     classify_table, clean_cell_value, compose_grounded_doc, extract_provenance_citation,
@@ -61,6 +62,333 @@ pub struct Frontmatter {
     pub subsystem: Option<String>,
     /// Deterministic RFC 4122 UUIDv5 anchor hash.
     pub uuidv5: Option<String>,
+}
+
+/// Canonical metadata descriptor for the 12 DEAP compiler subsystems.
+#[derive(Debug, Clone)]
+pub struct SubsystemMeta {
+    /// 1-based index (1..=12)
+    pub subsystem_idx: usize,
+    /// Canonical package name (e.g. `Subsystem_1_System_Vision`)
+    pub pkg_name: String,
+    /// Full descriptive title of the subsystem
+    pub pkg_doc: String,
+    /// Name of the primary engine PartDef (e.g. `SystemVisionEngine`)
+    pub engine_name: String,
+    /// Canonical interface ports for the engine
+    pub ports: Vec<PortDef>,
+}
+
+fn make_port(name: &str, type_name: &str, direction: &str) -> PortDef {
+    PortDef {
+        name: name.to_string(),
+        type_name: type_name.to_string(),
+        direction: direction.to_string(),
+        is_conjugated: false,
+        doc: None,
+        port_category: String::new(),
+        protocol_family: String::new(),
+        electrical_attributes: BTreeMap::new(),
+        item_flows: Vec::new(),
+    }
+}
+
+/// Returns canonical metadata for a subsystem index in 1..=12.
+pub fn get_subsystem_meta_by_idx(idx: usize) -> SubsystemMeta {
+    match idx {
+        1 => SubsystemMeta {
+            subsystem_idx: 1,
+            pkg_name: "Subsystem_1_System_Vision".to_string(),
+            pkg_doc: "System Vision, Bootstrapping & Foundational Invariants".to_string(),
+            engine_name: "SystemVisionEngine".to_string(),
+            ports: vec![
+                make_port("rules_out", "CompilerRulePort", "out"),
+            ],
+        },
+        2 => SubsystemMeta {
+            subsystem_idx: 2,
+            pkg_name: "Subsystem_2_Universal_Schema_Ingestion_Engine".to_string(),
+            pkg_doc: "Universal Schema Ingestion Engine".to_string(),
+            engine_name: "UniversalIngestionEngine".to_string(),
+            ports: vec![
+                make_port("schema_in", "RawSchemaStreamPort", "in"),
+                make_port("token_out", "TokenStreamPort", "out"),
+            ],
+        },
+        3 => SubsystemMeta {
+            subsystem_idx: 3,
+            pkg_name: "Subsystem_3_Core_Metamodel_Node_Arena".to_string(),
+            pkg_doc: "Core Metamodel, Node Arena & AST Graph Engine".to_string(),
+            engine_name: "NodeArenaASTGraphEngine".to_string(),
+            ports: vec![
+                make_port("token_in", "TokenStreamPort", "in"),
+                make_port("ast_graph_out", "ASTGraphPort", "out"),
+            ],
+        },
+        4 => SubsystemMeta {
+            subsystem_idx: 4,
+            pkg_name: "Subsystem_4_Complete_SysMLv2_KerML_Grammar".to_string(),
+            pkg_doc: "Complete OMG SysML v2 / KerML Metamodel Lowering & Grammar".to_string(),
+            engine_name: "GrammarLoweringEngine".to_string(),
+            ports: vec![
+                make_port("ast_in", "ASTGraphPort", "in"),
+                make_port("ast_out", "ASTGraphPort", "out"),
+            ],
+        },
+        5 => SubsystemMeta {
+            subsystem_idx: 5,
+            pkg_name: "Subsystem_5_7D_Physical_Metrology_Flow_Networks".to_string(),
+            pkg_doc: "7D Physical Metrology & Abstract Flow Conservation Networks".to_string(),
+            engine_name: "MetrologyFlowEngine".to_string(),
+            ports: vec![
+                make_port("ast_in", "ASTGraphPort", "in"),
+                make_port("metrology_out", "MetrologyPort", "out"),
+            ],
+        },
+        6 => SubsystemMeta {
+            subsystem_idx: 6,
+            pkg_name: "Subsystem_6_Spatio_Temporal_State_Solvers".to_string(),
+            pkg_doc: "Spatio-Temporal Dynamics & Discrete State Machine Solvers".to_string(),
+            engine_name: "StateMachineSolverEngine".to_string(),
+            ports: vec![
+                make_port("ast_in", "ASTGraphPort", "in"),
+                make_port("state_out", "StateSolverPort", "out"),
+            ],
+        },
+        7 => SubsystemMeta {
+            subsystem_idx: 7,
+            pkg_name: "Subsystem_7_Formal_Safety_Traceability_Verification".to_string(),
+            pkg_doc: "Formal Safety, Traceability & Regulatory Verification".to_string(),
+            engine_name: "SafetyAssuranceEngine".to_string(),
+            ports: vec![
+                make_port("state_in", "StateSolverPort", "in"),
+                make_port("safety_out", "SafetyPort", "out"),
+            ],
+        },
+        8 => SubsystemMeta {
+            subsystem_idx: 8,
+            pkg_name: "Subsystem_8_Level_1C_ICD_Interconnect_Contracts".to_string(),
+            pkg_doc: "Level 1C Interface Control Documents & Interconnect Contracts".to_string(),
+            engine_name: "ICDEngine".to_string(),
+            ports: vec![
+                make_port("safety_in", "SafetyPort", "in"),
+                make_port("icd_out", "ICDPort", "out"),
+            ],
+        },
+        9 => SubsystemMeta {
+            subsystem_idx: 9,
+            pkg_name: "Subsystem_9_Downstream_Specification_Projections".to_string(),
+            pkg_doc: "Downstream Specification Projections".to_string(),
+            engine_name: "AgileProjectionEngine".to_string(),
+            ports: vec![
+                make_port("icd_in", "ICDPort", "in"),
+                make_port("specs_out", "BacklogPort", "out"),
+            ],
+        },
+        10 => SubsystemMeta {
+            subsystem_idx: 10,
+            pkg_name: "Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings".to_string(),
+            pkg_doc: "Multi-Target Code Generation, Simulation & Transport Bindings".to_string(),
+            engine_name: "CodeGenEngine".to_string(),
+            ports: vec![
+                make_port("specs_in", "BacklogPort", "in"),
+                make_port("code_out", "CodeArtifactPort", "out"),
+            ],
+        },
+        11 => SubsystemMeta {
+            subsystem_idx: 11,
+            pkg_name: "Subsystem_11_Standardized_Diagnostic_Error_Catalog".to_string(),
+            pkg_doc: "Standardized Compiler Diagnostic Error Catalog".to_string(),
+            engine_name: "DiagnosticErrorCatalogEngine".to_string(),
+            ports: vec![
+                make_port("diag_in", "DiagnosticStreamPort", "in"),
+                make_port("diag_out", "DiagnosticReportPort", "out"),
+            ],
+        },
+        12 | _ => SubsystemMeta {
+            subsystem_idx: 12,
+            pkg_name: "Subsystem_12_Compiler_Performance_CLI_Assurance".to_string(),
+            pkg_doc: "Compiler Performance, CLI, Assurance & Regression Inoculation".to_string(),
+            engine_name: "CompilerAssuranceEngine".to_string(),
+            ports: vec![
+                make_port("cli_in", "CLIPort", "in"),
+                make_port("metrics_out", "PerformanceMetricsPort", "out"),
+            ],
+        },
+    }
+}
+
+/// Maps subsystem classification string or requirement identifier into canonical `SubsystemMeta`.
+pub fn map_subsystem(subsystem_str: &str, req_id: &str) -> SubsystemMeta {
+    let s = subsystem_str.to_ascii_lowercase();
+    let idx = if s.contains("subsystem 10") || s.contains("code generation") || s.contains("multi-target") {
+        10
+    } else if s.contains("subsystem 11") || s.contains("diagnostic error catalog") || s.contains("diagnostic") {
+        11
+    } else if s.contains("subsystem 12") || s.contains("compiler performance") || s.contains("cli") {
+        12
+    } else if s.contains("subsystem 1:") || s.contains("system vision") {
+        1
+    } else if s.contains("subsystem 2") || s.contains("universal schema ingestion") {
+        2
+    } else if s.contains("subsystem 3") || s.contains("core metamodel") || s.contains("node arena") {
+        3
+    } else if s.contains("grammar") || s.contains("metamodel lowering") || s.contains("subsystem 4") || s.contains("kerml") {
+        4
+    } else if s.contains("physical metrology") || s.contains("flow conservation") || s.contains("7d") {
+        5
+    } else if s.contains("subsystem 6") || s.contains("spatio-temporal") || s.contains("state machine") || s.contains("state solver") {
+        6
+    } else if s.contains("subsystem 7") || s.contains("formal safety") || s.contains("traceability & regulatory") {
+        7
+    } else if s.contains("subsystem 8") || s.contains("level 1c") || s.contains("interconnect") || s.contains("interface control") {
+        8
+    } else if s.contains("subsystem 9") || s.contains("specification projections") {
+        9
+    } else {
+        // Fallback from req_id number
+        let num_str: String = req_id.chars().filter(|c| c.is_ascii_digit()).collect();
+        let num: usize = num_str.parse().unwrap_or(1);
+        if num <= 13 {
+            1
+        } else if num <= 33 {
+            2
+        } else if num <= 53 {
+            3
+        } else if num <= 97 {
+            4
+        } else if num <= 113 {
+            5
+        } else if num <= 127 {
+            6
+        } else if num <= 144 {
+            7
+        } else if num <= 158 {
+            8
+        } else if num <= 174 {
+            9
+        } else if num <= 189 {
+            10
+        } else if num <= 194 {
+            11
+        } else {
+            12
+        }
+    };
+
+    get_subsystem_meta_by_idx(idx)
+}
+
+fn clean_normative_text(raw: &str) -> String {
+    let link_re = Regex::new(r"\[([^\]]+)\]\([^\)]+\)").unwrap();
+    let text = link_re.replace_all(raw, "$1");
+    let text = text.replace('`', "");
+    let text = text.replace('$', "");
+    let math_re = Regex::new(r"\\(?:mathbf|mathcal|text|oint)\{?([a-zA-Z0-9_\s]*)\}?").unwrap();
+    let text = math_re.replace_all(&text, "$1");
+    let ws_re = Regex::new(r"\s+").unwrap();
+    let mut cleaned = ws_re.replace_all(&text, " ").trim().to_string();
+    cleaned = cleaned.replace('"', "\\\"");
+
+    if cleaned.len() > 300 {
+        let truncate_pos = match cleaned[..300].rfind(' ') {
+            Some(pos) if pos > 200 => pos,
+            _ => 300,
+        };
+        let mut s = cleaned[..truncate_pos].trim_end().to_string();
+        if s.ends_with('\\') {
+            s.pop();
+        }
+        cleaned = s;
+    }
+
+    cleaned
+}
+
+fn extract_normative_statement(content: &str) -> String {
+    let mut found_heading = false;
+    let mut statement_lines = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("## 1. Normative Statement") || trimmed.starts_with("## 1.") {
+            found_heading = true;
+            continue;
+        }
+        if found_heading {
+            if trimmed.starts_with("##") || trimmed.starts_with("---") {
+                break;
+            }
+            if !trimmed.is_empty() {
+                statement_lines.push(trimmed);
+            } else if !statement_lines.is_empty() {
+                break;
+            }
+        }
+    }
+
+    if statement_lines.is_empty() {
+        return "Normative statement specified in schema.".to_string();
+    }
+
+    let joined = statement_lines.join(" ");
+    clean_normative_text(&joined)
+}
+
+fn clean_meta_val(val: &str) -> String {
+    let s = val.replace(['`', '*'], "");
+    let s = s.replace('$', "");
+    let math_re = Regex::new(r"\\(?:mathbf|mathcal|text)\{?([a-zA-Z0-9_\s]*)\}?").unwrap();
+    let s = math_re.replace_all(&s, "$1");
+    let ws_re = Regex::new(r"\s+").unwrap();
+    ws_re.replace_all(&s, " ").trim().to_string()
+}
+
+fn extract_req_metadata(
+    content: &str,
+    frontmatter: &Frontmatter,
+) -> (String, String, String, String) {
+    let mut uuid = frontmatter.uuidv5.clone().unwrap_or_default();
+    let mut complexity = String::new();
+    let mut standard = String::new();
+    let mut diagnostics = String::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('|') && trimmed.contains('|') {
+            let cells: Vec<&str> = trimmed
+                .split('|')
+                .map(|c| c.trim())
+                .filter(|c| !c.is_empty())
+                .collect();
+            if cells.len() >= 2 {
+                let key = cells[0].replace(['*', '`', '_'], "").to_ascii_lowercase();
+                let raw_val = cells[1].trim();
+                let clean_val = clean_meta_val(raw_val);
+                if (key.contains("complexity") || key.contains("class")) && complexity.is_empty() {
+                    complexity = clean_val;
+                } else if (key.contains("standard") || key.contains("governing")) && standard.is_empty() {
+                    standard = clean_val;
+                } else if (key.contains("diagnostic") || key.contains("binding")) && diagnostics.is_empty() {
+                    diagnostics = clean_val;
+                } else if (key.contains("uuid") || key.contains("anchor")) && uuid.is_empty() {
+                    uuid = clean_val;
+                }
+            }
+        }
+    }
+
+    if complexity.is_empty() {
+        complexity = "Class P".to_string();
+    }
+    if standard.is_empty() {
+        standard = "IEEE 29148-2018 / RFC 2119".to_string();
+    }
+    if diagnostics.is_empty() {
+        diagnostics = "E0100".to_string();
+    }
+
+    (uuid, complexity, standard, diagnostics)
 }
 
 /// Represents an intermediate parsed Markdown section between structural headings.
@@ -277,6 +605,48 @@ impl MarkdownTranslator {
             pkg.part_defs.push(sys_part);
         }
 
+        // Step 6: Extract formal RequirementDef if this is a requirement document
+        if let Some(ref req_id) = frontmatter.id {
+            if req_id.starts_with("REQ-") || req_id.starts_with("REQ_") {
+                let sub_str = frontmatter.subsystem.as_deref().unwrap_or("");
+                let sub_meta = map_subsystem(sub_str, req_id);
+                let normative_text = extract_normative_statement(content);
+                let (uuid, complexity, standard, diagnostics) =
+                    extract_req_metadata(content, &frontmatter);
+
+                let num_str: String = req_id.chars().filter(|c| c.is_ascii_digit()).collect();
+                let title_clean = if let Some(ref title) = frontmatter.title {
+                    let primary = title
+                        .split('&')
+                        .next()
+                        .unwrap_or(title)
+                        .split(':')
+                        .next()
+                        .unwrap_or(title)
+                        .trim();
+                    sanitize_identifier(primary, "Requirement")
+                } else {
+                    "Requirement".to_string()
+                };
+                let req_name = format!("REQ_{}_{}", num_str, title_clean);
+                let doc_str = format!(
+                    "UUIDv5: {} | Complexity: {} | Standard: {} | Diagnostics: {}",
+                    uuid, complexity, standard, diagnostics
+                );
+
+                let req_def = RequirementDef {
+                    name: req_name,
+                    req_id: req_id.clone(),
+                    text: normative_text,
+                    doc: Some(doc_str),
+                    satisfied_by: vec![sub_meta.engine_name],
+                    ..Default::default()
+                };
+
+                pkg.requirement_defs.push(req_def);
+            }
+        }
+
         Ok(pkg)
     }
 
@@ -312,6 +682,174 @@ impl MarkdownTranslator {
                 self.translate(&content, f_basename).ok()
             })
             .collect();
+
+        // Check if any translated sub-packages contain requirement definitions
+        let has_requirements = sub_packages.iter().any(|p| !p.requirement_defs.is_empty());
+
+        if has_requirements {
+            // Group requirement definitions and parts into the 12 canonical subsystems
+            let mut subsystem_reqs: BTreeMap<usize, Vec<RequirementDef>> = BTreeMap::new();
+            let mut subsystem_parts: BTreeMap<usize, BTreeMap<String, PartDef>> = BTreeMap::new();
+
+            for idx in 1..=12 {
+                subsystem_reqs.insert(idx, Vec::new());
+                subsystem_parts.insert(idx, BTreeMap::new());
+            }
+
+            for sub_pkg in sub_packages {
+                let sub_idx = if let Some(first_req) = sub_pkg.requirement_defs.first() {
+                    map_subsystem("", &first_req.req_id).subsystem_idx
+                } else {
+                    1
+                };
+
+                // Add requirements to subsystem
+                if let Some(req_list) = subsystem_reqs.get_mut(&sub_idx) {
+                    for req in sub_pkg.requirement_defs {
+                        if !req_list.iter().any(|r| r.req_id == req.req_id) {
+                            req_list.push(req);
+                        }
+                    }
+                }
+
+                // Add constituent part definitions (e.g. AC parts)
+                if let Some(parts_map) = subsystem_parts.get_mut(&sub_idx) {
+                    for part in sub_pkg.part_defs {
+                        if !parts_map.contains_key(&part.name) {
+                            parts_map.insert(part.name.clone(), part);
+                        }
+                    }
+                }
+            }
+
+            // Build the 12 canonical subsystem PackageDefs
+            let mut packages: Vec<PackageDef> = Vec::with_capacity(12);
+
+            for idx in 1..=12 {
+                let meta = get_subsystem_meta_by_idx(idx);
+                let mut reqs = subsystem_reqs.remove(&idx).unwrap_or_default();
+                reqs.sort_by(|a, b| a.req_id.cmp(&b.req_id));
+
+                // Create primary subsystem engine PartDef with ports
+                let engine_part = PartDef {
+                    name: meta.engine_name.clone(),
+                    doc: Some(format!("Primary execution engine for {}", meta.pkg_doc)),
+                    is_def: true,
+                    ports: meta.ports.clone(),
+                    ..Default::default()
+                };
+
+                let mut parts = vec![engine_part];
+                if let Some(extra_parts) = subsystem_parts.remove(&idx) {
+                    for (p_name, part) in extra_parts {
+                        if p_name != meta.engine_name {
+                            parts.push(part);
+                        }
+                    }
+                }
+
+                packages.push(PackageDef {
+                    name: meta.pkg_name.clone(),
+                    doc: Some(meta.pkg_doc.clone()),
+                    parent_package: Some("DEAP_Compiler_System".to_string()),
+                    requirement_defs: reqs,
+                    part_defs: parts,
+                    ..Default::default()
+                });
+            }
+
+            // 8 inter-subsystem pipeline flow connections
+            let connection_defs = vec![
+                ConnectionDef {
+                    name: "c_ingest_to_arena".to_string(),
+                    source_port: "UniversalIngestionEngine.token_out".to_string(),
+                    target_port: "NodeArenaASTGraphEngine.token_in".to_string(),
+                    source_part: Some("UniversalIngestionEngine".to_string()),
+                    target_part: Some("NodeArenaASTGraphEngine".to_string()),
+                    doc: Some("Pipeline flow: raw tokens to node arena AST graph".to_string()),
+                    ..Default::default()
+                },
+                ConnectionDef {
+                    name: "c_arena_to_grammar".to_string(),
+                    source_port: "NodeArenaASTGraphEngine.ast_graph_out".to_string(),
+                    target_port: "GrammarLoweringEngine.ast_in".to_string(),
+                    source_part: Some("NodeArenaASTGraphEngine".to_string()),
+                    target_part: Some("GrammarLoweringEngine".to_string()),
+                    doc: Some("Pipeline flow: AST graph to grammar lowering engine".to_string()),
+                    ..Default::default()
+                },
+                ConnectionDef {
+                    name: "c_grammar_to_metrology".to_string(),
+                    source_port: "GrammarLoweringEngine.ast_out".to_string(),
+                    target_port: "MetrologyFlowEngine.ast_in".to_string(),
+                    source_part: Some("GrammarLoweringEngine".to_string()),
+                    target_part: Some("MetrologyFlowEngine".to_string()),
+                    doc: Some("Pipeline flow: lowered AST to 7D physical metrology flow solver".to_string()),
+                    ..Default::default()
+                },
+                ConnectionDef {
+                    name: "c_grammar_to_statemachine".to_string(),
+                    source_port: "GrammarLoweringEngine.ast_out".to_string(),
+                    target_port: "StateMachineSolverEngine.ast_in".to_string(),
+                    source_part: Some("GrammarLoweringEngine".to_string()),
+                    target_part: Some("StateMachineSolverEngine".to_string()),
+                    doc: Some("Pipeline flow: lowered AST to discrete state machine solver".to_string()),
+                    ..Default::default()
+                },
+                ConnectionDef {
+                    name: "c_solver_to_safety".to_string(),
+                    source_port: "StateMachineSolverEngine.state_out".to_string(),
+                    target_port: "SafetyAssuranceEngine.state_in".to_string(),
+                    source_part: Some("StateMachineSolverEngine".to_string()),
+                    target_part: Some("SafetyAssuranceEngine".to_string()),
+                    doc: Some("Pipeline flow: state reachability to formal safety verification".to_string()),
+                    ..Default::default()
+                },
+                ConnectionDef {
+                    name: "c_safety_to_icd".to_string(),
+                    source_port: "SafetyAssuranceEngine.safety_out".to_string(),
+                    target_port: "ICDEngine.safety_in".to_string(),
+                    source_part: Some("SafetyAssuranceEngine".to_string()),
+                    target_part: Some("ICDEngine".to_string()),
+                    doc: Some("Pipeline flow: safety constraints to Level 1C ICD interconnect contracts".to_string()),
+                    ..Default::default()
+                },
+                ConnectionDef {
+                    name: "c_icd_to_projections".to_string(),
+                    source_port: "ICDEngine.icd_out".to_string(),
+                    target_port: "AgileProjectionEngine.icd_in".to_string(),
+                    source_part: Some("ICDEngine".to_string()),
+                    target_part: Some("AgileProjectionEngine".to_string()),
+                    doc: Some("Pipeline flow: ICD contracts to downstream agile specification projections".to_string()),
+                    ..Default::default()
+                },
+                ConnectionDef {
+                    name: "c_projections_to_codegen".to_string(),
+                    source_port: "AgileProjectionEngine.specs_out".to_string(),
+                    target_port: "CodeGenEngine.specs_in".to_string(),
+                    source_part: Some("AgileProjectionEngine".to_string()),
+                    target_part: Some("CodeGenEngine".to_string()),
+                    doc: Some("Pipeline flow: agile specifications to multi-target code generation and simulation".to_string()),
+                    ..Default::default()
+                },
+            ];
+
+            let root_name = if default_name == "schema" || default_name == "OEM_System_Model" || default_name.is_empty() {
+                "DEAP_Compiler_System".to_string()
+            } else {
+                sanitize_identifier(default_name, "DEAP_Compiler_System")
+            };
+
+            let combined_pkg = PackageDef {
+                name: root_name,
+                doc: Some("Abstract Model-Based Systems Engineering (MBSE) Compiler System Architecture".to_string()),
+                packages,
+                connection_defs,
+                ..Default::default()
+            };
+
+            return Ok(combined_pkg);
+        }
 
         let mut combined_pkg = PackageDef {
             name: sanitize_identifier(default_name, "OEM_System_Model"),
@@ -1353,6 +1891,105 @@ Prose
         assert!(doc4.contains("Given:"));
         assert!(doc4.contains("When:"));
         assert!(doc4.contains("Then:"));
+
+        // Verify formal RequirementDef entity (RED TDD expectation)
+        assert_eq!(pkg.requirement_defs.len(), 1);
+        let req = &pkg.requirement_defs[0];
+        assert_eq!(req.name, "REQ_0001_Abstract_MBSE_Compiler_Mandate");
+        assert_eq!(req.req_id, "REQ-0001");
+        assert!(req.text.contains("abstract Model-Based Systems Engineering"));
+        let doc = req.doc.as_ref().expect("Expected doc metadata on RequirementDef");
+        assert!(doc.contains("UUIDv5: 5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9"));
+        assert!(doc.contains("Complexity:"));
+        assert!(doc.contains("Standard:"));
+        assert!(doc.contains("Diagnostics: E0100"));
+        assert_eq!(req.satisfied_by, vec!["SystemVisionEngine".to_string()]);
+    }
+
+    #[test]
+    fn test_translate_files_12_subsystems() {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let sample_files = vec![
+            format!("{}/../../schema/REQ-0001.md", manifest_dir),
+            format!("{}/../../schema/REQ-0014.md", manifest_dir),
+            format!("{}/../../schema/REQ-0034.md", manifest_dir),
+            format!("{}/../../schema/REQ-0054.md", manifest_dir),
+            format!("{}/../../schema/REQ-0098.md", manifest_dir),
+            format!("{}/../../schema/REQ-0114.md", manifest_dir),
+            format!("{}/../../schema/REQ-0128.md", manifest_dir),
+            format!("{}/../../schema/REQ-0145.md", manifest_dir),
+            format!("{}/../../schema/REQ-0159.md", manifest_dir),
+            format!("{}/../../schema/REQ-0175.md", manifest_dir),
+            format!("{}/../../schema/REQ-0190.md", manifest_dir),
+            format!("{}/../../schema/REQ-0195.md", manifest_dir),
+        ];
+        let translator = MarkdownTranslator::new();
+        let combined = translator.translate_files(&sample_files, "schema").expect("Failed to translate sample files");
+
+        assert_eq!(combined.name, "DEAP_Compiler_System");
+        assert_eq!(combined.packages.len(), 12);
+        assert_eq!(combined.packages[0].name, "Subsystem_1_System_Vision");
+        assert_eq!(combined.packages[1].name, "Subsystem_2_Universal_Schema_Ingestion_Engine");
+        assert_eq!(combined.packages[2].name, "Subsystem_3_Core_Metamodel_Node_Arena");
+        assert_eq!(combined.packages[3].name, "Subsystem_4_Complete_SysMLv2_KerML_Grammar");
+        assert_eq!(combined.packages[4].name, "Subsystem_5_7D_Physical_Metrology_Flow_Networks");
+        assert_eq!(combined.packages[5].name, "Subsystem_6_Spatio_Temporal_State_Solvers");
+        assert_eq!(combined.packages[6].name, "Subsystem_7_Formal_Safety_Traceability_Verification");
+        assert_eq!(combined.packages[7].name, "Subsystem_8_Level_1C_ICD_Interconnect_Contracts");
+        assert_eq!(combined.packages[8].name, "Subsystem_9_Downstream_Specification_Projections");
+        assert_eq!(combined.packages[9].name, "Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings");
+        assert_eq!(combined.packages[10].name, "Subsystem_11_Standardized_Diagnostic_Error_Catalog");
+        assert_eq!(combined.packages[11].name, "Subsystem_12_Compiler_Performance_CLI_Assurance");
+
+        // Verify primary engine PartDefs and ports
+        let sub1 = &combined.packages[0];
+        let sys_engine = sub1.part_defs.iter().find(|p| p.name == "SystemVisionEngine").expect("Missing SystemVisionEngine");
+        assert!(sys_engine.ports.iter().any(|prt| prt.name == "rules_out"));
+
+        // Verify 8 inter-subsystem connections at root
+        assert_eq!(combined.connection_defs.len(), 8);
+        assert_eq!(combined.connection_defs[0].name, "c_ingest_to_arena");
+        assert_eq!(combined.connection_defs[1].name, "c_arena_to_grammar");
+        assert_eq!(combined.connection_defs[2].name, "c_grammar_to_metrology");
+        assert_eq!(combined.connection_defs[3].name, "c_grammar_to_statemachine");
+        assert_eq!(combined.connection_defs[4].name, "c_solver_to_safety");
+        assert_eq!(combined.connection_defs[5].name, "c_safety_to_icd");
+        assert_eq!(combined.connection_defs[6].name, "c_icd_to_projections");
+        assert_eq!(combined.connection_defs[7].name, "c_projections_to_codegen");
+    }
+
+    #[test]
+    fn test_translate_all_199_requirements() {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let mut all_files = Vec::new();
+        for i in 1..=199 {
+            let path = format!("{}/../../schema/REQ-{:04}.md", manifest_dir, i);
+            if std::path::Path::new(&path).exists() {
+                all_files.push(path);
+            }
+        }
+        assert_eq!(all_files.len(), 199);
+
+        let translator = MarkdownTranslator::new();
+        let combined = translator
+            .translate_files(&all_files, "schema")
+            .expect("Failed to translate all 199 files");
+
+        assert_eq!(combined.name, "DEAP_Compiler_System");
+        assert_eq!(combined.packages.len(), 12);
+
+        let total_reqs: usize = combined.packages.iter().map(|p| p.requirement_defs.len()).sum();
+        assert_eq!(total_reqs, 199);
+
+        // Verify each subsystem has its primary engine PartDef
+        for (idx, pkg) in combined.packages.iter().enumerate() {
+            let meta = get_subsystem_meta_by_idx(idx + 1);
+            assert_eq!(pkg.name, meta.pkg_name);
+            let has_engine = pkg.part_defs.iter().any(|p| p.name == meta.engine_name);
+            assert!(has_engine, "Missing engine {} in {}", meta.engine_name, pkg.name);
+        }
+
+        assert_eq!(combined.connection_defs.len(), 8);
     }
 
     #[test]
@@ -1399,4 +2036,14 @@ Prose
         let con_names: Vec<&str> = pkg.constraint_defs.iter().map(|c| c.name.as_str()).collect();
         assert!(con_names.contains(&"assert_param_x_range"));
     }
+
+    #[test]
+    fn test_make_port_empty_category() {
+        let p = make_port("rules_out", "CompilerRulePort", "out");
+        assert_eq!(p.name, "rules_out");
+        assert_eq!(p.type_name, "CompilerRulePort");
+        assert_eq!(p.direction, "out");
+        assert_eq!(p.port_category, "");
+    }
 }
+
