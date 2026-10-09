@@ -1,55 +1,52 @@
-# Implementation Plan: Worker 00 -- OEM Prose / BOM Ingestion & Initial SysML v2 Model Synthesis (Step 0.0)
+# Implementation Plan: Pipeline Enhancement & SysML Model Correctness Audit
 
 ## 1. Context & Objectives
-The repository currently contains 199 normative requirement documents under `schema/` (`REQ-0001.md` through `REQ-0199.md`).
-In accordance with `skills/spec-orchestrator/SKILL.md` (Step 0.0 Level 0 OEM Ground Truth Ingestion) and the operator prompt catalog:
-1. **Ground 0.0 Ingestion**: Use `./target/release/ingest-sysml` to ingest all 199 requirement files in `schema/` and synthesize the canonical SysML v2 textual model in `schema/model.sysml`.
-2. **Step 0 SysML Compilation Gate**: Use `./target/release/compile-sysml --compile --schema schema/model.sysml` to validate semantics, build the formal AST, serialize `.pipeline/schema.sysml`, and generate `.pipeline/schema-digest.json`.
-3. **Baseline Conformance & Remote Sync**: Verify baseline quality gates via `./target/release/verify-baseline . --no-domain`, commit generated models, and push to `origin/main`.
+1. **SysML Model Correctness Audit**: The user has requested spinning up a specialized model auditor agent to rigorously inspect the correctness, completeness, and metamodel validity of `schema/model.sysml` (12,652 lines, synthesized from 199 requirement specifications).
+2. **Native Rust Toolchain Integration (`crates/assemble-conops`)**: Port `scripts/assemble_conops.py` to a native compiled Rust crate to provide a 100% native Rust execution path for Worker 0A.
 
 ---
 
 ## 2. Work Packages (Micro-Tasks)
 
-All file writing and model synthesis operations will be executed by context-isolated subagents in accordance with `AGENTS.md` and `rules/subagent-dispatch-standards.md`.
+All file writing and coding operations will be executed by context-isolated subagents in accordance with `AGENTS.md` and `rules/subagent-dispatch-standards.md`.
 
-### Work Package 1: Ground 0.0 Schema Ingestion Subagent Dispatch [COMPLETE]
-- **Role**: `Worker 00 -- OEM Ingestion & Model Synthesis Worker`
-- **Target Ingestion Command**:
-  ```bash
-  ./target/release/ingest-sysml --schema schema/ --format markdown --out schema/model.sysml
-  ```
-- **Expected Outputs**:
-  - `schema/model.sysml`: Synthesized SysML v2 textual model defining system `package`, subsystem packages, `part def` components, `port def` interfaces, attributes, and constraints extracted from all 199 requirement specifications.
-- **Verification**:
-  - [x] File existence check on `schema/model.sysml` (1,114,845 bytes).
-  - [x] Non-empty model verification with valid SysML v2 package boundaries across all 199 specifications.
+### Work Package 1: Create `crates/assemble-conops` [IN PROGRESS]
+- **Target Files**:
+  - `crates/assemble-conops/Cargo.toml`
+  - `crates/assemble-conops/src/lib.rs`
+  - `crates/assemble-conops/src/params.rs`
+  - `crates/assemble-conops/src/toc.rs`
+  - `crates/assemble-conops/src/sanitize.rs`
+  - `crates/assemble-conops/src/assembler.rs`
+  - `crates/assemble-conops/src/main.rs`
+- **Deliverables**: CLI parser, unit tests, parameter binding, TOC slugification, Level 1B sanitization, and unit assembly.
 
-### Work Package 2: Step 0 SysML Compilation Gate Execution [COMPLETE]
-- **Target Compilation Command**:
-  ```bash
-  ./target/release/compile-sysml --compile --schema schema/model.sysml
-  ```
-- **Expected Outputs**:
-  - `.pipeline/schema.sysml`: Canonical serialized AST representation.
-  - `.pipeline/schema-digest.json`: Canonical SHA-256 integrity hash and node population inventory.
-- **Verification**:
-  - [x] Compiler exit code 0.
-  - [x] Non-empty digest JSON (1,222,467 bytes) with verified node counts (793 elements, SHA-256: 6080a00c...).
+### Work Package 2: Cargo Workspace & Python Launcher Delegation [IN PROGRESS]
+- **Target Files**:
+  - `Cargo.toml`: Add `"crates/assemble-conops"` to workspace members.
+  - `scripts/assemble_conops.py`: Add `_run_rust_assemble_conops()` to delegate to `target/release/assemble-conops`.
 
-### Work Package 3: Baseline Quality Gate Verification & Remote Synchronization [COMPLETE]
-- **Verification Commands**:
-  - [x] `./target/release/verify-baseline . --no-domain` (All 22 active checks pass with exit code 0).
-  - [x] Check zero Unicode em dashes (`\u2014`) across modified/generated files.
-  - [x] Stage, commit with non-auto-closing message:
-    `git commit -m "feat(schema): synthesize canonical model.sysml from schema specifications via ingest-sysml"`
-  - [x] Remote sync: `git push origin main`.
-  - [x] Verify `git diff origin/main` is empty.
+### Work Package 3: Pipeline Prompts, Skills & Guidelines Update
+- **Target Files**: `docs/OPERATOR_PROMPT_CATALOG.md`, `README.md`, `CLAUDE.md`, `skills/spec-orchestrator/SKILL.md`.
+
+### Work Package 4: Quality Gate Verification & Remote Synchronization
+- **Deliverables**: Build binary, run `cargo test --workspace`, run `./target/release/verify-baseline . --no-domain`, audit zero em dashes, commit and push to `origin/main`.
+
+### Work Package 5: Dispatch SysML Model Auditor Subagent
+- **Role**: `SysML Model Auditor` (TypeName: `self` or `research`)
+- **Target**: [`schema/model.sysml`](schema/model.sysml) (1.1 MB, 12,652 lines) and 199 source specifications in `schema/REQ-*.md`.
+- **Audit Scope & Pillars**:
+  1. **OMG SysML v2 / KerML Metamodel & Syntax Compliance**: Verify grammar tokens, block delimiters (`package`, `part def`, `port def`, `attribute def`, `constraint def`, `assert constraint`), semicolon terminations, and namespace qualifiers.
+  2. **Topological & Metamodel Consistency**: Verify subsystem decomposition hierarchy, part def containment, port interface binding, and bidirectional flow rules.
+  3. **Factual Grounding & Requirement Traceability**: Cross-check coverage across all 199 requirement files (`schema/REQ-0001.md` through `schema/REQ-0199.md`). Ensure every constraint, threshold, and parameter in `schema/model.sysml` matches its source requirement.
+  4. **Mathematical & SI Unit Metrology**: Verify dimensional consistency, numerical ranges, and KaTeX mathematical alignment.
+  5. **Compiler Diagnostics & Parity Gates**: Execute `./target/release/compile-sysml --compile --schema schema/model.sysml` and `./target/release/verify-baseline . --no-domain` to empirically verify zero AST parser errors or parity gate violations.
+- **Deliverable**: Formal Model Audit Dossier with structural metrics, risk assessment, and verification findings.
 
 ---
 
 ## 3. Strict Governance Invariants
 - **Zero Em Dashes**: Strict prohibition of `\u2014`.
-- **Pure Schema-Driven**: All synthesized components and ports derive deterministically from `schema/REQ-*.md` inputs.
-- **Coordinator Direct Writing Lock**: Synthesis operations delegated exclusively to context-isolated subagents.
-- **Remote Synchronization**: Task is not complete until successfully pushed and verified on `origin/main`.
+- **Coordinator Direct Writing Lock**: Source writes delegated exclusively to context-isolated subagents.
+- **Commit Message Non-Closure Invariant**: Use neutral citations.
+- **Remote Synchronization**: Task is not complete until pushed to `origin/main`.

@@ -71,6 +71,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "assemble-conops"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "clap",
+ "deap-core",
+ "regex",
+ "serde",
+ "serde_json",
+ "walkdir",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

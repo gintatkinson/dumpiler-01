@@ -39,6 +39,7 @@ The repository embeds a compiled, high-performance native Rust toolchain (`Cargo
 | :--- | :--- | :--- |
 | `crates/ingest-sysml` | `./target/release/ingest-sysml` | **Ground 0.0 Ingestion Engine**: High-throughput parsing and normalization of unstructured OEM documentation, PDF manuals, BOM markdown tables, and Level 1C ICD registers into canonical SysML v2 textual models. |
 | `crates/compile-sysml` | `./target/release/compile-sysml` | **SysML v2 / KerML Compiler & STPA Transpiler**: Deterministic SysML v2 compilation, semantic validation, bidirectional AST synchronization (`--reverse-sync`, `--forward-sync`), and formal STPA / FMECA constraint transpilation. |
+| `crates/assemble-conops` | `./target/release/assemble-conops` | **ConOps & Mission Intent Assembly Engine**: High-throughput deterministic assembly of modular ConOps and Mission Intent units into canonical master specifications with parameter binding and TOC generation. |
 | `crates/verify-baseline` | `./target/release/verify-baseline` | **Checks 10-31 Quality Gate Verifier**: Ultra-fast baseline conformance, KaTeX math parsing, Mermaid diagram validation, and semantic diagram-to-AST parity auditor. |
 | `crates/deap-core` | `libdeap_core.rlib` | **Shared Core Foundation**: Shared AST representations, Markdown & KaTeX lexer/scanner, diagnostic reporting, defect dossier synthesis, and repository rule engines. |
 
@@ -113,7 +114,7 @@ This catalog contains the complete, unabridged operator prompt suite for executi
 flowchart TD
     subgraph P0["Pipeline 0: Pre-Spec Safety Engineering & Model Formulation"]
         Step00["Step 0.0: Level 0 OEM Ground Truth Ingestion (ingest-sysml)"] --> Step0["Step 0: SysML Model Ingestion & Compilation Gate (compile-sysml --compile)"]
-        Step0 -->|"Compiled AST"| W0A["Worker 0A: CONOPS Synthesizer"]
+        Step0 -->|"Compiled AST"| W0A["Worker 0A: CONOPS Synthesizer (assemble-conops)"]
         W0A -->|"docs/conops/CONOPS.md"| W0B["Worker 0B: STPA / FMECA Assurer"]
         W0B -->|"docs/safety/STPA_MATRIX.md"| W0C["Worker 0C: SysML Model Author"]
         W0C -->|"schema/DEAP_MODEL.sysml"| W0D["Worker 0D: Interface Specification Worker (Logical ICD & Master Signal Dictionary)"]
@@ -225,8 +226,8 @@ Execute front-end modular CONOPS and Tactical Mission Intent synthesis for the t
    - KaTeX / LaTeX Math Formatting Mandate: All multi-line aligned equations MUST be enclosed in `\begin{aligned} ... \end{aligned}` within `$$` delimiters on dedicated lines. Bare alignment tabs `&` outside an alignment environment (`aligned`, `matrix`, `cases`) and `\begin{align*}` environments are strictly forbidden. Markdown Table Math Prohibition Rule: Strictly ban `$ ... $` and `$$ ... $$` LaTeX math delimiters inside table headers, rows, and cells; plain text and Unicode (e.g. `Initial S`, `ΔV`, `λ`, `°C`, `≥`, `≤`, `→`, `10⁻⁶`) must be used instead, with 1:1 column count match between header and delimiter rows.
 
 4. Assembly & Verification Gates:
-   - Execute deterministic assembly: `python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir docs/conops/ --verify`.
-   - Compile master specification documents: `python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir docs/conops/`.
+   - Execute deterministic assembly: `./target/release/assemble-conops --input-dir docs/conops/units/ --output-dir docs/conops/ --verify (or python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir docs/conops/ --verify)`.
+   - Compile master specification documents: `./target/release/assemble-conops --input-dir docs/conops/units/ --output-dir docs/conops/ (or python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir docs/conops/)`.
    - Gate 26 Validation: Execute `python3 -m unittest tests.test_conops_and_mission_intent_validators`.
 
 Defect Filing Directive:

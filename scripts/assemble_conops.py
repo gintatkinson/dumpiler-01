@@ -15,6 +15,7 @@ import datetime
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -5191,7 +5192,40 @@ def assemble_conops(
     return True
 
 
+def _run_rust_assemble_conops():
+    cargo_bin = shutil.which("cargo")
+    if not cargo_bin:
+        return None
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_root = os.path.dirname(script_dir)
+    binary_path = os.path.join(repo_root, "target", "release", "assemble-conops")
+
+    if not os.path.isfile(binary_path):
+        build_cmd = [cargo_bin, "build", "--release", "--bin", "assemble-conops"]
+        try:
+            res = subprocess.run(build_cmd, cwd=repo_root)
+            if res.returncode != 0:
+                print("WARNING: cargo build for assemble-conops failed, falling back to python runner.", file=sys.stderr)
+                return None
+        except Exception as e:
+            print(f"WARNING: Failed to run cargo: {e}, falling back to python runner.", file=sys.stderr)
+            return None
+
+    if os.path.isfile(binary_path) and os.access(binary_path, os.X_OK):
+        cmd = [binary_path] + sys.argv[1:]
+        try:
+            res = subprocess.run(cmd)
+            sys.exit(res.returncode)
+        except Exception as e:
+            print(f"WARNING: assemble-conops execution failed: {e}, falling back to python runner.", file=sys.stderr)
+            return None
+
+    return None
+
+
 def main() -> int:
+    _run_rust_assemble_conops()
     parser = argparse.ArgumentParser(
         description="Deterministic ConOps & Mission Intent Assembly Engine (ISO 29148 / NATO STANAG 4586 / OMG UAF)."
     )

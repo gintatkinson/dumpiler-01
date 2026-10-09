@@ -4,5 +4,6 @@ members = [
     "crates/verify-baseline",
     "crates/compile-sysml",
     "crates/ingest-sysml",
+    "crates/assemble-conops",
 ]
 resolver = "2"
