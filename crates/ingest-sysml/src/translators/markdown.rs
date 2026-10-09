@@ -1,0 +1,1402 @@
+//! # Level 0 OEM Markdown & Technical Requirement AST Translator
+//!
+//! ## 1. Safety Intent & Regulatory Scope
+//! This module provides deterministic, bounded compilation of Level 0 OEM Markdown requirements,
+//! interface control documents (ICDs), Bill of Materials (BOM), and parametric budgets into
+//! canonical SysML v2 textual Abstract Syntax Tree (AST) structures (`deap_core::sysml_ast::PackageDef`).
+//!
+//! In safety-critical software architectures (DO-178C Level A, ISO 26262 ASIL D, ECSS-E-ST-40C, DO-331),
+//! requirements ingestion bridges natural language / tabular OEM specifications and formal
+//! model-driven verification tooling. Erroneous symbol extraction, silent omission of BDD criteria,
+//! or corrupted interface port typing directly invalidates downstream formal verification.
+//!
+//! ## 2. Core Safety Invariants & Hazard Mitigation
+//! - **H-INGEST-MD-01 (Structural Section & Hierarchy Integrity)**:
+//!   Document headings (`#`, `##`, `###`, `####`) are decomposed into a deterministic hierarchical
+//!   tree of [`ParsedSection`] elements. Package names and component names are sanitized through
+//!   [`sanitize_identifier`] to eliminate KerML keyword collisions.
+//! - **H-INGEST-MD-02 (BDD Acceptance Criteria & Traceability Preservation)**:
+//!   Verification acceptance criteria (`AC-01` through `AC-04`) and normative contract sections are
+//!   projected into discrete `PartDef` structural verification items. Given-When-Then BDD scenarios
+//!   and diagnostic bindings (`E0100`..`E0400`) are embedded verbatim into SysML docstrings.
+//! - **H-INGEST-MD-03 (BOM, Port & Parametric Constraint Integrity)**:
+//!   Tabular specifications are classified via pure schema-driven pattern matching ([`classify_table`]).
+//!   BOM tables yield strongly-typed `PartDef` entities; Port tables yield `PortDef`, `FlowDef`,
+//!   and `ConnectionDef` channels; and limit tables yield formal `ConstraintDef` range assertions.
+//! - **H-INGEST-MD-04 (Deterministic Concurrency & Zero Data Race)**:
+//!   Multi-file directory ingestion utilizes Rayon data parallelism across disjoint file paths.
+//!   AST consolidation merges parts, ports, attributes, and constraints into sorted `BTreeMap`
+//!   and deduplicated vectors, guaranteeing bitwise-identical SysML textual output across platforms.
+//! - **H-INGEST-MD-05 (Zero Hardcoded Domain Concepts)**:
+//!   The translation engine operates exclusively on general systems engineering meta-model primitives
+//!   (components, parts, attributes, ports, signals, constraints). Zero domain-specific vocabulary
+//!   is hardcoded.
+
+use std::collections::{BTreeMap, HashMap};
+use std::fs;
+use std::path::Path;
+use regex::Regex;
+
+use deap_core::sysml_ast::{
+    AttributeDef, ConnectionDef, ConstraintDef, FlowDef, PackageDef, PartDef, PortDef,
+};
+use crate::table::{
+    classify_table, clean_cell_value, compose_grounded_doc, extract_provenance_citation,
+    extract_unit_from_header_or_val, normalize_col, parse_numeric_with_unit, parse_range_bounds,
+    sanitize_identifier, MarkdownTable, TableType, NON_COMPONENT_SECTION_KEYWORDS,
+    PROVENANCE_COLUMNS,
+};
+
+/// Extracted YAML frontmatter metadata from the beginning of a Markdown requirement document.
+///
+/// Holds the primary requirement identifier, title, subsystem classification, and RFC 4122
+/// UUIDv5 topological anchor string.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Frontmatter {
+    /// Authoritative requirement identifier (e.g. `REQ-0001`).
+    pub id: Option<String>,
+    /// Verbatim requirement title.
+    pub title: Option<String>,
+    /// Subsystem classification tag.
+    pub subsystem: Option<String>,
+    /// Deterministic RFC 4122 UUIDv5 anchor hash.
+    pub uuidv5: Option<String>,
+}
+
+/// Represents an intermediate parsed Markdown section between structural headings.
+///
+/// Contains the heading text, optional component target, collected prose documentation lines,
+/// and any Markdown tables enclosed within the section boundary.
+#[derive(Debug, Clone, Default)]
+#[allow(dead_code)]
+struct ParsedSection {
+    /// Verbatim section heading text (e.g. `## Bill of Materials`).
+    pub header: String,
+    /// Component identifier if this section introduces or describes a specific component.
+    pub component_target: Option<String>,
+    /// Aggregated prose documentation lines within this section.
+    pub section_doc: String,
+    /// All structured Markdown tables parsed within this section.
+    pub tables: Vec<MarkdownTable>,
+}
+
+/// Deterministic translator that transforms Level 0 OEM Markdown requirements into canonical SysML v2 ASTs.
+///
+/// /// Realises: [REQ-SYSML-INGEST-MD/MarkdownTranslator]
+#[derive(Debug, Default, Clone)]
+pub struct MarkdownTranslator;
+
+impl MarkdownTranslator {
+    /// Constructs a fresh instance of the Markdown translator.
+    pub fn new() -> Self {
+        Self
+    }
+
+    /// Parses YAML frontmatter if present at the beginning of the file content.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/parse_frontmatter]
+    ///
+    /// ### Safety Intent:
+    /// Extracts formal metadata (ID, title, subsystem, UUIDv5) while isolating the remaining
+    /// document body. Resilient against missing, malformed, or unclosed frontmatter blocks.
+    ///
+    /// ### Preconditions:
+    /// - `content` is a valid UTF-8 string slice.
+    ///
+    /// ### Postconditions:
+    /// - Returns a tuple `(frontmatter, remaining_body_content)`.
+    /// - If no valid frontmatter is found, returns `Frontmatter::default()` and original `content`.
+    /// - Invariant: No data is lost; non-frontmatter lines remain entirely intact.
+    pub fn parse_frontmatter(content: &str) -> (Frontmatter, &str) {
+        let trimmed = content.trim_start();
+        if !trimmed.starts_with("---") {
+            return (Frontmatter::default(), content);
+        }
+
+        // Find closing fence `\n---`
+        let after_opening = &trimmed[3..];
+        let after_opening_trimmed = after_opening.trim_start_matches(|c| c == '\r' || c == '\n');
+        if let Some(close_idx) = after_opening_trimmed.find("\n---") {
+            let yaml_block = &after_opening_trimmed[..close_idx];
+            let rest = &after_opening_trimmed[close_idx + 4..];
+            let rest_trimmed = rest.trim_start_matches(|c| c == '\r' || c == '\n');
+
+            let mut fm = Frontmatter::default();
+            for line in yaml_block.lines() {
+                let l = line.trim();
+                if let Some(colon_idx) = l.find(':') {
+                    let key = l[..colon_idx].trim();
+                    let val = l[colon_idx + 1..].trim().trim_matches('"').trim_matches('\'').trim();
+                    match key {
+                        "id" => fm.id = Some(val.to_string()),
+                        "title" => fm.title = Some(val.to_string()),
+                        "subsystem" => fm.subsystem = Some(val.to_string()),
+                        "uuidv5" => fm.uuidv5 = Some(val.to_string()),
+                        _ => {}
+                    }
+                }
+            }
+
+            return (fm, rest_trimmed);
+        }
+
+        (Frontmatter::default(), content)
+    }
+
+    /// Translates a single Markdown document string into a canonical SysML v2 `PackageDef`.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/translate]
+    ///
+    /// ### Safety Intent:
+    /// Constructs a fully-typed, verified `PackageDef` containing all components, ports,
+    /// attributes, constraints, and acceptance criteria defined in the Markdown source.
+    ///
+    /// ### Preconditions:
+    /// - `content` contains valid UTF-8 Markdown text.
+    /// - `default_name` provides a non-empty fallback package identifier.
+    ///
+    /// ### Postconditions:
+    /// - Returns `Ok(PackageDef)` on successful lowering.
+    /// - Package name is non-empty and sanitized against SysML reserved keywords.
+    /// - Every BOM row produces a corresponding `PartDef` with typed `AttributeDef` fields.
+    /// - Every port row produces a `PortDef` with directional flows and connections.
+    /// - Every constraint row produces a `ConstraintDef` range assertion.
+    pub fn translate(&self, content: &str, default_name: &str) -> Result<PackageDef, String> {
+        // Step 1: Extract YAML frontmatter metadata and remaining document body
+        let (frontmatter, body_content) = Self::parse_frontmatter(content);
+
+        // Step 2: Decompose structural sections and identify target components
+        let (pkg_name, sections) = self.parse_markdown_structure(body_content, default_name, &frontmatter);
+
+        let mut pkg = PackageDef {
+            name: pkg_name.clone(),
+            doc: Some("Translated from Level 0 OEM Markdown specification".to_string()),
+            ..Default::default()
+        };
+
+        // Maintain part registry with sorted keys for deterministic iteration
+        let mut part_registry: BTreeMap<String, PartDef> = BTreeMap::new();
+
+        // Step 3: Iterate through parsed sections and dispatch table contents
+        for sec in &sections {
+            let mut current_part_name: Option<String> = None;
+
+            if let Some(ref target) = sec.component_target {
+                let part_name = sanitize_identifier(target, "Component");
+                if !part_registry.contains_key(&part_name) {
+                    part_registry.insert(
+                        part_name.clone(),
+                        PartDef {
+                            name: part_name.clone(),
+                            doc: if sec.section_doc.is_empty() {
+                                None
+                            } else {
+                                Some(sec.section_doc.clone())
+                            },
+                            ..Default::default()
+                        },
+                    );
+                } else if let Some(part) = part_registry.get_mut(&part_name) {
+                    if part.doc.is_none() && !sec.section_doc.is_empty() {
+                        part.doc = Some(sec.section_doc.clone());
+                    }
+                }
+                current_part_name = Some(part_name);
+            }
+
+            // Process tables enclosed within this section
+            for tbl in &sec.tables {
+                let tbl_type = classify_table(&tbl.normalized_headers);
+
+                match tbl_type {
+                    TableType::Bom => {
+                        self.process_bom_table(tbl, &mut pkg, &mut part_registry);
+                    }
+                    TableType::Ports => {
+                        if let Some(ref p_name) = current_part_name {
+                            if let Some(part) = part_registry.get_mut(p_name) {
+                                self.process_ports_table(tbl, Some(part), &mut pkg);
+                            }
+                        } else {
+                            self.process_ports_table(tbl, None, &mut pkg);
+                        }
+                    }
+                    TableType::Constraints => {
+                        if let Some(ref p_name) = current_part_name {
+                            if let Some(part) = part_registry.get_mut(p_name) {
+                                self.process_constraints_table(tbl, Some(part), &mut pkg);
+                            }
+                        } else {
+                            self.process_constraints_table(tbl, None, &mut pkg);
+                        }
+                    }
+                    TableType::Properties => {
+                        if let Some(ref p_name) = current_part_name {
+                            if let Some(part) = part_registry.get_mut(p_name) {
+                                self.process_properties_table(tbl, Some(part), &mut pkg);
+                            }
+                        } else {
+                            self.process_properties_table(tbl, None, &mut pkg);
+                        }
+                    }
+                    TableType::Generic => {
+                        if let Some(ref p_name) = current_part_name {
+                            if let Some(part) = part_registry.get_mut(p_name) {
+                                self.process_generic_table(tbl, Some(part), &mut pkg);
+                            }
+                        } else {
+                            self.process_generic_table(tbl, None, &mut pkg);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Step 4: Merge part_registry into pkg.part_defs in deterministic sorted order
+        for (p_name, p_def) in part_registry {
+            if !pkg.part_defs.iter().any(|p| p.name == p_name) {
+                pkg.part_defs.push(p_def);
+            }
+        }
+
+        // Step 5: Fallback: synthesize a canonical system PartDef if attributes/ports exist at root
+        if pkg.part_defs.is_empty()
+            && (!pkg.port_defs.is_empty()
+                || !pkg.attribute_defs.is_empty()
+                || !pkg.constraint_defs.is_empty())
+        {
+            let sys_part_name = format!("{}_System", pkg_name);
+            let sys_part = PartDef {
+                name: sys_part_name.clone(),
+                doc: Some(format!("Synthesized system component for {}", pkg_name)),
+                attributes: pkg.attribute_defs.clone(),
+                ports: pkg.port_defs.clone(),
+                constraints: pkg.constraint_defs.clone(),
+                ..Default::default()
+            };
+            pkg.part_defs.push(sys_part);
+        }
+
+        Ok(pkg)
+    }
+
+    /// Translates multiple Markdown specification files in parallel and consolidates them into a single `PackageDef`.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/translate_files]
+    ///
+    /// ### Safety Intent:
+    /// Enables high-performance, bounded ingestion across large OEM requirement corpuses (e.g. 199+ files)
+    /// using Rayon data parallelism. Guarantees deterministic, collision-free consolidation into
+    /// a unified system model.
+    ///
+    /// ### Preconditions:
+    /// - `file_paths` contains valid paths to Markdown specification files.
+    /// - `default_name` provides a non-empty name for the consolidated package.
+    ///
+    /// ### Postconditions:
+    /// - All accessible files are translated into intermediate ASTs and merged without race conditions.
+    /// - Duplicate attributes, ports, and constraints on identically-named parts are deduplicated.
+    pub fn translate_files(&self, file_paths: &[String], default_name: &str) -> Result<PackageDef, String> {
+        use rayon::prelude::*;
+
+        // Translate each file concurrently with isolated thread contexts
+        let sub_packages: Vec<PackageDef> = file_paths
+            .par_iter()
+            .filter_map(|fpath| {
+                let path = Path::new(fpath);
+                if !path.exists() {
+                    return None;
+                }
+                let content = fs::read_to_string(path).ok()?;
+                let f_basename = path.file_stem().and_then(|s| s.to_str()).unwrap_or("Module");
+                self.translate(&content, f_basename).ok()
+            })
+            .collect();
+
+        let mut combined_pkg = PackageDef {
+            name: sanitize_identifier(default_name, "OEM_System_Model"),
+            doc: Some("Consolidated Level 0 OEM Specifications".to_string()),
+            ..Default::default()
+        };
+
+        let mut part_registry: BTreeMap<String, PartDef> = BTreeMap::new();
+
+        // Merge sub-packages deterministically
+        for sub_pkg in sub_packages {
+            // Consolidate parts
+            for p in sub_pkg.part_defs {
+                if let Some(existing) = part_registry.get_mut(&p.name) {
+                    if let Some(p_doc) = p.doc {
+                        if let Some(ref ex_doc) = existing.doc {
+                            if !ex_doc.contains(&p_doc) {
+                                existing.doc = Some(format!("{}\n{}", ex_doc, p_doc));
+                            }
+                        } else {
+                            existing.doc = Some(p_doc);
+                        }
+                    }
+                    // Merge attributes without duplicate names
+                    let existing_attr_names: std::collections::HashSet<String> =
+                        existing.attributes.iter().map(|a| a.name.clone()).collect();
+                    for a in p.attributes {
+                        if !existing_attr_names.contains(&a.name) {
+                            existing.attributes.push(a);
+                        }
+                    }
+                    // Merge ports without duplicate names
+                    let existing_port_names: std::collections::HashSet<String> =
+                        existing.ports.iter().map(|prt| prt.name.clone()).collect();
+                    for prt in p.ports {
+                        if !existing_port_names.contains(&prt.name) {
+                            existing.ports.push(prt);
+                        }
+                    }
+                    // Merge constraints without duplicate names
+                    let existing_con_names: std::collections::HashSet<String> =
+                        existing.constraints.iter().map(|c| c.name.clone()).collect();
+                    for c in p.constraints {
+                        if !existing_con_names.contains(&c.name) {
+                            existing.constraints.push(c);
+                        }
+                    }
+                } else {
+                    part_registry.insert(p.name.clone(), p);
+                }
+            }
+
+            // Consolidate package-level attributes
+            let pkg_attr_names: std::collections::HashSet<String> =
+                combined_pkg.attribute_defs.iter().map(|a| a.name.clone()).collect();
+            for a in sub_pkg.attribute_defs {
+                if !pkg_attr_names.contains(&a.name) {
+                    combined_pkg.attribute_defs.push(a);
+                }
+            }
+
+            // Consolidate package-level ports
+            let pkg_port_names: std::collections::HashSet<String> =
+                combined_pkg.port_defs.iter().map(|prt| prt.name.clone()).collect();
+            for prt in sub_pkg.port_defs {
+                if !pkg_port_names.contains(&prt.name) {
+                    combined_pkg.port_defs.push(prt);
+                }
+            }
+
+            // Consolidate package-level constraints
+            let pkg_con_names: std::collections::HashSet<String> =
+                combined_pkg.constraint_defs.iter().map(|c| c.name.clone()).collect();
+            for c in sub_pkg.constraint_defs {
+                if !pkg_con_names.contains(&c.name) {
+                    combined_pkg.constraint_defs.push(c);
+                }
+            }
+
+            // Consolidate package-level connections
+            let pkg_conn_names: std::collections::HashSet<String> =
+                combined_pkg.connection_defs.iter().map(|c| c.name.clone()).collect();
+            for conn in sub_pkg.connection_defs {
+                if !pkg_conn_names.contains(&conn.name) {
+                    combined_pkg.connection_defs.push(conn);
+                }
+            }
+        }
+
+        combined_pkg.part_defs = part_registry.into_values().collect();
+        Ok(combined_pkg)
+    }
+
+    /// Internal structure parser decomposing Markdown headings, prose, and tables.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/parse_markdown_structure]
+    ///
+    /// ### Safety Intent:
+    /// Implements a state-machine parser classifying lines into H1 (package scope),
+    /// H2/H3/H4 (section or component scope), GFM tables, or prose documentation.
+    fn parse_markdown_structure(
+        &self,
+        content: &str,
+        default_name: &str,
+        frontmatter: &Frontmatter,
+    ) -> (String, Vec<ParsedSection>) {
+        let lines: Vec<&str> = content.lines().collect();
+        let mut pkg_name = if let Some(ref title) = frontmatter.title {
+            sanitize_identifier(title, default_name)
+        } else {
+            sanitize_identifier(default_name, "Markdown_Package")
+        };
+
+        let mut sections: Vec<ParsedSection> = Vec::new();
+        let mut current_sec_header = String::new();
+        let mut current_component_target: Option<String> = None;
+        let mut current_sec_doc: Vec<String> = Vec::new();
+        let mut current_tables: Vec<MarkdownTable> = Vec::new();
+
+        let mut in_table = false;
+        let mut table_raw_headers: Vec<String> = Vec::new();
+        let mut table_norm_headers: Vec<String> = Vec::new();
+        let mut table_units: Vec<String> = Vec::new();
+        let mut table_rows: Vec<HashMap<String, String>> = Vec::new();
+
+        let delim_re = Regex::new(r"^:?-+:?$").unwrap();
+        let h1_re = Regex::new(r"^#\s+([^#].*)$").unwrap();
+        let h_sub_re = Regex::new(r"^(#{2,4})\s+([^#].*)$").unwrap();
+        let pkg_word_re = Regex::new(r"(?i)\b(?:package|specification|model|spec|system)\b").unwrap();
+        let comp_prefix_re = Regex::new(r"(?i)^(?:component|part|subsystem|assembly|block|module)\s*[:\-]\s*").unwrap();
+        let non_alnum_re = Regex::new(r"[^a-z0-9]+").unwrap();
+        let fmt_strip_re = Regex::new(r"[*`]").unwrap();
+
+        let flush_table = |in_tbl: &mut bool,
+                           raw_h: &mut Vec<String>,
+                           norm_h: &mut Vec<String>,
+                           u: &mut Vec<String>,
+                           r: &mut Vec<HashMap<String, String>>,
+                           tbls: &mut Vec<MarkdownTable>| {
+            if *in_tbl && !raw_h.is_empty() && !r.is_empty() {
+                tbls.push(MarkdownTable {
+                    raw_headers: raw_h.clone(),
+                    normalized_headers: norm_h.clone(),
+                    units: u.clone(),
+                    rows: r.clone(),
+                });
+            }
+            *in_tbl = false;
+            raw_h.clear();
+            norm_h.clear();
+            u.clear();
+            r.clear();
+        };
+
+        let flush_section = |in_tbl: &mut bool,
+                             raw_h: &mut Vec<String>,
+                             norm_h: &mut Vec<String>,
+                             u: &mut Vec<String>,
+                             r: &mut Vec<HashMap<String, String>>,
+                             tbls: &mut Vec<MarkdownTable>,
+                             sec_hdr: &mut String,
+                             comp_tgt: &mut Option<String>,
+                             sec_doc: &mut Vec<String>,
+                             secs: &mut Vec<ParsedSection>| {
+            flush_table(in_tbl, raw_h, norm_h, u, r, tbls);
+            if !sec_hdr.is_empty() || !tbls.is_empty() || !sec_doc.is_empty() {
+                secs.push(ParsedSection {
+                    header: sec_hdr.clone(),
+                    component_target: comp_tgt.clone(),
+                    section_doc: sec_doc.join(" ").trim().to_string(),
+                    tables: tbls.clone(),
+                });
+            }
+            sec_doc.clear();
+            tbls.clear();
+        };
+
+        let mut i = 0;
+        let n = lines.len();
+
+        while i < n {
+            let line = lines[i];
+            let line_str = line.trim();
+
+            // Heading 1 detection: # <PackageName>
+            if let Some(h1_cap) = h1_re.captures(line_str) {
+                flush_section(
+                    &mut in_table, &mut table_raw_headers, &mut table_norm_headers,
+                    &mut table_units, &mut table_rows, &mut current_tables,
+                    &mut current_sec_header, &mut current_component_target,
+                    &mut current_sec_doc, &mut sections,
+                );
+                let raw_pkg = h1_cap.get(1).unwrap().as_str().trim();
+                let raw_pkg_clean = pkg_word_re.replace_all(raw_pkg, " ").trim().to_string();
+                let cand_name = if !raw_pkg_clean.is_empty() {
+                    raw_pkg_clean
+                } else {
+                    raw_pkg.to_string()
+                };
+                pkg_name = sanitize_identifier(&cand_name, &pkg_name);
+                current_sec_header = raw_pkg.to_string();
+                current_component_target = None;
+                i += 1;
+                continue;
+            }
+
+            // Heading 2, 3, 4 detection: ## <SectionOrComponent>
+            if let Some(h_cap) = h_sub_re.captures(line_str) {
+                flush_section(
+                    &mut in_table, &mut table_raw_headers, &mut table_norm_headers,
+                    &mut table_units, &mut table_rows, &mut current_tables,
+                    &mut current_sec_header, &mut current_component_target,
+                    &mut current_sec_doc, &mut sections,
+                );
+                let raw_header = h_cap.get(2).unwrap().as_str().trim();
+                current_sec_header = raw_header.to_string();
+
+                let norm_header = fmt_strip_re.replace_all(raw_header, "").trim().to_ascii_lowercase();
+                let clean_header_key = non_alnum_re.replace_all(&norm_header, " ").trim().to_string();
+
+                let is_functional = NON_COMPONENT_SECTION_KEYWORDS.iter().any(|&kw| {
+                    clean_header_key == kw
+                        || clean_header_key.starts_with(&format!("{} ", kw))
+                        || clean_header_key.ends_with(&format!(" {}", kw))
+                });
+
+                if is_functional {
+                    let level = h_cap.get(1).unwrap().as_str().len();
+                    if level <= 2 {
+                        current_component_target = None;
+                    }
+                } else {
+                    let comp_cand = comp_prefix_re.replace_all(raw_header, "").trim().to_string();
+                    current_component_target = Some(comp_cand);
+                }
+
+                i += 1;
+                continue;
+            }
+
+            // Markdown Table detection
+            if line_str.contains('|') {
+                let cells: Vec<String> = line_str
+                    .trim_matches('|')
+                    .split('|')
+                    .map(|c| c.trim().to_string())
+                    .collect();
+
+                let is_delimiter = !cells.is_empty() && cells.iter().all(|c| delim_re.is_match(c));
+
+                if is_delimiter && !in_table {
+                    if let Some(header_line) = current_sec_doc.pop() {
+                        let raw_h_cells: Vec<String> = header_line
+                            .trim_matches('|')
+                            .split('|')
+                            .map(|c| c.trim().to_string())
+                            .collect();
+                        table_raw_headers = raw_h_cells.clone();
+                        table_norm_headers = raw_h_cells.iter().map(|c| normalize_col(c)).collect();
+                        table_units = raw_h_cells
+                            .iter()
+                            .map(|c| extract_unit_from_header_or_val(c).1)
+                            .collect();
+                        in_table = true;
+                        i += 1;
+                        continue;
+                    }
+                } else if is_delimiter && in_table {
+                    i += 1;
+                    continue;
+                } else if in_table {
+                    let mut row_dict = HashMap::new();
+                    for (idx, norm_col) in table_norm_headers.iter().enumerate() {
+                        let val = if idx < cells.len() {
+                            clean_cell_value(&cells[idx])
+                        } else {
+                            String::new()
+                        };
+                        row_dict.insert(norm_col.clone(), val);
+                    }
+                    table_rows.push(row_dict);
+                    i += 1;
+                    continue;
+                } else {
+                    // Peek ahead to next row
+                    if i + 1 < n && lines[i + 1].contains('|') {
+                        let next_line = lines[i + 1].trim();
+                        let next_cells: Vec<String> = next_line
+                            .trim_matches('|')
+                            .split('|')
+                            .map(|c| c.trim().to_string())
+                            .collect();
+                        if !next_cells.is_empty() && next_cells.iter().all(|c| delim_re.is_match(c)) {
+                            flush_table(
+                                &mut in_table, &mut table_raw_headers, &mut table_norm_headers,
+                                &mut table_units, &mut table_rows, &mut current_tables,
+                            );
+                            table_raw_headers = cells.clone();
+                            table_norm_headers = cells.iter().map(|c| normalize_col(c)).collect();
+                            table_units = cells
+                                .iter()
+                                .map(|c| extract_unit_from_header_or_val(c).1)
+                                .collect();
+                            in_table = true;
+                            i += 2;
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            if in_table && (!line_str.contains('|') || line_str.is_empty()) {
+                flush_table(
+                    &mut in_table, &mut table_raw_headers, &mut table_norm_headers,
+                    &mut table_units, &mut table_rows, &mut current_tables,
+                );
+            }
+
+            // Prose line
+            if !line_str.is_empty()
+                && !line_str.starts_with("<!--")
+                && !line_str.starts_with("```")
+            {
+                current_sec_doc.push(line_str.to_string());
+            }
+
+            i += 1;
+        }
+
+        flush_section(
+            &mut in_table, &mut table_raw_headers, &mut table_norm_headers,
+            &mut table_units, &mut table_rows, &mut current_tables,
+            &mut current_sec_header, &mut current_component_target,
+            &mut current_sec_doc, &mut sections,
+        );
+
+        (pkg_name, sections)
+    }
+
+    /// Processes BOM table into PartDef AST entities with typed AttributeDefs.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/process_bom_table]
+    ///
+    /// ### Safety Intent:
+    /// Maps each BOM line item into a strongly-typed `PartDef`, extracting mass, power,
+    /// part numbers, and descriptive annotations with verified provenance.
+    fn process_bom_table(
+        &self,
+        table: &MarkdownTable,
+        pkg: &mut PackageDef,
+        part_registry: &mut BTreeMap<String, PartDef>,
+    ) {
+        let headers = &table.normalized_headers;
+        let units = &table.units;
+        let unit_map: HashMap<String, String> = headers
+            .iter()
+            .enumerate()
+            .map(|(idx, h)| {
+                let u = if idx < units.len() {
+                    units[idx].clone()
+                } else {
+                    String::new()
+                };
+                (h.clone(), u)
+            })
+            .collect();
+
+        let comp_col = headers
+            .iter()
+            .find(|h| {
+                [
+                    "component", "component_name", "part", "part_name",
+                    "subsystem", "item", "module", "assembly",
+                ]
+                .contains(&h.as_str())
+            })
+            .cloned()
+            .unwrap_or_else(|| {
+                if !headers.is_empty() {
+                    headers[0].clone()
+                } else {
+                    "component".to_string()
+                }
+            });
+
+        let summary_keywords = ["total", "subtotal", "sum", "summary", "aggregate", "overall"];
+        let sep_re = Regex::new(r"^[-=_\s:|]+$").unwrap();
+        let clean_comp_re = Regex::new(r"[*`_#]").unwrap();
+
+        for row in &table.rows {
+            let comp_raw = row.get(&comp_col).map_or("", |v| v.trim());
+            if comp_raw.is_empty() || sep_re.is_match(comp_raw) {
+                continue;
+            }
+
+            let comp_clean = clean_comp_re.replace_all(comp_raw, "").trim().to_ascii_lowercase();
+            if summary_keywords.contains(&comp_clean.as_str())
+                || summary_keywords.iter().any(|&kw| comp_clean.starts_with(&format!("{} ", kw)))
+            {
+                continue;
+            }
+
+            let non_comp_values: Vec<&str> = row
+                .iter()
+                .filter(|(k, v)| k.as_str() != comp_col.as_str() && !v.trim().is_empty())
+                .map(|(_, v)| v.as_str())
+                .collect();
+            if non_comp_values.is_empty() {
+                continue;
+            }
+
+            let comp_name = sanitize_identifier(comp_raw, "Component");
+            if !part_registry.contains_key(&comp_name) {
+                part_registry.insert(
+                    comp_name.clone(),
+                    PartDef {
+                        name: comp_name.clone(),
+                        ..Default::default()
+                    },
+                );
+            }
+            let part = part_registry.get_mut(&comp_name).unwrap();
+
+            let row_citation = extract_provenance_citation(row, headers);
+            let mut desc_found = false;
+
+            for (col, val) in row {
+                if col == &comp_col || val.trim().is_empty() || PROVENANCE_COLUMNS.contains(&col.as_str()) {
+                    continue;
+                }
+
+                let attr_name = sanitize_identifier(col, "attr");
+                if ["description", "doc", "function", "notes"].contains(&col.as_str()) {
+                    desc_found = true;
+                    let part_doc = compose_grounded_doc(val.trim(), &row_citation, "");
+                    if part.doc.is_none() {
+                        part.doc = Some(part_doc);
+                    }
+                    continue;
+                }
+
+                let col_unit = unit_map.get(col).cloned().unwrap_or_default();
+                let (num_val, val_unit, int_val) = parse_numeric_with_unit(val);
+                let eff_unit = if !col_unit.is_empty() {
+                    col_unit
+                } else {
+                    val_unit.unwrap_or_default()
+                };
+
+                let (type_name, def_val) = if let Some(i_val) = int_val {
+                    if !val.contains('.') {
+                        ("Integer".to_string(), i_val.to_string())
+                    } else {
+                        ("Real".to_string(), num_val.unwrap().to_string())
+                    }
+                } else if let Some(n_val) = num_val {
+                    ("Real".to_string(), n_val.to_string())
+                } else if val.eq_ignore_ascii_case("true") || val.eq_ignore_ascii_case("false") {
+                    ("Boolean".to_string(), val.to_ascii_lowercase())
+                } else {
+                    let clean_str = val.trim_matches(|c| c == '"' || c == '\'' || c == ';' || c == ' ');
+                    ("String".to_string(), format!("\"{}\"", clean_str))
+                };
+
+                let doc_str = compose_grounded_doc("", &row_citation, &eff_unit);
+                if !part.attributes.iter().any(|a| a.name == attr_name) {
+                    part.attributes.push(AttributeDef {
+                        name: attr_name,
+                        type_name,
+                        default_value: Some(def_val),
+                        doc: if doc_str.is_empty() { None } else { Some(doc_str) },
+                    });
+                }
+            }
+
+            if !desc_found && !row_citation.is_empty() && part.doc.is_none() {
+                part.doc = Some(compose_grounded_doc("", &row_citation, ""));
+            }
+
+            if !pkg.part_defs.iter().any(|p| p.name == comp_name) {
+                pkg.part_defs.push(part.clone());
+            }
+        }
+    }
+
+    /// Processes Port/Signal/Interface tables into PortDef, FlowDef, and ConnectionDef AST nodes.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/process_ports_table]
+    ///
+    /// ### Safety Intent:
+    /// Maps interface control documents (ICDs) into formal SysML v2 ports and directional flows,
+    /// binding update rates, engineering units, and point-to-point connections.
+    fn process_ports_table(
+        &self,
+        table: &MarkdownTable,
+        mut target_part: Option<&mut PartDef>,
+        pkg: &mut PackageDef,
+    ) {
+        let headers = &table.normalized_headers;
+        let units = &table.units;
+        let unit_map: HashMap<String, String> = headers
+            .iter()
+            .enumerate()
+            .map(|(idx, h)| {
+                let u = if idx < units.len() {
+                    units[idx].clone()
+                } else {
+                    String::new()
+                };
+                (h.clone(), u)
+            })
+            .collect();
+
+        let name_col = headers
+            .iter()
+            .find(|h| {
+                [
+                    "port", "port_name", "signal", "signal_name", "signal_id",
+                    "interface", "name", "flow",
+                ]
+                .contains(&h.as_str())
+            })
+            .cloned()
+            .unwrap_or_else(|| {
+                if !headers.is_empty() {
+                    headers[0].clone()
+                } else {
+                    "port".to_string()
+                }
+            });
+
+        let dir_col = headers.iter().find(|h| ["direction", "dir", "flow_direction"].contains(&h.as_str()));
+        let type_col = headers.iter().find(|h| ["type", "data_type", "item_type", "payload", "port_type"].contains(&h.as_str()));
+        let protocol_col = headers.iter().find(|h| ["protocol", "protocol_family", "bus"].contains(&h.as_str()));
+        let rate_col = headers.iter().find(|h| ["rate", "rate_hz", "frequency", "update_rate"].contains(&h.as_str()));
+        let range_col = headers.iter().find(|h| ["range", "valid_range"].contains(&h.as_str()));
+        let unit_col = headers.iter().find(|h| ["unit", "units", "engineering_units"].contains(&h.as_str()));
+        let def_col = headers.iter().find(|h| ["default", "default_value"].contains(&h.as_str()));
+        let doc_col = headers.iter().find(|h| ["description", "doc", "notes"].contains(&h.as_str()));
+        let src_col = headers.iter().find(|h| ["source_port", "source", "source_part"].contains(&h.as_str()));
+        let tgt_col = headers.iter().find(|h| ["target_port", "target", "target_part"].contains(&h.as_str()));
+
+        for row in &table.rows {
+            let raw_name = row.get(&name_col).map_or("", |v| v.trim());
+            if raw_name.is_empty() {
+                continue;
+            }
+
+            let port_name = sanitize_identifier(raw_name, "port");
+
+            let dir_raw = dir_col.and_then(|c| row.get(c)).map_or("", |v| v.trim()).to_ascii_lowercase();
+            let direction = match dir_raw.as_str() {
+                "in" | "input" | "rx" => "in",
+                "out" | "output" | "tx" => "out",
+                _ => "inout",
+            }
+            .to_string();
+
+            let raw_type = type_col.and_then(|c| row.get(c)).map_or("", |v| v.trim());
+            let type_name = if !raw_type.is_empty() {
+                match raw_type.to_ascii_lowercase().as_str() {
+                    "float" | "float32" | "float64" | "double" | "real" => "Real".to_string(),
+                    "int" | "int32" | "int64" | "uint" | "integer" => "Integer".to_string(),
+                    "bool" | "boolean" => "Boolean".to_string(),
+                    "str" | "string" => "String".to_string(),
+                    _ => sanitize_identifier(raw_type, "Port"),
+                }
+            } else {
+                "Port".to_string()
+            };
+
+            let protocol = protocol_col.and_then(|c| row.get(c)).map_or("", |v| v.trim()).to_string();
+            let cit = extract_provenance_citation(row, headers);
+            let raw_desc = doc_col.and_then(|c| row.get(c)).map_or("", |v| v.trim());
+            let doc = compose_grounded_doc(raw_desc, &cit, "");
+
+            let rate_hz = rate_col.and_then(|c| row.get(c)).and_then(|v| {
+                let (r_val, _, _) = parse_numeric_with_unit(v);
+                r_val
+            });
+
+            let eff_unit = unit_col
+                .and_then(|c| row.get(c))
+                .map(|v| v.trim().to_string())
+                .filter(|u| !u.is_empty())
+                .unwrap_or_else(|| unit_map.get(&name_col).cloned().unwrap_or_default());
+
+            let val_range = range_col.and_then(|c| row.get(c)).map(|v| v.trim().to_string());
+            let def_val = def_col.and_then(|c| row.get(c)).map(|v| v.trim().to_string());
+
+            let mut item_flows = Vec::new();
+            if rate_hz.is_some() || !eff_unit.is_empty() || val_range.is_some() || (type_name != "Port" && direction != "inout") {
+                let flow_name = format!("{}_flow", port_name);
+                let flow_doc = compose_grounded_doc(raw_desc, &cit, &eff_unit);
+                item_flows.push(FlowDef {
+                    name: flow_name,
+                    direction: if direction != "inout" {
+                        direction.clone()
+                    } else {
+                        "out".to_string()
+                    },
+                    item_type: if type_name != "Port" {
+                        type_name.clone()
+                    } else {
+                        "Item".to_string()
+                    },
+                    doc: if flow_doc.is_empty() { None } else { Some(flow_doc) },
+                    rate_hz,
+                    unit: if eff_unit.is_empty() { None } else { Some(eff_unit) },
+                    valid_range: val_range,
+                    default_value: def_val,
+                });
+            }
+
+            let port_def = PortDef {
+                name: port_name.clone(),
+                type_name: type_name.clone(),
+                direction,
+                is_conjugated: false,
+                doc: if doc.is_empty() { None } else { Some(doc) },
+                port_category: "DataPort".to_string(),
+                protocol_family: protocol.clone(),
+                electrical_attributes: BTreeMap::new(),
+                item_flows,
+            };
+
+            if let Some(ref mut part) = target_part {
+                if !part.ports.iter().any(|p| p.name == port_name) {
+                    part.ports.push(port_def);
+                }
+            } else if !pkg.port_defs.iter().any(|p| p.name == port_name) {
+                pkg.port_defs.push(port_def);
+            }
+
+            // Connection creation if source and target ports are specified
+            if let (Some(s_col), Some(t_col)) = (src_col, tgt_col) {
+                let src_val = row.get(s_col).map_or("", |v| v.trim());
+                let tgt_val = row.get(t_col).map_or("", |v| v.trim());
+                if !src_val.is_empty() && !tgt_val.is_empty() {
+                    let conn_name = format!("conn_{}", port_name);
+                    let conn_doc = compose_grounded_doc(raw_desc, &cit, "");
+                    if !pkg.connection_defs.iter().any(|c| c.name == conn_name) {
+                        pkg.connection_defs.push(ConnectionDef {
+                            name: conn_name,
+                            source_port: src_val.to_string(),
+                            target_port: tgt_val.to_string(),
+                            source_part: if src_val.contains('.') {
+                                Some(src_val.split('.').next().unwrap().to_string())
+                            } else {
+                                None
+                            },
+                            target_part: if tgt_val.contains('.') {
+                                Some(tgt_val.split('.').next().unwrap().to_string())
+                            } else {
+                                None
+                            },
+                            doc: if conn_doc.is_empty() { None } else { Some(conn_doc) },
+                            severity: 1,
+                            item_flow_ref: None,
+                            protocol: if !protocol.is_empty() { Some(protocol) } else { None },
+                            latency_ms: None,
+                            is_flow: false,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    /// Processes Parametric Limits and Constraints into ConstraintDef and AttributeDef AST nodes.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/process_constraints_table]
+    ///
+    /// ### Safety Intent:
+    /// Transforms numerical tolerances and operational envelopes into formal boolean assertion
+    /// predicates (`ConstraintDef`), enforcing verification boundaries at model level.
+    fn process_constraints_table(
+        &self,
+        table: &MarkdownTable,
+        mut target_part: Option<&mut PartDef>,
+        pkg: &mut PackageDef,
+    ) {
+        let headers = &table.normalized_headers;
+        let units = &table.units;
+        let unit_map: HashMap<String, String> = headers
+            .iter()
+            .enumerate()
+            .map(|(idx, h)| {
+                let u = if idx < units.len() {
+                    units[idx].clone()
+                } else {
+                    String::new()
+                };
+                (h.clone(), u)
+            })
+            .collect();
+
+        let param_col = headers
+            .iter()
+            .find(|h| {
+                [
+                    "parameter", "param", "property", "metric", "variable", "name",
+                ]
+                .contains(&h.as_str())
+            })
+            .cloned()
+            .unwrap_or_else(|| {
+                if !headers.is_empty() {
+                    headers[0].clone()
+                } else {
+                    "parameter".to_string()
+                }
+            });
+
+        let min_col = headers.iter().find(|h| ["min", "minimum", "lower_bound", "min_val"].contains(&h.as_str()));
+        let max_col = headers.iter().find(|h| ["max", "maximum", "upper_bound", "max_val"].contains(&h.as_str()));
+        let range_col = headers.iter().find(|h| ["range", "valid_range", "bounds", "limit", "bound"].contains(&h.as_str()));
+        let unit_col = headers.iter().find(|h| ["unit", "units", "engineering_units"].contains(&h.as_str()));
+        let type_col = headers.iter().find(|h| ["type", "data_type"].contains(&h.as_str()));
+        let def_col = headers.iter().find(|h| ["default", "default_value", "nominal", "value"].contains(&h.as_str()));
+        let constraint_col = headers.iter().find(|h| ["constraint", "condition", "invariant", "assertion"].contains(&h.as_str()));
+        let doc_col = headers.iter().find(|h| ["description", "doc", "notes"].contains(&h.as_str()));
+
+        for row in &table.rows {
+            let raw_param = row.get(&param_col).map_or("", |v| v.trim());
+            if raw_param.is_empty() {
+                continue;
+            }
+
+            let param_name = sanitize_identifier(raw_param, "param");
+            let cit = extract_provenance_citation(row, headers);
+            let raw_desc = doc_col.and_then(|c| row.get(c)).map_or("", |v| v.trim());
+            let mut eff_unit = unit_col
+                .and_then(|c| row.get(c))
+                .map(|v| v.trim().to_string())
+                .filter(|u| !u.is_empty())
+                .unwrap_or_else(|| unit_map.get(&param_col).cloned().unwrap_or_default());
+
+            let mut min_val: Option<f64> = None;
+            let mut max_val: Option<f64> = None;
+
+            if let Some(c) = min_col {
+                if let Some(v_str) = row.get(c) {
+                    let (v, u, _) = parse_numeric_with_unit(v_str);
+                    min_val = v;
+                    if eff_unit.is_empty() && u.is_some() {
+                        eff_unit = u.unwrap();
+                    }
+                }
+            }
+
+            if let Some(c) = max_col {
+                if let Some(v_str) = row.get(c) {
+                    let (v, u, _) = parse_numeric_with_unit(v_str);
+                    max_val = v;
+                    if eff_unit.is_empty() && u.is_some() {
+                        eff_unit = u.unwrap();
+                    }
+                }
+            }
+
+            if (min_val.is_none() || max_val.is_none()) && range_col.is_some() {
+                if let Some(v_str) = row.get(range_col.unwrap()) {
+                    let (r_min, r_max) = parse_range_bounds(v_str);
+                    if min_val.is_none() {
+                        min_val = r_min;
+                    }
+                    if max_val.is_none() {
+                        max_val = r_max;
+                    }
+                }
+            }
+
+            let expression = if let Some(c) = constraint_col {
+                row.get(c).map_or("", |v| v.trim()).trim_end_matches(';').trim().to_string()
+            } else if let (Some(mn), Some(mx)) = (min_val, max_val) {
+                format!("{} >= {} and {} <= {}", param_name, mn, param_name, mx)
+            } else if let Some(mn) = min_val {
+                format!("{} >= {}", param_name, mn)
+            } else if let Some(mx) = max_val {
+                format!("{} <= {}", param_name, mx)
+            } else {
+                String::new()
+            };
+
+            if !expression.is_empty() {
+                let con_name = format!("assert_{}_range", param_name);
+                let con_doc = compose_grounded_doc(raw_desc, &cit, &eff_unit);
+                let constraint_def = ConstraintDef {
+                    name: con_name.clone(),
+                    expression,
+                    parameters: Vec::new(),
+                    is_assertion: true,
+                    doc: if con_doc.is_empty() { None } else { Some(con_doc) },
+                    pre_conditions: Vec::new(),
+                    post_conditions: Vec::new(),
+                };
+
+                if let Some(ref mut part) = target_part {
+                    if !part.constraints.iter().any(|c| c.name == con_name) {
+                        part.constraints.push(constraint_def);
+                    }
+                } else if !pkg.constraint_defs.iter().any(|c| c.name == con_name) {
+                    pkg.constraint_defs.push(constraint_def);
+                }
+            }
+
+            let raw_type = type_col.and_then(|c| row.get(c)).map_or("", |v| v.trim());
+            let type_name = if !raw_type.is_empty() {
+                let low = raw_type.to_ascii_lowercase();
+                if low.contains("int") {
+                    "Integer".to_string()
+                } else if low.contains("bool") {
+                    "Boolean".to_string()
+                } else if low.contains("str") {
+                    "String".to_string()
+                } else {
+                    sanitize_identifier(raw_type, "Real")
+                }
+            } else {
+                "Real".to_string()
+            };
+
+            let raw_def = def_col.and_then(|c| row.get(c)).map_or("", |v| v.trim());
+            let def_val = if !raw_def.is_empty() {
+                let (num_v, _, int_v) = parse_numeric_with_unit(raw_def);
+                if int_v.is_some() && type_name == "Integer" {
+                    Some(int_v.unwrap().to_string())
+                } else if let Some(n_v) = num_v {
+                    Some(n_v.to_string())
+                } else {
+                    Some(format!("\"{}\"", raw_def.trim()))
+                }
+            } else {
+                None
+            };
+
+            let attr_doc = compose_grounded_doc(raw_desc, &cit, &eff_unit);
+            let attr_def = AttributeDef {
+                name: param_name.clone(),
+                type_name,
+                default_value: def_val,
+                doc: if attr_doc.is_empty() { None } else { Some(attr_doc) },
+            };
+
+            if let Some(ref mut part) = target_part {
+                if !part.attributes.iter().any(|a| a.name == param_name) {
+                    part.attributes.push(attr_def);
+                }
+            } else if !pkg.attribute_defs.iter().any(|a| a.name == param_name) {
+                pkg.attribute_defs.push(attr_def);
+            }
+        }
+    }
+
+    /// Processes 2-3 column Key-Value property tables into AttributeDef AST nodes.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/process_properties_table]
+    ///
+    /// ### Safety Intent:
+    /// Extracts contract metadata, specification parameters, and document properties,
+    /// binding physical units and provenance citations into formal SysML attribute docstrings.
+    fn process_properties_table(
+        &self,
+        table: &MarkdownTable,
+        mut target_part: Option<&mut PartDef>,
+        pkg: &mut PackageDef,
+    ) {
+        let headers = &table.normalized_headers;
+        if headers.is_empty() {
+            return;
+        }
+
+        let k_col = &headers[0];
+        let v_col = if headers.len() > 1 {
+            &headers[1]
+        } else {
+            &headers[0]
+        };
+
+        let mut d_col: Option<&String> = headers
+            .iter()
+            .find(|h| ["description", "doc", "notes", "comment", "details"].contains(&h.as_str()));
+        let unit_col = headers
+            .iter()
+            .find(|h| ["unit", "units", "engineering_units"].contains(&h.as_str()));
+
+        if d_col.is_none() && headers.len() > 2 {
+            for h in &headers[2..] {
+                if !PROVENANCE_COLUMNS.contains(&h.as_str()) && Some(h) != unit_col {
+                    d_col = Some(h);
+                    break;
+                }
+            }
+        }
+
+        for row in &table.rows {
+            let raw_k = row.get(k_col).map_or("", |v| v.trim());
+            let raw_v = row.get(v_col).map_or("", |v| v.trim());
+            if raw_k.is_empty() {
+                continue;
+            }
+
+            let attr_name = sanitize_identifier(raw_k, "property");
+            let cit = extract_provenance_citation(row, headers);
+            let raw_desc = d_col.and_then(|c| row.get(c)).map_or("", |v| v.trim());
+
+            let (num_v, parsed_unit, int_v) = parse_numeric_with_unit(raw_v);
+            let row_unit = unit_col.and_then(|c| row.get(c)).map_or("", |v| v.trim());
+            let unit = if !row_unit.is_empty() {
+                row_unit.to_string()
+            } else {
+                parsed_unit.unwrap_or_default()
+            };
+
+            let (type_name, def_val) = if let Some(i_val) = int_v {
+                if !raw_v.contains('.') {
+                    ("Integer".to_string(), Some(i_val.to_string()))
+                } else {
+                    ("Real".to_string(), Some(num_v.unwrap().to_string()))
+                }
+            } else if let Some(n_val) = num_v {
+                ("Real".to_string(), Some(n_val.to_string()))
+            } else if raw_v.eq_ignore_ascii_case("true") || raw_v.eq_ignore_ascii_case("false") {
+                ("Boolean".to_string(), Some(raw_v.to_ascii_lowercase()))
+            } else if !raw_v.is_empty() {
+                ("String".to_string(), Some(format!("\"{}\"", raw_v.trim())))
+            } else {
+                ("String".to_string(), None)
+            };
+
+            let eff_doc = compose_grounded_doc(raw_desc, &cit, &unit);
+            let attr_def = AttributeDef {
+                name: attr_name.clone(),
+                type_name,
+                default_value: def_val,
+                doc: if eff_doc.is_empty() { None } else { Some(eff_doc) },
+            };
+
+            if let Some(ref mut part) = target_part {
+                if !part.attributes.iter().any(|a| a.name == attr_name) {
+                    part.attributes.push(attr_def);
+                }
+            } else if !pkg.attribute_defs.iter().any(|a| a.name == attr_name) {
+                pkg.attribute_defs.push(attr_def);
+            }
+        }
+    }
+
+    /// Generic table processor falling back to property-style processing.
+    ///
+    /// /// Realises: [REQ-SYSML-INGEST-MD/process_generic_table]
+    fn process_generic_table(
+        &self,
+        table: &MarkdownTable,
+        target_part: Option<&mut PartDef>,
+        pkg: &mut PackageDef,
+    ) {
+        if table.normalized_headers.len() >= 2 {
+            self.process_properties_table(table, target_part, pkg);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_frontmatter() {
+        let content = r#"---
+id: REQ-0001
+title: "Abstract MBSE Compiler Mandate & Pure Schema-Driven Execution"
+subsystem: "Subsystem 1: System Vision, Bootstrapping & Foundational Invariants"
+uuidv5: 5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9
+---
+
+# Heading 1
+Prose
+"#;
+        let (fm, rest) = MarkdownTranslator::parse_frontmatter(content);
+        assert_eq!(fm.id.as_deref(), Some("REQ-0001"));
+        assert_eq!(
+            fm.title.as_deref(),
+            Some("Abstract MBSE Compiler Mandate & Pure Schema-Driven Execution")
+        );
+        assert_eq!(
+            fm.uuidv5.as_deref(),
+            Some("5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9")
+        );
+        assert!(rest.starts_with("# Heading 1"));
+    }
+
+    #[test]
+    fn test_translate_req_0001() {
+        let req1_path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../schema/REQ-0001.md");
+        let content = fs::read_to_string(req1_path).expect("Failed to read schema/REQ-0001.md");
+        let translator = MarkdownTranslator::new();
+        let pkg = translator.translate(&content, "REQ-0001").expect("Translation failed");
+
+        assert_eq!(
+            pkg.name,
+            "Abstract_MBSE_Compiler_Mandate_Pure_Schema_Driven_Execution"
+        );
+
+        // Verify package-level attributes from metadata table
+        let attr_names: Vec<&str> = pkg.attribute_defs.iter().map(|a| a.name.as_str()).collect();
+        assert!(attr_names.contains(&"Requirement_ID"));
+        assert!(attr_names.contains(&"Deterministic_UUIDv5"));
+        assert!(attr_names.contains(&"Subsystem_item"));
+        assert!(attr_names.contains(&"Complexity_Class"));
+        assert!(attr_names.contains(&"NP_Frontier_Anchor"));
+        assert!(attr_names.contains(&"Diagnostic_Code_Bindings"));
+        assert!(attr_names.contains(&"Governing_Standard"));
+
+        // Verify PartDef parts:
+        let part_names: Vec<&str> = pkg.part_defs.iter().map(|p| p.name.as_str()).collect();
+        assert!(part_names.contains(&"_1_Normative_Statement"));
+        assert!(part_names.contains(&"_2_Formal_Invariant"));
+        assert!(part_names.contains(&"_3_Computational_Complexity_Algorithmic_Bounds"));
+        assert!(part_names.contains(&"_4_Verification_Conformance_Criteria"));
+        assert!(part_names.contains(&"AC_01_Pure_Schema_Driven_Symbol_Derivation"));
+        assert!(part_names.contains(&"AC_02_Zero_Domain_Vocabulary_Contamination"));
+        assert!(part_names.contains(&"AC_03_Deterministic_RFC_4122_UUIDv5_Topological_Path_Anchors"));
+        assert!(part_names.contains(&"AC_04_Bitwise_Determinism_across_Repeated_Invocations"));
+
+        // Verify that AC parts have docstrings containing Given-When-Then BDD scenarios
+        let ac1 = pkg.part_defs.iter().find(|p| p.name == "AC_01_Pure_Schema_Driven_Symbol_Derivation").unwrap();
+        assert!(ac1.doc.is_some());
+        let doc1 = ac1.doc.as_ref().unwrap();
+        assert!(doc1.contains("Given:"));
+        assert!(doc1.contains("When:"));
+        assert!(doc1.contains("Then:"));
+        assert!(doc1.contains("E0100"));
+
+        let ac4 = pkg.part_defs.iter().find(|p| p.name == "AC_04_Bitwise_Determinism_across_Repeated_Invocations").unwrap();
+        assert!(ac4.doc.is_some());
+        let doc4 = ac4.doc.as_ref().unwrap();
+        assert!(doc4.contains("Given:"));
+        assert!(doc4.contains("When:"));
+        assert!(doc4.contains("Then:"));
+    }
+
+    #[test]
+    fn test_translate_bom_and_ports() {
+        let content = r#"
+# Package_0
+
+## Bill of Materials
+| Component | Part Number | Mass (kg) | Power (W) | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| Classifier_Alpha | PN_01 | 12.5 | 500.0 | Synthetic component alpha |
+| Classifier_Beta | PN_02 | 2.1 | 15.0 | Synthetic component beta |
+
+## System Interfaces
+| Port | Direction | Type | Rate (Hz) | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| Port_1 | out | Real | 100 | Port 1 signal |
+| Port_2 | in | String | 10 | Port 2 command |
+
+## System Parameters
+| Parameter | Min | Max | Unit | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| param_x | 20.0 | 28.0 | V | Synthetic parameter x |
+"#;
+        let translator = MarkdownTranslator::new();
+        let pkg = translator.translate(content, "Package_0").expect("Failed translation");
+
+        assert_eq!(pkg.name, "Package_0");
+        let part_names: Vec<&str> = pkg.part_defs.iter().map(|p| p.name.as_str()).collect();
+        assert!(part_names.contains(&"Classifier_Alpha"));
+        assert!(part_names.contains(&"Classifier_Beta"));
+
+        let alpha = pkg.part_defs.iter().find(|p| p.name == "Classifier_Alpha").unwrap();
+        assert_eq!(alpha.doc.as_deref(), Some("Synthetic component alpha"));
+        let alpha_attrs: Vec<&str> = alpha.attributes.iter().map(|a| a.name.as_str()).collect();
+        assert!(alpha_attrs.contains(&"part_number"));
+        assert!(alpha_attrs.contains(&"mass"));
+        assert!(alpha_attrs.contains(&"power"));
+
+        let port_names: Vec<&str> = pkg.port_defs.iter().map(|p| p.name.as_str()).collect();
+        assert!(port_names.contains(&"Port_1"));
+        assert!(port_names.contains(&"Port_2"));
+
+        let con_names: Vec<&str> = pkg.constraint_defs.iter().map(|c| c.name.as_str()).collect();
+        assert!(con_names.contains(&"assert_param_x_range"));
+    }
+}

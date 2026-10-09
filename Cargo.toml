@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "crates/deap-core",
+    "crates/verify-baseline",
+    "crates/compile-sysml",
+    "crates/ingest-sysml",
+]
+resolver = "2"
