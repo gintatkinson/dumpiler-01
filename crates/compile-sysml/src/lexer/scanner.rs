@@ -182,26 +182,41 @@ impl<'a> Scanner<'a> {
         self.advance(); // /
         self.advance(); // *
         let content_start = self.cursor;
+        let mut depth: usize = 1;
+        let mut content_end = self.cursor;
 
-        while !self.is_at_end() && !self.starts_with("*/") {
-            if self.peek() == '\n' {
-                self.line += 1;
-                self.col = 0;
+        while !self.is_at_end() {
+            if self.starts_with("/*") {
+                depth += 1;
+                self.advance();
+                self.advance();
+            } else if self.starts_with("*/") {
+                depth -= 1;
+                if depth == 0 {
+                    content_end = self.cursor;
+                    self.advance();
+                    self.advance();
+                    break;
+                } else {
+                    self.advance();
+                    self.advance();
+                }
+            } else {
+                if self.peek() == '\n' {
+                    self.line += 1;
+                    self.col = 0;
+                }
+                self.advance();
             }
-            self.advance();
         }
 
-        if self.is_at_end() {
+        if depth > 0 {
             return Err(format!("Unclosed block comment starting at {}:{}", line, col));
         }
 
-        let content_end = self.cursor;
-        self.advance(); // *
-        self.advance(); // /
-
         let raw = &self.source[content_start..content_end];
         let cleaned = raw.trim();
-        let comment_text = if cleaned.starts_with("doc") && (cleaned.len() == 3 || cleaned[3..].chars().next().map_or(false, |c| c.is_whitespace() || c == ':')) {
+        let comment_text = if cleaned.starts_with("doc") && (cleaned.len() == 3 || cleaned[3..].chars().next().is_some_and(|c| c.is_whitespace() || c == ':')) {
             cleaned[3..].trim_start_matches(|c: char| c.is_whitespace() || c == ':').trim().to_string()
         } else {
             cleaned.to_string()
@@ -222,7 +237,8 @@ impl<'a> Scanner<'a> {
             if ch == '\\' {
                 self.advance();
                 if self.is_at_end() {
-                    return Err(format!("Unterminated escape in string literal at {}:{}", line, col));
+                    let desc = if quote == '\'' { "unrestricted identifier" } else { "string literal" };
+                    return Err(format!("Unterminated escape in {} at {}:{}", desc, line, col));
                 }
                 match self.advance() {
                     'n' => value.push('\n'),
@@ -244,12 +260,20 @@ impl<'a> Scanner<'a> {
         }
 
         if self.is_at_end() {
-            return Err(format!("Unclosed string literal starting at {}:{}", line, col));
+            let desc = if quote == '\'' { "unrestricted identifier" } else { "string literal" };
+            return Err(format!("Unclosed {} starting at {}:{}", desc, line, col));
         }
 
         self.advance(); // closing quote
+
+        let kind = if quote == '\'' {
+            TokenKind::Ident(value)
+        } else {
+            TokenKind::StringLit(value)
+        };
+
         Ok(Token::new(
-            TokenKind::StringLit(value),
+            kind,
             Span::new(start, self.cursor, line, col),
         ))
     }
@@ -347,6 +371,7 @@ impl<'a> Scanner<'a> {
 
         let kind = match text {
             "package" => TokenKind::Package,
+            "import" => TokenKind::Import,
             "part" => TokenKind::Part,
             "def" => TokenKind::Def,
             "port" => TokenKind::Port,
@@ -532,4 +557,67 @@ mod tests {
         assert_eq!(tokens[10].kind, TokenKind::BoolLit(true));
         assert_eq!(tokens[11].kind, TokenKind::Semi);
     }
+
+    #[test]
+    fn test_lexer_tokenizes_import_statement() {
+        let src = "import Foo::*; import Bar::Baz; import Sys::**;";
+        let mut scanner = Scanner::new(src);
+        let tokens = scanner.scan_all().unwrap();
+
+        assert_eq!(tokens[0].kind, TokenKind::Import);
+        assert_eq!(tokens[1].kind, TokenKind::Ident("Foo".to_string()));
+        assert_eq!(tokens[2].kind, TokenKind::DoubleColon);
+        assert_eq!(tokens[3].kind, TokenKind::Star);
+        assert_eq!(tokens[4].kind, TokenKind::Semi);
+
+        assert_eq!(tokens[5].kind, TokenKind::Import);
+        assert_eq!(tokens[6].kind, TokenKind::Ident("Bar".to_string()));
+        assert_eq!(tokens[7].kind, TokenKind::DoubleColon);
+        assert_eq!(tokens[8].kind, TokenKind::Ident("Baz".to_string()));
+        assert_eq!(tokens[9].kind, TokenKind::Semi);
+
+        assert_eq!(tokens[10].kind, TokenKind::Import);
+        assert_eq!(tokens[11].kind, TokenKind::Ident("Sys".to_string()));
+        assert_eq!(tokens[12].kind, TokenKind::DoubleColon);
+        assert_eq!(tokens[13].kind, TokenKind::Star);
+        assert_eq!(tokens[14].kind, TokenKind::Star);
+        assert_eq!(tokens[15].kind, TokenKind::Semi);
+    }
+
+    #[test]
+    fn test_lexer_nested_block_comments() {
+        let src = "/* outer /* nested */ still outer */ part def FCC;";
+        let mut scanner = Scanner::new(src);
+        let tokens = scanner.scan_all().unwrap();
+
+        assert_eq!(
+            tokens[0].kind,
+            TokenKind::DocComment("outer /* nested */ still outer".to_string())
+        );
+        assert_eq!(tokens[1].kind, TokenKind::Part);
+        assert_eq!(tokens[2].kind, TokenKind::Def);
+        assert_eq!(tokens[3].kind, TokenKind::Ident("FCC".to_string()));
+        assert_eq!(tokens[4].kind, TokenKind::Semi);
+    }
+
+    #[test]
+    fn test_lexer_unrestricted_single_quoted_identifier() {
+        let src = "part def 'Flight Control Computer' :> 'Avionics System';";
+        let mut scanner = Scanner::new(src);
+        let tokens = scanner.scan_all().unwrap();
+
+        assert_eq!(tokens[0].kind, TokenKind::Part);
+        assert_eq!(tokens[1].kind, TokenKind::Def);
+        assert_eq!(
+            tokens[2].kind,
+            TokenKind::Ident("Flight Control Computer".to_string())
+        );
+        assert_eq!(tokens[3].kind, TokenKind::ColonGt);
+        assert_eq!(
+            tokens[4].kind,
+            TokenKind::Ident("Avionics System".to_string())
+        );
+        assert_eq!(tokens[5].kind, TokenKind::Semi);
+    }
 }
+

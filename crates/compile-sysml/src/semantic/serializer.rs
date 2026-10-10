@@ -404,6 +404,26 @@ impl SysmlSerializable for PartDef {
     }
 }
 
+impl SysmlSerializable for ImportDef {
+    fn to_sysml(&self, indent: usize) -> String {
+        let pad = " ".repeat(indent);
+        let doc = format_doc_comment(&self.doc, indent);
+        let mut target = self.path.clone();
+        if self.is_recursive {
+            if !target.ends_with("::**") {
+                if target.ends_with("::*") {
+                    target.push('*');
+                } else {
+                    target.push_str("::**");
+                }
+            }
+        } else if self.is_wildcard && !target.ends_with("::*") && !target.ends_with("::**") {
+            target.push_str("::*");
+        }
+        format!("{}{}import {};", doc, pad, target)
+    }
+}
+
 impl SysmlSerializable for PackageDef {
     fn to_sysml(&self, indent: usize) -> String {
         let pad = " ".repeat(indent);
@@ -414,6 +434,10 @@ impl SysmlSerializable for PackageDef {
             lines.push(doc.trim_end().to_string());
         }
         lines.push(format!("{}package {} {{", pad, self.name));
+
+        for imp in &self.imports {
+            lines.push(imp.to_sysml(indent + 4));
+        }
 
         for a in &self.attribute_defs {
             lines.push(a.to_sysml(indent + 4));
@@ -631,6 +655,48 @@ mod tests {
         assert!(sysml.contains("    assert constraint Invariant_Beta {\n        x > 0;\n    }"));
         assert!(sysml.contains("    require Invariant_Alpha;"));
     }
+
+    #[test]
+    fn test_serialize_package_with_imports() {
+        let pkg = PackageDef {
+            name: "SubsystemWithImports".to_string(),
+            imports: vec![
+                ImportDef {
+                    path: "ScalarValues".to_string(),
+                    is_wildcard: true,
+                    is_recursive: false,
+                    doc: None,
+                },
+                ImportDef {
+                    path: "Base::Types::*".to_string(),
+                    is_wildcard: true,
+                    is_recursive: false,
+                    doc: None,
+                },
+                ImportDef {
+                    path: "NestedSys".to_string(),
+                    is_wildcard: true,
+                    is_recursive: true,
+                    doc: None,
+                },
+                ImportDef {
+                    path: "Specific::Item".to_string(),
+                    is_wildcard: false,
+                    is_recursive: false,
+                    doc: Some("Specific imported element".to_string()),
+                },
+            ],
+            ..Default::default()
+        };
+
+        let sysml_text = pkg.to_sysml(0);
+        assert!(sysml_text.contains("package SubsystemWithImports {"));
+        assert!(sysml_text.contains("    import ScalarValues::*;"));
+        assert!(sysml_text.contains("    import Base::Types::*;"));
+        assert!(sysml_text.contains("    import NestedSys::**;"));
+        assert!(sysml_text.contains("    doc /* Specific imported element */\n    import Specific::Item;"));
+    }
 }
+
 
 

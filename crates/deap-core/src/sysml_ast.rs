@@ -365,12 +365,27 @@ impl Default for PartDef {
     }
 }
 
+/// Represents an import statement in SysML v2 / KerML.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+pub struct ImportDef {
+    /// Qualified path of the namespace or element being imported.
+    pub path: String,
+    /// Indicates whether the import imports all namespace members (`::*`).
+    pub is_wildcard: bool,
+    /// Indicates whether the import imports members recursively (`::**`).
+    pub is_recursive: bool,
+    /// Optional documentation comment preceding the import statement.
+    pub doc: Option<String>,
+}
+
 /// Top-level or nested package container in SysML v2.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PackageDef {
     pub name: String,
     pub doc: Option<String>,
     pub parent_package: Option<String>,
+    #[serde(default)]
+    pub imports: Vec<ImportDef>,
     #[serde(default)]
     pub packages: Vec<PackageDef>,
     #[serde(default)]
@@ -441,6 +456,7 @@ impl From<SysmlModel> for PackageDef {
             name: m.package_name.unwrap_or_else(|| "SysML_Model".to_string()),
             doc: m.doc,
             parent_package: None,
+            imports: Vec::new(),
             packages: Vec::new(),
             part_defs: m.parts,
             port_defs: m.ports,

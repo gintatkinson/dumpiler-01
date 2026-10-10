@@ -33,6 +33,7 @@ impl fmt::Display for Span {
 pub enum TokenKind {
     // Declarative & Structural Keywords
     Package,
+    Import,
     Part,
     Def,
     Port,
@@ -157,6 +158,7 @@ impl TokenKind {
     pub fn as_str(&self) -> &'static str {
         match self {
             TokenKind::Package => "package",
+            TokenKind::Import => "import",
             TokenKind::Part => "part",
             TokenKind::Def => "def",
             TokenKind::Port => "port",
