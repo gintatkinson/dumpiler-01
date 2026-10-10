@@ -1,5 +1,5 @@
 {
-  "sha256": "9db97a80c1ac55c75b26ff1a3e803e723fccc67bf3e9b3f504c4e0f7d994255f",
+  "sha256": "a0e95d19b364001307662b19d7ef1df7a32d075f6392bab17c3463c825081893",
   "total_lines": 5600,
   "node_counts": {
     "action_defs": 6,
@@ -376,10 +376,10 @@
     },
     {
       "path": "schema/model.sysml",
-      "sha256": "9fd9ac9c2f72536e78c6b15ff14adc0f9f445e5c4e3ec5e75429d7733104f236",
-      "bytes": 436660,
-      "lines": 2382,
-      "entities": 150
+      "sha256": "b2f5942bdf3a0ade2d8426462d67a91481c5d05e3952356f9f2a0a93073da17b",
+      "bytes": 178579,
+      "lines": 1000,
+      "entities": 69
     },
     {
       "path": "schema/subsystems/subsystem_01_system_vision/architecture.sysml",
@@ -464,6 +464,90 @@
       "bytes": 201083,
       "lines": 1167,
       "entities": 44
+    },
+    {
+      "path": "schema/subsystems/subsystem_05_7d_physical_metrology_flow_networks/architecture.sysml",
+      "sha256": "de77bc45ff9fbdb657034d5ba79fb94c9532024b283a679ce3400e07fa036145",
+      "bytes": 3316,
+      "lines": 23,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_05_7d_physical_metrology_flow_networks/behavior.sysml",
+      "sha256": "554a035db9718d6594de50e32c2f00c44f16b540d047fb35108cad468d6cbdfe",
+      "bytes": 160,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_05_7d_physical_metrology_flow_networks/requirements.sysml",
+      "sha256": "68eef05b091dc4b9795439ac50c58990f0954074d448cea6e67af17e393b30dc",
+      "bytes": 59890,
+      "lines": 340,
+      "entities": 16
+    },
+    {
+      "path": "schema/subsystems/subsystem_06_spatio_temporal_state_solvers/architecture.sysml",
+      "sha256": "f55e57ea9cdf5a1b43a156e1d239f6efde1f78700f5c447f16d4c3a89e04f0c8",
+      "bytes": 4519,
+      "lines": 25,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_06_spatio_temporal_state_solvers/behavior.sysml",
+      "sha256": "4123447a3af71051c7e0fdf2b192128b6869f3bfd3496e21dbac125866831ffb",
+      "bytes": 148,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_06_spatio_temporal_state_solvers/requirements.sysml",
+      "sha256": "b7284f4dcffcb24cd535bc8555c13189757bfc0f3836adfc788f39e79c99b342",
+      "bytes": 58215,
+      "lines": 297,
+      "entities": 14
+    },
+    {
+      "path": "schema/subsystems/subsystem_07_formal_safety_traceability_verification/architecture.sysml",
+      "sha256": "0724ef010666c1dc7d62bab01bec85e8eb84b9af47709f3923ef0ffd81a067c3",
+      "bytes": 4552,
+      "lines": 25,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_07_formal_safety_traceability_verification/behavior.sysml",
+      "sha256": "ea32ba7786cd4a8b8d9cdcd29dfb6ab918fc75224b4d835f0cda33595d19be2f",
+      "bytes": 168,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_07_formal_safety_traceability_verification/requirements.sysml",
+      "sha256": "0004f199aa7b61dfc4672394e9106913f931d61edf1837829749e9f1c50fd318",
+      "bytes": 67758,
+      "lines": 362,
+      "entities": 17
+    },
+    {
+      "path": "schema/subsystems/subsystem_08_level_1c_icd_interconnect_contracts/architecture.sysml",
+      "sha256": "2e3c7a4859f71a43a50b2184af8182b3f9ecdd6b0910002f35e919e4e5a61a1a",
+      "bytes": 3253,
+      "lines": 25,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_08_level_1c_icd_interconnect_contracts/behavior.sysml",
+      "sha256": "8ef05dd5f4aba8d3a4d888e215691b339c8a79e367ee10b2b899a38e974e13ad",
+      "bytes": 160,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_08_level_1c_icd_interconnect_contracts/requirements.sysml",
+      "sha256": "f83b16286983ea2b22fb6f8f06325a1316fb84ac0a7b90a14186dab1f2d028f5",
+      "bytes": 51630,
+      "lines": 297,
+      "entities": 14
     }
   ]
 }
