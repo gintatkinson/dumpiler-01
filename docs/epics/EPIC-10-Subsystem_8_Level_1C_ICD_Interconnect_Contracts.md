@@ -26,12 +26,10 @@ Structural Architecture for Subsystem 8 Level 1C ICD Interconnect Contracts
 - [ ] REQ-EPIC-10-01: Subsystem capability implementation for Subsystem_8_Level_1C_ICD_Interconnect_Contracts.
 - [ ] REQ-EPIC-10-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*

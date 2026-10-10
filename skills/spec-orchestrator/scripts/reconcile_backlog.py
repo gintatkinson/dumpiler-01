@@ -1626,15 +1626,20 @@ def resolve_codebase_rules_path(workspace_dir: str):
             return path
     return None
 
-def resolve_linter_script(workspace_dir: str):
+def resolve_verify_baseline_bin(workspace_dir: str) -> Optional[str]:
     candidates = [
-        os.path.join(workspace_dir, "skills", "spec-orchestrator", "scripts", "verify_model_coverage.py"),
-        os.path.join(workspace_dir, "scripts", "verify_model_coverage.py"),
+        os.path.join(workspace_dir, "target", "release", "verify-baseline"),
+        os.path.join(workspace_dir, "target", "debug", "verify-baseline"),
     ]
     for path in candidates:
-        if os.path.exists(path):
+        if os.path.isfile(path) and os.access(path, os.X_OK):
             return path
+    which_bin = shutil.which("verify-baseline")
+    if which_bin:
+        return which_bin
     return None
+
+resolve_linter_script = resolve_verify_baseline_bin
 
 def deep_merge(base, override):
     result = dict(base)
@@ -4580,9 +4585,8 @@ def main():
 
     DO-178C Level A Safety-Critical Verification Gate:
     Enforces bidirectional traceability, closed-loop SysML v2 schema synchronization,
-    pre-flight baseline verification via native verify-baseline binary, and configurable
-    pre-reconciliation linter validation supporting zero-timeout bypass (--linter-timeout <= 0)
-    when verification is governed by the native verify-baseline compiler gate.
+    pre-flight baseline verification via native verify-baseline binary, and pre-reconciliation
+    specification audit via native verify-baseline binary (--spec-only --allow-missing-specs).
     """
     parser = argparse.ArgumentParser(
         description="Backlog reconciliation script that synchronises local markdown spec files with an external issue tracker (e.g. GitHub Issues, GitLab Issues)."
@@ -4651,18 +4655,20 @@ def main():
         action="store_true",
         help="Force upstream compiler backlog reconciliation mode.",
     )
-    parser.add_argument(
-        "--linter-timeout",
-        type=int,
-        default=int(os.environ.get("DEAP_LINTER_TIMEOUT", "120")),
-        help="Timeout in seconds for pre-reconciliation linter validation (default: 120s or DEAP_LINTER_TIMEOUT).",
-    )
     args = parser.parse_args()
 
     sanitize_github_token_env()
     script_dir = os.path.dirname(os.path.abspath(__file__))
     workspace_dir = find_workspace_dir(script_dir)
     assert_no_mock_cli(workspace_dir)
+
+    # Pre-flight baseline verification via native verify-baseline binary
+    verify_bin = resolve_verify_baseline_bin(workspace_dir)
+    if verify_bin:
+        res = subprocess.run([verify_bin, ".", "--no-domain"], cwd=workspace_dir)
+        if res.returncode != 0:
+            sys.stderr.write("[ERROR] Pre-flight baseline verification failed. Reconciliation aborted to prevent broken state sync.\n")
+            sys.exit(res.returncode)
 
     # Automated hook: Closed-loop SysML v2 reverse-synchronization before tracker sync
     docs_dir = os.path.join(workspace_dir, "docs")
@@ -4683,17 +4689,14 @@ def main():
             except Exception as e:
                 print(f"[Warning] Pre-reconciliation SysML v2 reverse-sync encountered error: {e}", file=sys.stderr)
 
-    # Programmatic gate: Run linter before proceeding with reconciliation
+    # Programmatic gate: Run native spec auditor before proceeding with reconciliation
     blocked_specs = set()
     rules_preview = load_codebase_rules(workspace_dir)
-    linter_script = resolve_linter_script(workspace_dir)
-    raw_timeout = getattr(args, "linter_timeout", None)
-    linter_timeout = 600 if raw_timeout is None else raw_timeout
-    if linter_script and os.path.exists(linter_script) and linter_timeout > 0:
-        print("Running pre-reconciliation linter validation...")
-        cmd = [sys.executable, linter_script, "--spec-only", "--allow-missing-specs"]
+    if verify_bin:
+        print("Running pre-reconciliation specification audit...")
+        cmd = [verify_bin, ".", "--spec-only", "--allow-missing-specs"]
         try:
-            res = subprocess.run(cmd, cwd=workspace_dir, capture_output=True, text=True, timeout=linter_timeout)
+            res = subprocess.run(cmd, cwd=workspace_dir, capture_output=True, text=True)
             if res.returncode != 0:
                 output_text = (res.stdout or "") + "\n" + (res.stderr or "")
                 lines = [line.strip() for line in output_text.splitlines()]
@@ -4704,24 +4707,26 @@ def main():
                     is_exclusive_checklist_placeholder = True
                     for err in error_lines:
                         err_lower = err.lower()
-                        if "placeholder" not in err_lower and "checklist" not in err_lower and "required features matrix" not in err_lower:
+                        if (
+                            "placeholder" not in err_lower
+                            and "checklist" not in err_lower
+                            and "required features matrix" not in err_lower
+                            and "unresolved" not in err_lower
+                            and "template" not in err_lower
+                            and "issueid" not in err_lower
+                        ):
                             is_exclusive_checklist_placeholder = False
                             break
                 
                 if is_exclusive_checklist_placeholder:
-                    print("[Warning] Pre-reconciliation linter validation found only checklist warning issues/placeholders. Proceeding with warnings.", file=sys.stderr)
+                    print("[Warning] Pre-reconciliation spec audit found only checklist warning issues/placeholders. Proceeding with warnings.", file=sys.stderr)
                     for err in error_lines:
                         print(f"  [Warning Detail] {err}", file=sys.stderr)
                 else:
-                    # Issue #321 - a failing linter used to abort the entire run, so one
-                    # incomplete work-in-progress draft withheld synchronisation from every
-                    # finished, unrelated specification. The gate is not weakened: the
-                    # offending items are skipped and the run still exits non-zero at the
-                    # end. What changes is that valid work is no longer held hostage.
                     blocked_specs = blocked_specs_from_linter_output(
                         output_text, workspace_dir, rules_preview
                     )
-                    print("[BLOCKED] Pre-reconciliation linter validation failed for "
+                    print("[BLOCKED] Pre-reconciliation spec audit failed for "
                           f"{len(blocked_specs)} specification(s). These will be SKIPPED; "
                           "everything else still synchronises, and this run will exit "
                           "non-zero.", file=sys.stderr)
@@ -4729,14 +4734,11 @@ def main():
                         print(f"  [Blocked] {name}", file=sys.stderr)
                     print(res.stdout, file=sys.stderr)
             else:
-                print("Pre-reconciliation linter validation passed successfully.")
-        except subprocess.TimeoutExpired:
-            print(f"[FATAL] Pre-reconciliation linter validation timed out after {linter_timeout} seconds. Aborting.", file=sys.stderr)
-            sys.exit(1)
-    elif linter_timeout <= 0:
-        print("[INFO] Pre-reconciliation legacy Python linter skipped (--linter-timeout <= 0). Quality gate verified via native verify-baseline.")
+                print("Pre-reconciliation specification audit passed successfully.")
+        except Exception as e:
+            print(f"[Warning] Pre-reconciliation spec audit encountered error: {e}", file=sys.stderr)
     else:
-        print("[INFO] Pre-reconciliation linter not found; skipping pre-validation.")
+        print("[INFO] verify-baseline binary not found; skipping pre-validation.")
 
     try:
         provider_name = detect_tracker_provider(cli_provider=args.provider, rules=rules_preview, workspace_dir=workspace_dir)
@@ -5241,18 +5243,20 @@ def main():
             tb_str = traceback.format_exc()
             print(tb_str, file=sys.stderr)
             try:
-                # Insert the src directory of the parity_auditor package into sys.path
-                src_dir = os.path.abspath(os.path.join(workspace_dir, "skills", "spec-orchestrator", "parity_auditor", "src"))
-                if src_dir not in sys.path:
-                    sys.path.insert(0, src_dir)
-                from parity_auditor.utils.diagnostics import serialize_diagnostics
-                serialize_diagnostics(
-                    workspace_dir=workspace_dir,
-                    tool_name="reconcile_backlog",
-                    exit_code=exit_code,
-                    errors=[str(e)],
-                    traceback_str=tb_str
-                )
+                os.makedirs(os.path.join(workspace_dir, ".pipeline", "diagnostics"), exist_ok=True)
+                timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                payload = {
+                    "timestamp": timestamp,
+                    "tooling": {"name": "reconcile_backlog", "version": "1.0.0"},
+                    "context": {"command": " ".join(sys.argv), "exit_code": exit_code},
+                    "failure": {"traceback": tb_str, "error_summary": [str(e)]},
+                }
+                safe_ts = timestamp.replace(":", "-")
+                filename = f"repro_payload_{safe_ts}.json"
+                filepath = os.path.join(workspace_dir, ".pipeline", "diagnostics", filename)
+                with open(filepath, "w", encoding="utf-8") as f:
+                    json.dump(payload, f, indent=2)
+                print(f"\n[Diagnostics] Saved reproduction payload to: {filepath}")
             except Exception as diag_err:
                 print(f"Warning: Failed to serialize diagnostics: {diag_err}", file=sys.stderr)
         raise

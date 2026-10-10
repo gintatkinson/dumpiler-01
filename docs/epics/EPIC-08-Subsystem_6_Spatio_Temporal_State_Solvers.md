@@ -26,12 +26,10 @@ Structural Architecture for Subsystem 6 Spatio Temporal State Solvers
 - [ ] REQ-EPIC-08-01: Subsystem capability implementation for Subsystem_6_Spatio_Temporal_State_Solvers.
 - [ ] REQ-EPIC-08-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*

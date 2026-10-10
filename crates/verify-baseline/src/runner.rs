@@ -1,6 +1,7 @@
 //! Baseline verification runner orchestrating checks 10 through 31 and platform gates.
 
 use crate::checks::*;
+use crate::spec_audit::{run_spec_audit, SpecAuditOptions};
 use chrono::Utc;
 use deap_core::diagnostics::{DefectDossier, DiagnosticSeverity, WhyEntry};
 use deap_core::rules::EXCLUDED_DIRS;
@@ -18,6 +19,49 @@ pub struct BaselineOptions {
     pub allow_missing_specs: bool,
     pub target: Option<String>,
     pub output: Option<String>,
+    pub spec_only: bool,
+    pub only: Option<String>,
+    pub gate: Option<String>,
+}
+
+/// Detect if repository has clean landing zones (clean schema or clean specification landing zones).
+/// Detect if the workspace contains concrete specification markdown files.
+pub fn has_concrete_specifications(repo_root: &Path) -> bool {
+    let spec_zones = [
+        repo_root.join("docs").join("epics"),
+        repo_root.join("docs").join("features"),
+        repo_root.join("docs").join("user-stories"),
+        repo_root.join("docs").join("use-cases"),
+    ];
+
+    for szone in &spec_zones {
+        if szone.is_dir() {
+            for entry in WalkDir::new(szone)
+                .into_iter()
+                .filter_entry(|e| {
+                    if e.file_type().is_dir() {
+                        let name = e.file_name().to_string_lossy();
+                        !EXCLUDED_DIRS.iter().any(|&ex| name == ex)
+                    } else {
+                        true
+                    }
+                })
+                .filter_map(|e| e.ok())
+            {
+                if entry.file_type().is_file() {
+                    let fname = entry.file_name().to_string_lossy();
+                    if fname.ends_with(".md")
+                        && fname != ".gitkeep"
+                        && fname != "README.md"
+                        && !fname.starts_with('.')
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    false
 }
 
 /// Detect if repository has clean landing zones (clean schema or clean specification landing zones).
@@ -49,43 +93,7 @@ pub fn has_clean_landing_zones(repo_root: &Path) -> bool {
     }
 
     // 2. Specification landing zones check (epics, features, user-stories, use-cases)
-    let spec_zones = [
-        repo_root.join("docs").join("epics"),
-        repo_root.join("docs").join("features"),
-        repo_root.join("docs").join("user-stories"),
-        repo_root.join("docs").join("use-cases"),
-    ];
-
-    let mut has_concrete_specs = false;
-    for szone in &spec_zones {
-        if szone.is_dir() {
-            for entry in WalkDir::new(szone)
-                .into_iter()
-                .filter_entry(|e| {
-                    if e.file_type().is_dir() {
-                        let name = e.file_name().to_string_lossy();
-                        !EXCLUDED_DIRS.iter().any(|&ex| name == ex)
-                    } else {
-                        true
-                    }
-                })
-                .filter_map(|e| e.ok())
-            {
-                if entry.file_type().is_file() {
-                    let fname = entry.file_name().to_string_lossy();
-                    if fname.ends_with(".md") && fname != ".gitkeep" && fname != "README.md" && !fname.starts_with('.') {
-                        has_concrete_specs = true;
-                        break;
-                    }
-                }
-            }
-        }
-        if has_concrete_specs {
-            break;
-        }
-    }
-
-    let specs_clean = !has_concrete_specs;
+    let specs_clean = !has_concrete_specifications(repo_root);
     schema_clean || specs_clean
 }
 
@@ -160,6 +168,61 @@ pub fn run(options: &BaselineOptions) -> Result<(), ()> {
     } else {
         options.allow_missing_specs && !is_strict
     };
+
+    if options.spec_only {
+        let spec_options = SpecAuditOptions {
+            repo_root: repo_root.clone(),
+            only_file: options.only.as_ref().map(PathBuf::from),
+            gate_filter: options.gate.clone(),
+            allow_missing_specs: options.allow_missing_specs,
+            strict: is_strict,
+        };
+
+        match run_spec_audit(&spec_options) {
+            Ok(summary) => {
+                if !summary.passed {
+                    let finding_msgs: Vec<String> =
+                        summary.findings.iter().map(|f| f.to_string()).collect();
+                    if is_strict || options.only.is_some() {
+                        write_defect_dossier(
+                            &repo_root,
+                            "Specification Quality & Coverage Audit",
+                            &finding_msgs,
+                        );
+                        eprintln!(
+                            "ERROR: Specification audit failed with {} finding(s):",
+                            summary.total_findings
+                        );
+                        for msg in &finding_msgs {
+                            eprintln!("  - {}", msg);
+                        }
+                        return Err(());
+                    } else {
+                        println!(
+                            "Specification Quality & Coverage Audit completed with {} finding(s) (permissive mode).",
+                            summary.total_findings
+                        );
+                        return Ok(());
+                    }
+                } else {
+                    println!(
+                        "Success: Specification Quality & Coverage Audit passed ({} files audited in {} ms).",
+                        summary.total_files_audited, summary.duration_ms
+                    );
+                    return Ok(());
+                }
+            }
+            Err(e) => {
+                eprintln!("ERROR: Specification audit execution failed: {}", e);
+                write_defect_dossier(
+                    &repo_root,
+                    "Specification Audit Execution",
+                    &[e.to_string()],
+                );
+                return Err(());
+            }
+        }
+    }
 
     // Check 10: .gitignore exists
     if let Err(err) = check_gitignore_exists(&repo_root) {
@@ -613,6 +676,60 @@ pub fn run(options: &BaselineOptions) -> Result<(), ()> {
         }
     } else {
         println!("Downstream repository root verified (non-framework platform or root orchestration workspace).");
+    }
+
+    if has_concrete_specifications(&repo_root) {
+        println!("Concrete specifications detected -- executing Specification Quality & Coverage Audit...");
+        let spec_options = SpecAuditOptions {
+            repo_root: repo_root.clone(),
+            only_file: options.only.as_ref().map(PathBuf::from),
+            gate_filter: options.gate.clone(),
+            allow_missing_specs: true,
+            strict: is_strict,
+        };
+
+        match run_spec_audit(&spec_options) {
+            Ok(summary) => {
+                if !summary.passed {
+                    let finding_msgs: Vec<String> =
+                        summary.findings.iter().map(|f| f.to_string()).collect();
+                    if is_strict {
+                        write_defect_dossier(
+                            &repo_root,
+                            "Specification Quality & Coverage Audit",
+                            &finding_msgs,
+                        );
+                        eprintln!(
+                            "ERROR: Specification audit failed in strict mode with {} finding(s):",
+                            summary.total_findings
+                        );
+                        for msg in &finding_msgs {
+                            eprintln!("  - {}", msg);
+                        }
+                        return Err(());
+                    } else {
+                        println!(
+                            "Specification Quality & Coverage Audit completed with {} finding(s) (permissive mode).",
+                            summary.total_findings
+                        );
+                    }
+                } else {
+                    println!(
+                        "Success: Specification Quality & Coverage Audit passed ({} files audited in {} ms).",
+                        summary.total_files_audited, summary.duration_ms
+                    );
+                }
+            }
+            Err(e) => {
+                eprintln!("ERROR: Specification audit execution failed: {}", e);
+                write_defect_dossier(
+                    &repo_root,
+                    "Specification Audit Execution",
+                    &[e.to_string()],
+                );
+                return Err(());
+            }
+        }
     }
 
     Ok(())

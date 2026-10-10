@@ -26,12 +26,10 @@ Structural Architecture for Subsystem 2 Universal Schema Ingestion Engine
 - [ ] REQ-EPIC-04-01: Subsystem capability implementation for Subsystem_2_Universal_Schema_Ingestion_Engine.
 - [ ] REQ-EPIC-04-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*

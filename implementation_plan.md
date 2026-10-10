@@ -213,9 +213,107 @@ flowchart TD
 
 ---
 
-## 3. Strict Operating Invariants
-1. **Coordinator Direct Writing Lock:** Coordinator writes only `implementation_plan.md`. All code, schema, and specification modifications must be delegated to dedicated implementer subagents via `invoke_subagent`.
-2. **Subagent Governance Preamble:** Every subagent prompt must include the mandatory un-degraded governance preamble terminated by `---GOVERNANCE-END---` and authorized with `PROCEED`.
-3. **Immediate Subagent Reclaim:** Every spawned subagent must be terminated immediately upon task completion.
-4. **Zero Unicode Em Dashes:** Unicode `\u2014` is strictly forbidden. Use ASCII `--` exclusively.
-5. **Commit Message Non-Closure Invariant:** All git commits must use neutral citations: `(#<id>)` or `(refs #<id>)`. Auto-closing keywords are strictly prohibited.
+## Phase 5: Adversarial Audit of Porting Contamination, Clean-Slate Reset & Autonomous Zero-Contamination Native Rust Port
+
+### 5.1 Stage 1: Adversarial Audits of Python-to-Rust Contamination Anti-Patterns
+Dispatch dedicated subagents with `skills/adversarial-code-auditor/SKILL.md` to analyze each porting risk cluster, produce compliant 7-section defect dossiers, and file issues via `python3 scripts/file_defect.py --repo gintatkinson/dumpiler-01`:
+
+1. **Audit 1: Regex Proliferation & Engine Backtracking Overhead**
+   - **Target:** `skills/spec-orchestrator/parity_auditor/src/parity_auditor/parsers/regex.py`, `parsers/mermaid.py`, `.pipeline/logical-ui/codebase_rules.json` and legacy `crates/verify-baseline/src/checks/`.
+   - **Pillar:** Resource Lifecycle / Performance Degradation under Load.
+   - **Focus:** Scanning 199+ files with dynamic regex compilation and backtracking creates 1,200s timeouts; porting regexes into Rust recreates engine startup overhead and disables zero-copy tokenization.
+
+2. **Audit 2: Panic-Happy Error Handling & Unchecked Invariants (`unwrap()` / `expect()`)**
+   - **Target:** Legacy `crates/verify-baseline/src/checks/` (30+ instances of inline `Regex::new().unwrap()`) and translation of Python dynamic indexing into Rust `.unwrap()`.
+   - **Pillar:** Memory Safety / Robustness.
+   - **Focus:** DO-178C Level A / ISO 26262 ASIL D mandates fail-closed error handling; `.unwrap()` panics in production baseline check paths violate safety invariants.
+
+3. **Audit 3: Stringly-Typed Dynamic Models vs Strongly-Typed SysML v2 AST**
+   - **Target:** `skills/spec-orchestrator/parity_auditor/src/parity_auditor/core/models.py` and `parsers/mermaid.py`.
+   - **Pillar:** Semantic Traceability / Type Safety.
+   - **Focus:** Python dynamically used `dict[str, Any]` and untyped tuples; porting must bind directly to `deap_core::sysml_ast` (`PackageDef`, `PartDef`, `AttributeDef`, `StateDef`, `TransitionDef`, `ActionDef`) rather than untyped string hash maps.
+
+4. **Audit 4: Quadratic O(N × M) Linear Scans vs O(1) Pre-Indexed Symbol Tables**
+   - **Target:** `skills/spec-orchestrator/parity_auditor/src/parity_auditor/validators/uml.py` and `utils/sysml_loader.py`.
+   - **Pillar:** Resource Lifecycle / Algorithmic Complexity.
+   - **Focus:** Linearly iterating through all model elements for each diagram element across 199 files creates an O(N*M) bottleneck; Rust port must pre-index symbols into `HashSet<&str>` / `HashMap<&str, SymbolInfo>`.
+
+5. **Audit 5: Redundant Disk File I/O in Hot Loops vs Single-Pass In-Memory AST Sharing**
+   - **Target:** `skills/spec-orchestrator/parity_auditor/src/parity_auditor/validators/*.py`.
+   - **Pillar:** Resource Lifecycle / Concurrency.
+   - **Focus:** In Python, every validator independently opened and read files from disk; Rust port must read each file once into memory, stream through `pulldown-cmark` into `MarkdownDoc` once, and share references across parallel threads via `rayon`.
+
+6. **Audit 6: Excessive Heap Allocations & Cloning vs Zero-Copy Slicing**
+   - **Target:** Python dynamic string slicing and allocations translated to `.to_string()`, `.clone()`, and `format!()` in hot loops.
+   - **Pillar:** Memory Safety / Heap Allocation Churn.
+   - **Focus:** Unbounded heap allocations in file traversal loops waste CPU cycles and trigger allocator contention; Rust port must use borrowed slices (`&str`) and zero-copy token views.
+
+7. **Audit 7: Subprocess Shelling Out vs In-Process Deterministic Verification**
+   - **Target:** `skills/spec-orchestrator/parity_auditor/src/parity_auditor/core/workspace.py` (shelling out to `gh` / `git`).
+   - **Pillar:** Concurrency / Process Isolation.
+   - **Focus:** Subprocess calls in verification routines fail offline, breach sandbox constraints, and degrade performance; all verification must run purely in-process.
+
+---
+
+### 5.2 Stage 2: Clean-Slate Reset & Baseline Re-Verification
+1. Revert or reset any uncommitted experimental code to ensure a clean, known-good foundation.
+2. Re-verify baseline conformance by running `./target/release/verify-baseline . --no-domain` (assert 31/31 checks pass cleanly with exit code 0).
+3. Confirm clean starting status with `git status`.
+
+---
+
+### 5.3 Stage 3: Autonomous Zero-Contamination Native Rust Port & Quality Harness
+All code implementation must be delegated strictly to context-isolated subagents adhering to **Zero-Regex**, **Zero-Unwrap**, **Strongly-Typed AST**, and **Zero-Mocking** mandates:
+
+1. **Subagent 1 (Markdown AST, Section Rules & Metadata Engine)**
+   - `crates/verify-baseline/src/spec_audit/markdown_ast.rs`: Streaming zero-copy pull parser (`pulldown-cmark`). Extracts headings, table metadata, frontmatter, prose, Mermaid blocks, and template placeholders using byte-level token scans. ZERO REGEX.
+   - `crates/verify-baseline/src/spec_audit/sections.rs`: Pure AST section validation. Compares heading level and normalized alphanumeric token streams. ZERO REGEX.
+   - `crates/verify-baseline/src/spec_audit/metadata.rs`: Byte-level ISO 8601 date validator, slice-based semver validator, prefix-stripping title normalizer, and delimiter-split filename validator. ZERO REGEX.
+
+2. **Subagent 2 (Mermaid AST Lexer & Strongly-Typed SysML UML Model Validator)**
+   - `crates/verify-baseline/src/spec_audit/diagram_ast.rs`: Deterministic streaming line/token parser for `classDiagram`, `stateDiagram-v2`, and `sequenceDiagram` using `strip_prefix`, `split_once`, and token streams. ZERO REGEX.
+   - `crates/verify-baseline/src/spec_audit/uml_validator.rs`: Pre-indexes `deap_core::sysml_ast` into O(1) symbol tables. Cross-references diagram classes, attributes, operations, and states against the SysML model. Validates diagram syntax invariants (matching fences, zero curly braces/colons in member strings).
+
+3. **Subagent 3 (Behavioral Triggers & LUMI 3-Layer Quality Validator)**
+   - `crates/verify-baseline/src/spec_audit/behavioral.rs`: Evaluates `rules/behavioral_triggers.json` against AST nodes using token matching. Verifies trigger coverage in User Stories / Use Cases. ZERO REGEX.
+   - `crates/verify-baseline/src/spec_audit/logical_ui.rs`: Validates LUMI 3-layer semantic chain and CSS container queries (`@container`). ZERO REGEX.
+
+4. **Subagent 4 (Provenance & ConOps Completeness Engine)**
+   - `crates/verify-baseline/src/spec_audit/provenance.rs`: Validates empirical numbers, units, and assertions are grounded in `schema/` AST or standards citations, and verifies verbatim clause citations in `## Source References`. ZERO REGEX.
+   - `crates/verify-baseline/src/spec_audit/conops_audit.rs`: Audits ConOps operational modes, threat envelopes, and activity allocations against `schema/conops/` and `schema/`. ZERO REGEX.
+
+5. **Coordinator Integration (Harness & Parallel Execution)**
+   - `crates/verify-baseline/src/spec_audit/mod.rs`:
+     - Fail-closed `SpecAuditError` and structured `SpecAuditFinding` / `SpecAuditSummary`.
+     - Multi-core data-parallel file traversal via `rayon::par_iter()`. Single-pass disk read per file.
+   - Wire into `crates/verify-baseline/src/runner.rs` and `main.rs` (adding `--spec-only`, `--only <path>`, `--gate <name>`).
+
+---
+
+### 5.4 Stage 4: Tooling Caller Updates & Legacy Python Deletion
+1. Update `scripts/reconcile_backlog.py` and `skills/spec-orchestrator/scripts/reconcile_backlog.py` to invoke native Rust `./target/release/verify-baseline . --spec-only --allow-missing-specs`.
+2. Update `skills/spec-orchestrator/scripts/create_issue.sh` and `scripts/e2e_acceptance_harness.py`.
+3. Delete superseded Python files:
+   - `skills/spec-orchestrator/parity_auditor/`
+   - `skills/spec-orchestrator/scripts/verify_model_coverage.py`
+   - `skills/spec-orchestrator/scripts/kerml_compiler.py` (if present).
+
+---
+
+### 5.5 Stage 5: Final End-to-End Verification, Performance Benchmarking & Remote Sync
+1. `cargo test --workspace` (assert 100% of 134+ tests pass cleanly).
+2. `./target/release/verify-baseline . --no-domain` (assert 31/31 baseline checks pass).
+3. Full spec audit benchmark: assert complete verification of all 199+ markdown files in `<2.0s`.
+4. Git commit with neutral citation `(refs #9)` and push to `origin/main` (`git diff origin/main` completely empty).
+
+---
+
+## Strict Operating Invariants
+1. **Zero Regular Expressions in `spec_audit`**: All AST matching, section validation, metadata checks, dates, and placeholders must use zero-copy `pulldown-cmark` events, byte-level checks, and token comparisons.
+2. **Zero `unwrap()` / `expect()` / `panic!()`**: Robust fail-closed error handling with `Result<T, SpecAuditError>` per DO-178C Level A.
+3. **Coordinator Direct Writing Lock**: Coordinator writes only `implementation_plan.md`. All code modifications and defect investigations are delegated to context-isolated subagents.
+4. **Subagent Governance Preamble**: Every subagent prompt must include the mandatory un-degraded governance preamble terminated by `---GOVERNANCE-END---` and authorized with `PROCEED`.
+5. **Immediate Subagent Reclaim**: Every spawned subagent must be terminated immediately upon task completion.
+6. **Zero Unicode Em Dashes**: Unicode `\u2014` is strictly forbidden. Use ASCII `--` exclusively.
+7. **Commit Message Non-Closure Invariant**: All git commits must use neutral citations: `(#<id>)` or `(refs #<id>)`. Auto-closing keywords are strictly prohibited.
+

@@ -26,12 +26,10 @@ Structural Architecture for Subsystem 1 System Vision
 - [ ] REQ-EPIC-03-01: Subsystem capability implementation for Subsystem_1_System_Vision.
 - [ ] REQ-EPIC-03-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*

@@ -26,12 +26,10 @@ Structural Architecture for Subsystem 7 Formal Safety Traceability Verification
 - [ ] REQ-EPIC-09-01: Subsystem capability implementation for Subsystem_7_Formal_Safety_Traceability_Verification.
 - [ ] REQ-EPIC-09-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*

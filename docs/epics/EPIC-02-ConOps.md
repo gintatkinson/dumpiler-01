@@ -26,12 +26,10 @@ ConOps Level 0 Operational Activities
 - [ ] REQ-EPIC-02-01: Subsystem capability implementation for ConOps.
 - [ ] REQ-EPIC-02-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*

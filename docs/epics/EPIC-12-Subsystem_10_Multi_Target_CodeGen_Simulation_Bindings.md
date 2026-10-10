@@ -26,12 +26,10 @@ Structural Architecture for Subsystem 10 Multi Target CodeGen Simulation Binding
 - [ ] REQ-EPIC-12-01: Subsystem capability implementation for Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings.
 - [ ] REQ-EPIC-12-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*

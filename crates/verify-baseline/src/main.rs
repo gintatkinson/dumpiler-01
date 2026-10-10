@@ -32,6 +32,18 @@ struct Cli {
     /// Optional path to write output report or defect dossier
     #[arg(long)]
     output: Option<String>,
+
+    /// Run only the specification quality and coverage audit suite
+    #[arg(long)]
+    spec_only: bool,
+
+    /// Audit only a specific markdown file
+    #[arg(long)]
+    only: Option<String>,
+
+    /// Filter to run a specific audit gate
+    #[arg(long)]
+    gate: Option<String>,
 }
 
 fn main() {
@@ -44,6 +56,9 @@ fn main() {
         allow_missing_specs: cli.allow_missing_specs,
         target: cli.target,
         output: cli.output,
+        spec_only: cli.spec_only,
+        only: cli.only,
+        gate: cli.gate,
     };
 
     if let Err(()) = run(&options) {

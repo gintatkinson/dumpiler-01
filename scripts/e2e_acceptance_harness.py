@@ -10,7 +10,7 @@ Executes a 2-Tier Semantic Verification Architecture (6 layers) across all 10 do
     - Layer 3 (Statutory Cardinality & Normative Standards): 16 Threat Vectors, 4 PACE tiers, >=12 MIL-STD-810H methods, Regulatory Safety Objectives (>=10 generic OBJ-/REG- or 24 SORA OSOs if SORA explicitly declared), 7 Emergency rows, and Solver 4 (Normative Standards Cross-Checker: IEC 62304, EN 50128, ECSS, ISO 3691-4, DNV-GL).
     - Layer 4 (Closed-Form Physical & Math Solver): Conditional SORA kinetic energy (E_k <= 34.0J when SORA declared), Kalman covariance units & linear algebra dimensions, Bingo energy conservation, Solver 1 (Relational Table Mass Cross-Sum Solver), Solver 2 (Closed-Form Quadratic Physics Solver), and Solver 3 (Dimensional Scaling & Energy Conservation Engine).
     - Layer 5 (Adversarial Invariant Verification & Ontology Scanner): Priority arbitration (P_EMG07 > ... > P_EMG01), failsafe non-destructive RTB, NIST SP 800-82r3 anti-replay, Solver 5 (Forbidden Cross-Domain Ontology Scanner), Solver 6 (Positive Domain Lexicon Floor), and Solver 7 (Pairwise Anti-Plagiarism Gate).
-    - Layer 6 (Baseline Parity & Model Coverage): verify_downstream_baseline.py and verify_model_coverage.py --spec-only.
+    - Layer 6 (Baseline Parity & Model Coverage): verify-baseline and verify-baseline --spec-only.
 
 Generates:
   - MASTER_E2E_ACCEPTANCE_REPORT.md
@@ -1609,36 +1609,34 @@ def verify_layer5_adversarial_invariants(
 # ---------------------------------------------------------------------------
 
 def verify_layer6_baseline_parity(workspace_path: str, core_root: str) -> LayerResult:
-    """Execute verify_downstream_baseline.py and verify_model_coverage.py --spec-only."""
+    """Execute native verify-baseline and verify-baseline --spec-only."""
     errors = []
     details = {}
     
-    baseline_script = os.path.join(core_root, "scripts", "verify_downstream_baseline.py")
-    coverage_script = os.path.join(core_root, "skills", "spec-orchestrator", "scripts", "verify_model_coverage.py")
-    
-    # 1. verify_downstream_baseline.py
-    if not os.path.isfile(baseline_script):
-        errors.append(f"verify_downstream_baseline.py not found at {baseline_script}")
+    verify_bin = os.path.join(core_root, "target", "release", "verify-baseline")
+    if not os.path.isfile(verify_bin):
+        verify_bin = os.path.join(core_root, "target", "debug", "verify-baseline")
+        
+    if not os.path.isfile(verify_bin):
+        errors.append(f"verify-baseline binary not found at {verify_bin}")
     else:
-        cmd1 = [sys.executable, baseline_script, workspace_path]
+        # 1. Baseline conformance check: verify-baseline <workspace_path> --no-domain
+        cmd1 = [verify_bin, workspace_path, "--no-domain"]
         res1 = subprocess.run(cmd1, capture_output=True, text=True, cwd=core_root)
         details["baseline_returncode"] = res1.returncode
         if res1.returncode != 0:
             msg = res1.stderr.strip() or res1.stdout.strip()
-            errors.append(f"verify_downstream_baseline.py failed (rc={res1.returncode}): {msg[:300]}")
+            errors.append(f"verify-baseline --no-domain failed (rc={res1.returncode}): {msg[:300]}")
         else:
             details["baseline_status"] = "PASS"
             
-    # 2. verify_model_coverage.py --spec-only
-    if not os.path.isfile(coverage_script):
-        errors.append(f"verify_model_coverage.py not found at {coverage_script}")
-    else:
-        cmd2 = [sys.executable, coverage_script, "--spec-only", workspace_path]
+        # 2. Spec-only audit check: verify-baseline <workspace_path> --spec-only
+        cmd2 = [verify_bin, workspace_path, "--spec-only"]
         res2 = subprocess.run(cmd2, capture_output=True, text=True, cwd=core_root)
         details["coverage_returncode"] = res2.returncode
         if res2.returncode != 0:
             msg = res2.stderr.strip() or res2.stdout.strip()
-            errors.append(f"verify_model_coverage.py failed (rc={res2.returncode}): {msg[:300]}")
+            errors.append(f"verify-baseline --spec-only failed (rc={res2.returncode}): {msg[:300]}")
         else:
             details["coverage_status"] = "PASS"
 

@@ -26,12 +26,10 @@ Subsystem specification for SysML_Model
 - [ ] REQ-EPIC-01-01: Subsystem capability implementation for SysML_Model.
 - [ ] REQ-EPIC-01-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*

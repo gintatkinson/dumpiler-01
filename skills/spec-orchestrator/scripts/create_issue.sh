@@ -66,7 +66,11 @@ if [ -z "$REPO" ] && [ "${#POSITIONAL_ARGS[@]}" -ge 4 ]; then
     REPO="${POSITIONAL_ARGS[3]}"
 fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-LINTER="$SCRIPT_DIR/verify_model_coverage.py"
+WORKSPACE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+VERIFY_BIN="$WORKSPACE_DIR/target/release/verify-baseline"
+if [ ! -f "$VERIFY_BIN" ]; then
+    VERIFY_BIN="$WORKSPACE_DIR/target/debug/verify-baseline"
+fi
 
 if [ ! -f "$LOCAL_FILE" ]; then
     echo "FATAL: Body file not found: $LOCAL_FILE" >&2
@@ -135,30 +139,18 @@ normalize_spec_slug() {
 # vanished in exactly the circumstance where it most needed to hold: a partial or broken
 # checkout with no checker present. A gate that yields when its checker is absent is not
 # a gate, it is a comment.
-if [ ! -f "$LINTER" ]; then
-    echo "FATAL: Linter not found at $LINTER." >&2
+if [ ! -f "$VERIFY_BIN" ]; then
+    echo "FATAL: verify-baseline binary not found at $VERIFY_BIN." >&2
     echo "       The specification gate cannot be satisfied, so no issue will be filed." >&2
     exit 1
 fi
 
-# Issue #331 -- the explicit --allow-missing-specs flag was removed from this invocation.
-# It was a no-op: cli.py declares it with default=True, so passing it changed nothing,
-# and its strict counterpart --no-allow-missing-specs is not used anywhere in the
-# repository. It also does not gate the 100% *model coverage* invariant as #331 states;
-# it gates whether an open tracker issue lacking a local spec file is fatal. Narrowing
-# the gate's scope to the item being filed remains an open design question recorded on
-# #331 and #321 -- two views of one scoping defect that must be resolved together.
-# Issue #331 + #321 -- the gate is scoped to the item being filed. Whole-corpus
-# invariants still run (uniqueness and cross-references cannot be checked per file),
-# but only findings naming this specification are reported. That is what makes
-# strictness affordable: the permissive --allow-missing-specs flag is gone, and an
-# unrelated work-in-progress draft no longer blocks this filing.
-echo "[GATE] Running linter: $LINTER --spec-only --only $(basename "$LOCAL_FILE") --provider $PROVIDER"
-if ! python3 "$LINTER" --spec-only --only "$(basename "$LOCAL_FILE")" --provider "$PROVIDER"; then
-    echo "FATAL: Linter failed. Fix all specification violations before filing issues." >&2
+echo "[GATE] Running specification audit: $VERIFY_BIN $WORKSPACE_DIR --spec-only --only $(basename "$LOCAL_FILE")"
+if ! "$VERIFY_BIN" "$WORKSPACE_DIR" --spec-only --only "$(basename "$LOCAL_FILE")"; then
+    echo "FATAL: Specification audit failed. Fix all specification violations before filing issues." >&2
     exit 1
 fi
-echo "[GATE] Linter passed."
+echo "[GATE] Specification audit passed."
 
 REPO_FLAG=""
 if [ -n "$REPO" ]; then

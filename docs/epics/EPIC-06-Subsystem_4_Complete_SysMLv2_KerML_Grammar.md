@@ -26,12 +26,10 @@ Structural Architecture for Subsystem 4 Complete SysMLv2 KerML Grammar
 - [ ] REQ-EPIC-06-01: Subsystem capability implementation for Subsystem_4_Complete_SysMLv2_KerML_Grammar.
 - [ ] REQ-EPIC-06-02: Semantic verification and conformance against schema definitions.
 
-
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
-
 
 #### Associated User Stories
 *To be populated after Phase 3*
