@@ -4233,9 +4233,10 @@ def parse_sysml(content: str) -> Dict[str, Any]:
     for match in re.finditer(r'\battribute\s+(?:def\s+)?([a-zA-Z0-9_]+)', content):
         if match.group(1) not in ast["attribute_defs"]:
             ast["attribute_defs"].append(match.group(1))
-    for match in re.finditer(r'\b(?:in|out|inout)?\s*port\s+(?:def\s+)?([a-zA-Z0-9_]+)', content):
-        if match.group(1) not in ast["port_defs"]:
-            ast["port_defs"].append(match.group(1))
+    for match in re.finditer(r'\b(?:(?:in|out|inout)\s+)?~?\s*\bport(?:\s+def)?(?:\s+(?:in|out|inout))?\s+~?\s*([a-zA-Z0-9_]+)', content):
+        pname = match.group(1)
+        if pname not in ("in", "out", "inout", "def") and pname not in ast["port_defs"]:
+            ast["port_defs"].append(pname)
     for match in re.finditer(r'\baction\s+(?:def\s+)?([a-zA-Z0-9_]+)', content):
         if match.group(1) not in ast["action_defs"]:
             ast["action_defs"].append(match.group(1))

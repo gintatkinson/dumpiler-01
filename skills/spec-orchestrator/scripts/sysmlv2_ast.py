@@ -831,6 +831,7 @@ class PartDef:
     hazards: List[HazardDef] = field(default_factory=list)
     risks: List[RiskDef] = field(default_factory=list)
     connections: List[ConnectionDef] = field(default_factory=list)
+    imports: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -946,6 +947,7 @@ class SysMLPackage:
     hazard_defs: List[HazardDef] = field(default_factory=list)
     risk_defs: List[RiskDef] = field(default_factory=list)
     connection_defs: List[ConnectionDef] = field(default_factory=list)
+    imports: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -1718,7 +1720,7 @@ class SysMLParser:
                     else:
                         container.connections.append(conn_obj)
 
-                elif re.search(r'(?:~?\s*\b(?:in|out|inout)\s+)?~?\s*port\b', header):
+                elif re.search(r'(?:\b(?:in|out|inout)\s+)?~?\s*\bport\b', header):
                     port_obj = self._parse_port_block(d)
                     if isinstance(container, SysMLPackage):
                         container.port_defs.append(port_obj)
@@ -1728,6 +1730,13 @@ class SysMLParser:
             elif d["type"] == "statement":
                 stmt = d["statement"]
                 doc = d.get("doc", "")
+
+                if re.search(r'^\s*import\b|\bimport\s+[a-zA-Z0-9_:]+', stmt):
+                    m_imp = re.search(r'\bimport\s+([^;]+)', stmt)
+                    imp_val = m_imp.group(1).strip() if m_imp else stmt.strip()
+                    if hasattr(container, "imports"):
+                        container.imports.append(imp_val)
+                    continue
 
                 if re.search(r'\bpart\s+(?:def\s+)?([a-zA-Z0-9_]+)', stmt):
                     is_def = bool(re.search(r'\bpart\s+def\b', stmt))
@@ -1797,7 +1806,7 @@ class SysMLParser:
                     else:
                         container.actions.append(act_obj)
 
-                elif re.search(r'(?:~?\s*\b(?:in|out|inout)\s+)?~?\s*port\b', stmt):
+                elif re.search(r'(?:\b(?:in|out|inout)\s+)?~?\s*\bport\b', stmt):
                     port_obj = self._parse_port_stmt(stmt, doc)
                     if isinstance(container, SysMLPackage):
                         container.port_defs.append(port_obj)
@@ -2353,7 +2362,7 @@ class SysMLParser:
 
         is_conjugated = bool('~' in stmt)
 
-        m = re.search(r'\b(?:(?:in|out|inout)\s+)?port\s+(?:def\s+)?(?:(?:in|out|inout)\s+)?~?\s*([a-zA-Z0-9_]+)', stmt)
+        m = re.search(r'\b(?:(?:in|out|inout)\s+)?~?\s*port(?:\s+def)?(?:\s+(?:in|out|inout))?\s+~?\s*([a-zA-Z0-9_]+)', stmt)
         name = m.group(1) if m else "Port"
 
         type_m = re.search(r':\s*~?\s*([a-zA-Z0-9_<>:]+)', stmt)
