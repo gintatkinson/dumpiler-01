@@ -5,7 +5,17 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+/// Individual file entry recorded in the schema digest file manifest.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+pub struct FileDigestEntry {
+    pub path: String,
+    pub sha256: String,
+    pub bytes: u64,
+    pub lines: usize,
+    pub entities: usize,
+}
 
 /// Operational activity descriptor in schema digest.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -64,6 +74,8 @@ pub struct SchemaDigest {
     pub operational_scenarios: Vec<OperationalScenario>,
     #[serde(default)]
     pub operational_nodes: Vec<OperationalNode>,
+    #[serde(default)]
+    pub file_manifest: Vec<FileDigestEntry>,
 }
 
 impl SchemaDigest {
@@ -88,7 +100,14 @@ impl SchemaDigest {
             operational_exchanges,
             operational_scenarios,
             operational_nodes,
+            file_manifest: Vec::new(),
         }
+    }
+
+    /// Builder method to attach a file manifest to the schema digest.
+    pub fn with_file_manifest(mut self, manifest: Vec<FileDigestEntry>) -> Self {
+        self.file_manifest = manifest;
+        self
     }
 
     /// Atomically write digest JSON to disk using a temporary sibling file and rename.
@@ -111,6 +130,77 @@ impl SchemaDigest {
 /// Compute schema digest from a PackageDef and its compiled SysML textual bytes.
 pub fn generate_digest(pkg: &PackageDef, sysml_text: &str) -> SchemaDigest {
     SchemaDigest::compute(pkg, sysml_text)
+}
+
+/// Count structural AST definitions within a PackageDef.
+pub fn count_structural_elements(pkg: &PackageDef) -> usize {
+    let direct = pkg.part_defs.len()
+        + pkg.attribute_defs.len()
+        + pkg.port_defs.len()
+        + pkg.action_defs.len()
+        + pkg.operation_defs.len()
+        + pkg.capability_defs.len()
+        + pkg.interaction_defs.len()
+        + pkg.constraint_defs.len()
+        + pkg.test_case_defs.len()
+        + pkg.requirement_defs.len()
+        + pkg.connection_defs.len()
+        + pkg.state_defs.len()
+        + pkg.use_case_defs.len()
+        + pkg.item_defs.len()
+        + pkg.hazard_defs.len()
+        + pkg.risk_defs.len();
+
+    let nested: usize = pkg.packages.iter().map(count_structural_elements).sum();
+    direct + nested
+}
+
+/// Compute a file manifest for a slice of SysML files.
+///
+/// For each file:
+/// - `path`: relative path as string.
+/// - `sha256`: SHA-256 hex string using `compute_sha256`.
+/// - `bytes`: file size in bytes (`std::fs::metadata(p)?.len()`).
+/// - `lines`: line count of file.
+/// - `entities`: count of AST definitions parsed from that file (using `parse_sysml(&content)`).
+pub fn compute_file_manifest(files: &[PathBuf]) -> Vec<FileDigestEntry> {
+    let mut manifest = Vec::new();
+    let cwd = std::env::current_dir().ok();
+
+    for p in files {
+        let rel_p = p.strip_prefix(".").unwrap_or(p);
+        let rel_p = if let Some(ref cwd_path) = cwd {
+            rel_p.strip_prefix(cwd_path).unwrap_or(rel_p)
+        } else {
+            rel_p
+        };
+        let path = rel_p.to_string_lossy().to_string();
+
+        let bytes = fs::metadata(p).map(|m| m.len()).unwrap_or(0);
+
+        let content = fs::read(p).unwrap_or_default();
+        let sha256 = compute_sha256(&content);
+        let content_str = String::from_utf8_lossy(&content);
+        let lines = if content.is_empty() {
+            0
+        } else {
+            content_str.lines().count()
+        };
+
+        let entities = crate::parse_sysml(&content_str)
+            .map(|pkg| count_structural_elements(&pkg))
+            .unwrap_or(0);
+
+        manifest.push(FileDigestEntry {
+            path,
+            sha256,
+            bytes,
+            lines,
+            entities,
+        });
+    }
+
+    manifest
 }
 
 /// Atomically write digest JSON to disk using a temporary sibling file and rename.
@@ -538,5 +628,55 @@ mod tests {
         assert!(digest.schema_nodes.contains(&"DigestTest".to_string()));
         assert!(digest.schema_nodes.contains(&"ComponentA".to_string()));
         assert!(digest.schema_nodes.contains(&"p1".to_string()));
+    }
+
+    #[test]
+    fn test_schema_digest_multi_file_manifest() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "compile_sysml_manifest_test_{}_{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&temp_dir).unwrap();
+
+        let file1 = temp_dir.join("subsystem_a.sysml");
+        let file2 = temp_dir.join("subsystem_b.sysml");
+
+        let content1 = "package SubsystemA {\n    part def ComponentA;\n    attribute mass : Real = 10.0;\n}\n";
+        let content2 = "package SubsystemB {\n    part def ComponentB;\n}\n";
+
+        fs::write(&file1, content1).unwrap();
+        fs::write(&file2, content2).unwrap();
+
+        let manifest = compute_file_manifest(&[file1.clone(), file2.clone()]);
+        assert_eq!(manifest.len(), 2);
+
+        // Entry 1 verification
+        assert_eq!(manifest[0].path, file1.to_string_lossy().to_string());
+        assert_eq!(manifest[0].sha256, compute_sha256(content1.as_bytes()));
+        assert_eq!(manifest[0].bytes, content1.len() as u64);
+        assert_eq!(manifest[0].lines, content1.lines().count());
+        assert_eq!(manifest[0].entities, 2); // ComponentA and mass
+
+        // Entry 2 verification
+        assert_eq!(manifest[1].path, file2.to_string_lossy().to_string());
+        assert_eq!(manifest[1].sha256, compute_sha256(content2.as_bytes()));
+        assert_eq!(manifest[1].bytes, content2.len() as u64);
+        assert_eq!(manifest[1].lines, content2.lines().count());
+        assert_eq!(manifest[1].entities, 1); // ComponentB
+
+        // Verify SchemaDigest integration and serialization round-trip
+        let digest = SchemaDigest::default().with_file_manifest(manifest.clone());
+        assert_eq!(digest.file_manifest, manifest);
+
+        let json = serde_json::to_string_pretty(&digest).expect("Failed to serialize SchemaDigest");
+        let deserialized: SchemaDigest =
+            serde_json::from_str(&json).expect("Failed to deserialize SchemaDigest");
+        assert_eq!(deserialized.file_manifest, manifest);
+
+        let _ = fs::remove_dir_all(&temp_dir);
     }
 }

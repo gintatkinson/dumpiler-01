@@ -14,7 +14,10 @@ pub use parser::grammar::{
     discover_sysml_files, merge_package_defs, parse_sysml_directory, parse_sysml_tree, ParseError,
     SysmlParser,
 };
-pub use semantic::digest::{generate_digest, write_atomic, write_digest_atomic, SchemaDigest};
+pub use semantic::digest::{
+    compute_file_manifest, count_structural_elements, generate_digest, write_atomic,
+    write_digest_atomic, FileDigestEntry, SchemaDigest,
+};
 pub use semantic::serializer::{to_sysml, SysmlSerializable};
 pub use semantic::symbols::{Symbol, SymbolKind, SymbolTable};
 pub use semantic::validator::{DiagnosticSeverity, SemanticDiagnostic, SemanticValidator};

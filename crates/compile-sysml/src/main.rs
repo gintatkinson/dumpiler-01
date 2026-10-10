@@ -9,7 +9,8 @@ use compile_sysml::sync::{
     ReverseSyncOptions,
 };
 use compile_sysml::{
-    discover_sysml_files, parse_sysml, parse_sysml_tree, PackageDef, SchemaDigest,
+    compute_file_manifest, count_structural_elements, discover_sysml_files, parse_sysml,
+    parse_sysml_tree, SchemaDigest,
 };
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -308,9 +309,9 @@ pub fn run_compilation_gate(
         }
     };
 
-    let (pkg, display_name) = match target {
+    let (pkg, display_name) = match &target {
         SchemaTarget::SingleFile(schema_file) => {
-            let content = match fs::read_to_string(&schema_file) {
+            let content = match fs::read_to_string(schema_file) {
                 Ok(c) => c,
                 Err(e) => {
                     eprintln!("Error reading schema file '{}': {}", schema_file.display(), e);
@@ -345,7 +346,7 @@ pub fn run_compilation_gate(
                 .unwrap_or("SysML_Model")
                 .to_string();
 
-            let parsed = match parse_sysml_tree(&files) {
+            let parsed = match parse_sysml_tree(files) {
                 Ok(p) => p,
                 Err(err) => {
                     eprintln!("Error parsing schema directory '{}': {}", dir.display(), err);
@@ -392,7 +393,11 @@ pub fn run_compilation_gate(
     }
 
     // Digest generation
-    let digest = SchemaDigest::compute(&pkg, &sysml_text);
+    let mut digest = SchemaDigest::compute(&pkg, &sysml_text);
+    if let SchemaTarget::Directory(_, ref files) = target {
+        let manifest = compute_file_manifest(files);
+        digest = digest.with_file_manifest(manifest);
+    }
     if let Err(e) = digest.write_to_file(digest_path) {
         eprintln!("Error writing schema digest to '{}': {}", digest_path.display(), e);
         return 1;
@@ -454,26 +459,4 @@ pub fn resolve_schema_file(explicit_path: Option<PathBuf>) -> Result<PathBuf, St
             }
         }
     }
-}
-
-fn count_structural_elements(pkg: &PackageDef) -> usize {
-    let direct = pkg.part_defs.len()
-        + pkg.attribute_defs.len()
-        + pkg.port_defs.len()
-        + pkg.action_defs.len()
-        + pkg.operation_defs.len()
-        + pkg.capability_defs.len()
-        + pkg.interaction_defs.len()
-        + pkg.constraint_defs.len()
-        + pkg.test_case_defs.len()
-        + pkg.requirement_defs.len()
-        + pkg.connection_defs.len()
-        + pkg.state_defs.len()
-        + pkg.use_case_defs.len()
-        + pkg.item_defs.len()
-        + pkg.hazard_defs.len()
-        + pkg.risk_defs.len();
-
-    let nested: usize = pkg.packages.iter().map(count_structural_elements).sum();
-    direct + nested
 }
