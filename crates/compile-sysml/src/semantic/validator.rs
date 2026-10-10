@@ -61,6 +61,8 @@ impl<'a> SemanticValidator<'a> {
         self.validate_part_hierarchy();
         self.validate_connections();
         self.validate_referential_integrity();
+        self.validate_part_defs();
+        self.validate_requirements();
         &self.diagnostics
     }
 
@@ -317,6 +319,172 @@ impl<'a> SemanticValidator<'a> {
             self.collect_part_requirement_texts(subpart, out);
         }
     }
+
+    /// Validate part definitions, ensuring all referenced types resolve within local scope, imported namespaces, or global symbols.
+    fn validate_part_defs(&mut self) {
+        self.validate_part_defs_in_pkg(self.pkg, "");
+    }
+
+    fn validate_part_defs_in_pkg(&mut self, pkg: &PackageDef, parent_scope: &str) {
+        let pkg_scope = if parent_scope.is_empty() {
+            pkg.name.clone()
+        } else if pkg.name.is_empty() {
+            parent_scope.to_string()
+        } else {
+            format!("{}::{}", parent_scope, pkg.name)
+        };
+
+        for part in &pkg.part_defs {
+            self.validate_single_part_def(part, &pkg_scope);
+        }
+
+        for subpkg in &pkg.packages {
+            self.validate_part_defs_in_pkg(subpkg, &pkg_scope);
+        }
+    }
+
+    fn validate_single_part_def(&mut self, part: &PartDef, scope: &str) {
+        if let Some(ref ty) = part.type_name {
+            if !is_primitive_or_builtin_type(ty) && self.symbols.lookup_in_scope(scope, ty).is_none() {
+                self.diagnostics.push(SemanticDiagnostic::error(
+                    &part.name,
+                    format!("Part '{}' references undefined type '{}'", part.name, ty),
+                ));
+            }
+        }
+
+        let part_scope = if scope.is_empty() {
+            part.name.clone()
+        } else {
+            format!("{}::{}", scope, part.name)
+        };
+
+        for subpart in &part.parts {
+            self.validate_single_part_def(subpart, &part_scope);
+        }
+    }
+
+    /// Validate requirement definitions, ensuring satisfying elements and attribute types resolve in scope.
+    fn validate_requirements(&mut self) {
+        self.validate_requirements_in_pkg(self.pkg, "");
+    }
+
+    fn validate_requirements_in_pkg(&mut self, pkg: &PackageDef, parent_scope: &str) {
+        let pkg_scope = if parent_scope.is_empty() {
+            pkg.name.clone()
+        } else if pkg.name.is_empty() {
+            parent_scope.to_string()
+        } else {
+            format!("{}::{}", parent_scope, pkg.name)
+        };
+
+        for req in &pkg.requirement_defs {
+            self.validate_single_requirement_def(req, &pkg_scope);
+        }
+
+        for part in &pkg.part_defs {
+            self.validate_part_requirements(part, &pkg_scope);
+        }
+
+        for subpkg in &pkg.packages {
+            self.validate_requirements_in_pkg(subpkg, &pkg_scope);
+        }
+    }
+
+    fn validate_single_requirement_def(&mut self, req: &RequirementDef, scope: &str) {
+        for attr in &req.attributes {
+            if !is_primitive_or_builtin_type(&attr.type_name)
+                && self.symbols.lookup_in_scope(scope, &attr.type_name).is_none()
+            {
+                self.diagnostics.push(SemanticDiagnostic::error(
+                    &req.name,
+                    format!(
+                        "Requirement '{}' attribute '{}' references undefined type '{}'",
+                        req.name, attr.name, attr.type_name
+                    ),
+                ));
+            }
+        }
+
+        for target in &req.satisfied_by {
+            if !is_primitive_or_builtin_type(target)
+                && self.symbols.lookup_in_scope(scope, target).is_none()
+            {
+                self.diagnostics.push(SemanticDiagnostic::error(
+                    &req.name,
+                    format!(
+                        "Requirement '{}' references undefined satisfying element '{}'",
+                        req.name, target
+                    ),
+                ));
+            }
+        }
+    }
+
+    fn validate_part_requirements(&mut self, part: &PartDef, scope: &str) {
+        let part_scope = if scope.is_empty() {
+            part.name.clone()
+        } else {
+            format!("{}::{}", scope, part.name)
+        };
+
+        for req in &part.requirements {
+            self.validate_single_requirement_def(req, &part_scope);
+        }
+
+        for subpart in &part.parts {
+            self.validate_part_requirements(subpart, &part_scope);
+        }
+    }
+}
+
+fn is_primitive_or_builtin_type(type_name: &str) -> bool {
+    let clean = type_name.trim();
+    if clean.is_empty() {
+        return true;
+    }
+    let base = if let Some(bracket_idx) = clean.find('[') {
+        clean[..bracket_idx].trim()
+    } else {
+        clean
+    };
+
+    if base.starts_with("ScalarValues::") || base.starts_with("ISQ::") || base.starts_with("SI::") {
+        return true;
+    }
+
+    matches!(
+        base,
+        "Boolean"
+            | "bool"
+            | "boolean"
+            | "Integer"
+            | "int"
+            | "i8"
+            | "i16"
+            | "i32"
+            | "i64"
+            | "i128"
+            | "isize"
+            | "Natural"
+            | "natural"
+            | "u8"
+            | "u16"
+            | "u32"
+            | "u64"
+            | "u128"
+            | "usize"
+            | "Real"
+            | "real"
+            | "Float"
+            | "float"
+            | "f32"
+            | "f64"
+            | "String"
+            | "string"
+            | "str"
+            | "ScalarValues"
+    )
 }
 
 fn get_effective_direction(port_sym: &Symbol) -> String {
@@ -461,5 +629,127 @@ mod tests {
         assert!(validator.has_errors());
         let errors = validator.errors();
         assert!(errors[0].message.contains("references undefined constraint/UCA 'UCA-99'"));
+    }
+
+    #[test]
+    fn test_validate_part_defs_with_cross_package_import() {
+        let pkg_a = PackageDef {
+            name: "Subsystem_1".to_string(),
+            part_defs: vec![
+                PartDef {
+                    name: "SystemVisionEngine".to_string(),
+                    is_def: true,
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let pkg_b = PackageDef {
+            name: "Subsystem_2".to_string(),
+            imports: vec![
+                ImportDef {
+                    path: "Subsystem_1".to_string(),
+                    is_wildcard: true,
+                    ..Default::default()
+                },
+            ],
+            part_defs: vec![
+                PartDef {
+                    name: "v".to_string(),
+                    is_def: false,
+                    type_name: Some("SystemVisionEngine".to_string()),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let root = PackageDef {
+            name: "".to_string(),
+            packages: vec![pkg_a, pkg_b],
+            ..Default::default()
+        };
+
+        let mut validator = SemanticValidator::new(&root);
+        validator.validate();
+        assert!(
+            !validator.has_errors(),
+            "Expected no validation errors with imported type, got: {:?}",
+            validator.errors()
+        );
+    }
+
+    #[test]
+    fn test_validate_part_defs_missing_type_fails() {
+        let pkg = PackageDef {
+            name: "Subsystem_2".to_string(),
+            part_defs: vec![
+                PartDef {
+                    name: "v".to_string(),
+                    is_def: false,
+                    type_name: Some("SystemVisionEngine".to_string()),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let mut validator = SemanticValidator::new(&pkg);
+        validator.validate();
+        assert!(validator.has_errors());
+        let errors = validator.errors();
+        assert!(errors
+            .iter()
+            .any(|e| e.message.contains("references undefined type 'SystemVisionEngine'")));
+    }
+
+    #[test]
+    fn test_validate_requirements_with_cross_package_import() {
+        let pkg_a = PackageDef {
+            name: "Subsystem_1".to_string(),
+            part_defs: vec![
+                PartDef {
+                    name: "SafetyController".to_string(),
+                    is_def: true,
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let pkg_b = PackageDef {
+            name: "Subsystem_2".to_string(),
+            imports: vec![
+                ImportDef {
+                    path: "Subsystem_1".to_string(),
+                    is_wildcard: true,
+                    ..Default::default()
+                },
+            ],
+            requirement_defs: vec![
+                RequirementDef {
+                    name: "Req_Ctrl".to_string(),
+                    text: "Shall engage safety controller.".to_string(),
+                    satisfied_by: vec!["SafetyController".to_string()],
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let root = PackageDef {
+            name: "".to_string(),
+            packages: vec![pkg_a, pkg_b],
+            ..Default::default()
+        };
+
+        let mut validator = SemanticValidator::new(&root);
+        validator.validate();
+        assert!(
+            !validator.has_errors(),
+            "Expected no validation errors, got: {:?}",
+            validator.errors()
+        );
     }
 }

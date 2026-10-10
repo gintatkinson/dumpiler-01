@@ -46,6 +46,8 @@ pub struct SymbolTable {
     pub symbols: BTreeMap<String, Symbol>,
     /// Unqualified name -> List of qualified names
     pub by_name: BTreeMap<String, Vec<String>>,
+    /// Package qualified name -> List of imports declared in that package
+    pub package_imports: BTreeMap<String, Vec<ImportDef>>,
 }
 
 impl SymbolTable {
@@ -67,10 +69,20 @@ impl SymbolTable {
 
     /// Look up a symbol within a given parent scope or fall back to global scope.
     pub fn lookup_in_scope(&self, scope: &str, name: &str) -> Option<&Symbol> {
+        // 1. If `name` contains `::`, call `self.lookup(name)`.
         if name.contains("::") {
-            return self.lookup(name);
+            if let Some(sym) = self.lookup(name) {
+                return Some(sym);
+            }
+            if !scope.is_empty() {
+                let scoped_name = format!("{}::{}", scope, name);
+                if let Some(sym) = self.lookup(&scoped_name) {
+                    return Some(sym);
+                }
+            }
         }
 
+        // 2. If `!scope.is_empty()`, check direct scoped name `format!("{}::{}", scope, name)`.
         if !scope.is_empty() {
             let scoped_name = format!("{}::{}", scope, name);
             if let Some(sym) = self.symbols.get(&scoped_name) {
@@ -78,12 +90,85 @@ impl SymbolTable {
             }
         }
 
-        // Try direct name
+        // 3. Check imported namespaces in `scope` (or traversing enclosing parent scopes):
+        let mut curr_scope = Some(scope);
+        while let Some(s) = curr_scope {
+            if let Some(imports) = self.package_imports.get(s) {
+                for import in imports {
+                    // Wildcard imports (e.g. import Subsystem_1::*; where path is "Subsystem_1::*" or "Subsystem_1")
+                    if import.is_wildcard
+                        || import.path.ends_with("::*")
+                        || import.path.ends_with("::**")
+                    {
+                        let base = import
+                            .path
+                            .trim_end_matches("::**")
+                            .trim_end_matches("::*");
+
+                        // Check direct qualified name under base prefix
+                        let candidate_qname = format!("{}::{}", base, name);
+                        if let Some(sym) = self.symbols.get(&candidate_qname) {
+                            return Some(sym);
+                        }
+
+                        // Also check recursive wildcard imports if applicable
+                        if import.is_recursive || import.path.ends_with("::**") {
+                            let prefix = format!("{}::", base);
+                            if let Some(qnames) = self.by_name.get(name) {
+                                for q in qnames {
+                                    if q.starts_with(&prefix) {
+                                        if let Some(sym) = self.symbols.get(q) {
+                                            return Some(sym);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Also check if base is a relative package inside the enclosing root scope
+                        if let Some(idx) = s.find("::") {
+                            let root_scope = &s[..idx];
+                            let candidate_rooted = format!("{}::{}::{}", root_scope, base, name);
+                            if let Some(sym) = self.symbols.get(&candidate_rooted) {
+                                return Some(sym);
+                            }
+                        }
+                    } else {
+                        // Explicit element import (e.g. import Subsystem_1::SystemVisionEngine;)
+                        let target_elem = import.path.rsplit("::").next().unwrap_or(&import.path);
+                        if target_elem == name {
+                            if let Some(sym) = self.symbols.get(&import.path) {
+                                return Some(sym);
+                            }
+                            // Also check relative to root scope if applicable
+                            if let Some(idx) = s.find("::") {
+                                let root_scope = &s[..idx];
+                                let candidate_rooted = format!("{}::{}", root_scope, import.path);
+                                if let Some(sym) = self.symbols.get(&candidate_rooted) {
+                                    return Some(sym);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Traverse to enclosing parent scope
+            curr_scope = if let Some(idx) = s.rfind("::") {
+                Some(&s[..idx])
+            } else if !s.is_empty() {
+                Some("")
+            } else {
+                None
+            };
+        }
+
+        // 4. Fall back to direct name in global scope
         if let Some(sym) = self.symbols.get(name) {
             return Some(sym);
         }
 
-        // Search by unqualified name
+        // 5. Fall back to unqualified search in self.by_name
         if let Some(qnames) = self.by_name.get(name) {
             if let Some(first) = qnames.first() {
                 return self.symbols.get(first);
@@ -152,9 +237,20 @@ impl SymbolTable {
     fn index_package(&mut self, pkg: &PackageDef, parent_scope: &str) {
         let pkg_qname = if parent_scope.is_empty() {
             pkg.name.clone()
+        } else if pkg.name.is_empty() {
+            parent_scope.to_string()
         } else {
             format!("{}::{}", parent_scope, pkg.name)
         };
+
+        self.package_imports
+            .insert(pkg_qname.clone(), pkg.imports.clone());
+        if !pkg.name.is_empty() && pkg.name != pkg_qname {
+            self.package_imports
+                .entry(pkg.name.clone())
+                .or_default()
+                .extend(pkg.imports.clone());
+        }
 
         self.insert(Symbol {
             name: pkg.name.clone(),
@@ -454,5 +550,105 @@ mod tests {
         let port_sym = table.lookup_port("FlightComputer.bus_out", None).unwrap();
         assert_eq!(port_sym.name, "bus_out");
         assert_eq!(port_sym.direction.as_deref(), Some("out"));
+    }
+
+    #[test]
+    fn test_symbol_table_cross_package_import_lookup() {
+        let pkg_competing = PackageDef {
+            name: "AAA_Other".to_string(),
+            part_defs: vec![
+                PartDef {
+                    name: "EngineA".to_string(),
+                    is_def: true,
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let pkg_a = PackageDef {
+            name: "Subsystem_A".to_string(),
+            part_defs: vec![
+                PartDef {
+                    name: "EngineA".to_string(),
+                    is_def: true,
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let pkg_b = PackageDef {
+            name: "Subsystem_B".to_string(),
+            imports: vec![
+                ImportDef {
+                    path: "Subsystem_A".to_string(),
+                    is_wildcard: true,
+                    ..Default::default()
+                },
+            ],
+            part_defs: vec![
+                PartDef {
+                    name: "UsageB".to_string(),
+                    is_def: false,
+                    type_name: Some("EngineA".to_string()),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let root_pkg = PackageDef {
+            name: "".to_string(),
+            packages: vec![pkg_competing.clone(), pkg_a.clone(), pkg_b],
+            ..Default::default()
+        };
+
+        let table = SymbolTable::build_from_package(&root_pkg);
+
+        // Verify package_imports records the imports for Subsystem_B
+        assert!(table.package_imports.contains_key("Subsystem_B"));
+        assert_eq!(table.package_imports.get("Subsystem_B").unwrap().len(), 1);
+
+        // Verify that lookup_in_scope("Subsystem_B", "EngineA") resolves to Subsystem_A::EngineA
+        // rather than AAA_Other::EngineA or failing.
+        let resolved = table.lookup_in_scope("Subsystem_B", "EngineA");
+        assert!(resolved.is_some(), "EngineA should resolve via import in Subsystem_B");
+        assert_eq!(
+            resolved.unwrap().qualified_name,
+            "Subsystem_A::EngineA",
+            "Import scoping should take precedence over unqualified fallback"
+        );
+
+        // Explicit element import test
+        let pkg_d = PackageDef {
+            name: "Subsystem_D".to_string(),
+            imports: vec![
+                ImportDef {
+                    path: "Subsystem_A::EngineA".to_string(),
+                    is_wildcard: false,
+                    ..Default::default()
+                },
+            ],
+            part_defs: vec![
+                PartDef {
+                    name: "UsageD".to_string(),
+                    is_def: false,
+                    type_name: Some("EngineA".to_string()),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let root_with_d = PackageDef {
+            name: "Root".to_string(),
+            packages: vec![pkg_competing, pkg_a, pkg_d],
+            ..Default::default()
+        };
+        let table_d = SymbolTable::build_from_package(&root_with_d);
+        let resolved_d = table_d.lookup_in_scope("Root::Subsystem_D", "EngineA");
+        assert!(resolved_d.is_some(), "EngineA should resolve via explicit import in Root::Subsystem_D");
+        assert_eq!(resolved_d.unwrap().qualified_name, "Root::Subsystem_A::EngineA");
     }
 }
