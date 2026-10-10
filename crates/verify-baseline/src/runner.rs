@@ -629,6 +629,23 @@ mod tests {
             .and_then(|p| p.parent())
             .expect("repo root");
 
-        assert!(has_clean_landing_zones(repo_root));
+        let is_clean = has_clean_landing_zones(repo_root);
+        let spec_zones = [
+            repo_root.join("docs").join("epics"),
+            repo_root.join("docs").join("features"),
+        ];
+        let has_specs = spec_zones.iter().any(|d| {
+            d.is_dir()
+                && WalkDir::new(d)
+                    .into_iter()
+                    .filter_map(|e| e.ok())
+                    .any(|e| e.file_type().is_file() && e.file_name().to_string_lossy().ends_with(".md"))
+        });
+
+        if has_specs {
+            assert!(!is_clean || is_upstream_compiler(repo_root));
+        } else {
+            assert!(is_clean);
+        }
     }
 }

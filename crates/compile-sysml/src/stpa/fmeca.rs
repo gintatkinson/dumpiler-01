@@ -118,7 +118,16 @@ pub fn generate_fmeca_matrix(
     scoring_config: Option<&FmecaScoringConfig>,
 ) -> Vec<FmecaRow> {
     let mut rows = Vec::new();
-    let parts: Vec<&str> = pkg.part_defs.iter().map(|p| p.name.as_str()).collect();
+    let all_parts = pkg.get_all_parts();
+    let mut parts: Vec<&str> = all_parts
+        .iter()
+        .map(|p| p.name.as_str())
+        .filter(|name| !name.starts_with('_'))
+        .collect();
+
+    if parts.is_empty() {
+        parts = all_parts.iter().map(|p| p.name.as_str()).collect();
+    }
 
     if parts.is_empty() {
         return rows;

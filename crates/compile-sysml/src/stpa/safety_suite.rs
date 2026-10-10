@@ -297,20 +297,21 @@ pub const PROOF_TEMPLATES: [ProofTemplate; 10] = [
 pub fn collect_parameter_tokens(pkg: &PackageDef) -> HashMap<String, String> {
     let mut tokens = HashMap::new();
 
-    for attr in &pkg.attribute_defs {
-        if let Some(ref val) = attr.default_value {
-            let s = val.trim();
-            if !s.is_empty() {
-                tokens.insert(attr.name.clone(), s.to_string());
+    for p in pkg.get_all_packages() {
+        for attr in &p.attribute_defs {
+            if let Some(ref val) = attr.default_value {
+                let s = val.trim();
+                if !s.is_empty() {
+                    tokens.insert(attr.name.clone(), s.to_string());
+                }
             }
+        }
+        for con in &p.constraint_defs {
+            extract_constraint_tokens(&con.expression, &mut tokens);
         }
     }
 
-    for con in &pkg.constraint_defs {
-        extract_constraint_tokens(&con.expression, &mut tokens);
-    }
-
-    for part in &pkg.part_defs {
+    for part in pkg.get_all_parts() {
         for attr in &part.attributes {
             if let Some(ref val) = attr.default_value {
                 let s = val.trim();
@@ -350,11 +351,7 @@ fn resolve_template(text: &str, tokens: &HashMap<String, String>) -> String {
 
 /// Collects all constraint defs across package and part scopes.
 pub fn collect_all_constraints(pkg: &PackageDef) -> Vec<ConstraintDef> {
-    let mut all = pkg.constraint_defs.clone();
-    for part in &pkg.part_defs {
-        all.extend(part.constraints.clone());
-    }
-    all
+    pkg.get_all_constraints()
 }
 
 /// Transpiles the SysML v2 AST into the 10-pillar safety artifact suite.
@@ -445,9 +442,21 @@ pub fn emit_safety_suite(
     Ok(())
 }
 
+fn sanitize_mermaid_id(id: &str) -> String {
+    let clean: String = id
+        .chars()
+        .filter(|c| c.is_alphanumeric() || *c == '_')
+        .collect();
+    if clean.is_empty() || clean.chars().next().map_or(false, |c| c.is_numeric()) {
+        format!("Node_{}", clean)
+    } else {
+        clean
+    }
+}
+
 fn render_losses_hazards_topology(pkg: &PackageDef, ucas: &[UnsafeControlAction]) -> String {
-    let controllers: Vec<_> = pkg
-        .part_defs
+    let all_parts = pkg.get_all_parts();
+    let controllers: Vec<_> = all_parts
         .iter()
         .filter(|part| !part.actions.is_empty())
         .collect();
@@ -458,20 +467,34 @@ fn render_losses_hazards_topology(pkg: &PackageDef, ucas: &[UnsafeControlAction]
     out.push_str("| Loss ID | Description |\n");
     out.push_str("| :--- | :--- |\n");
 
-    if controllers.is_empty() {
-        for (i, part) in pkg.part_defs.iter().enumerate() {
-            out.push_str(&format!(
-                "| L-{} | Loss of safe function of {} |\n",
-                i + 1,
-                part.name
-            ));
-        }
+    let controller_names: Vec<String> = if !controllers.is_empty() {
+        controllers.iter().map(|c| c.name.clone()).collect()
     } else {
-        for (i, c) in controllers.iter().enumerate() {
+        let mut uca_controllers: Vec<String> = ucas.iter().map(|u| u.controller.clone()).collect();
+        uca_controllers.sort();
+        uca_controllers.dedup();
+        if !uca_controllers.is_empty() {
+            uca_controllers
+        } else {
+            all_parts
+                .iter()
+                .filter(|p| !p.name.starts_with('_'))
+                .map(|p| p.name.clone())
+                .collect()
+        }
+    };
+
+    if controller_names.is_empty() {
+        out.push_str(&format!(
+            "| L-1 | Loss of safe function of {} |\n",
+            pkg.name
+        ));
+    } else {
+        for (i, c_name) in controller_names.iter().enumerate() {
             out.push_str(&format!(
                 "| L-{} | Loss of safe function of {} |\n",
                 i + 1,
-                c.name
+                c_name
             ));
         }
     }
@@ -492,18 +515,16 @@ fn render_losses_hazards_topology(pkg: &PackageDef, ucas: &[UnsafeControlAction]
     out.push_str("```mermaid\n");
     out.push_str("graph TD\n");
     out.push_str("    subgraph \"Control Structure Topology\"\n");
-    if controllers.is_empty() {
-        for part in &pkg.part_defs {
-            out.push_str(&format!(
-                "        {}[\"{}\"] --> ControlledProcess[\"Controlled Process\"]\n",
-                part.name, part.name
-            ));
-        }
+    if controller_names.is_empty() {
+        out.push_str(&format!(
+            "        {}[\"{}\"] --> ControlledProcess[\"Controlled Process\"]\n",
+            sanitize_mermaid_id(&pkg.name), pkg.name
+        ));
     } else {
-        for c in &controllers {
+        for c_name in &controller_names {
             out.push_str(&format!(
                 "        {}[\"{}\"] --> ControlledProcess[\"Controlled Process\"]\n",
-                c.name, c.name
+                sanitize_mermaid_id(c_name), c_name
             ));
         }
     }
@@ -588,11 +609,11 @@ fn render_fmeca_matrix_doc(rows: &[FmecaRow]) -> String {
     out.push_str("# FMECA Criticality Matrix\n\n");
     out.push_str("The Risk Priority Number is the product of severity (S), occurrence (O)\n");
     out.push_str("and detection (D) scores.\n\n");
-    out.push_str("| FMECA ID | Component | Failure Mode | Potential Effect | Severity (S) | Occurrence (O) | Detection (D) | RPN (S x O x D) | Mitigation |\n");
-    out.push_str("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n");
+    out.push_str("| FMECA ID | Component | Failure Mode | Potential Effect | Severity (S) | Occurrence (O) | Detection (D) | RPN (S x O x D) | Mitigation | Derivation Basis |\n");
+    out.push_str("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n");
     for r in rows {
         out.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
             r.id,
             r.component,
             r.failure_mode,
@@ -601,7 +622,8 @@ fn render_fmeca_matrix_doc(rows: &[FmecaRow]) -> String {
             r.occurrence_cell,
             r.detection_cell,
             r.rpn_cell,
-            r.mitigation
+            r.mitigation,
+            r.basis
         ));
     }
     out.push('\n');
