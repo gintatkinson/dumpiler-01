@@ -662,6 +662,7 @@ impl<'a> SysmlParser<'a> {
         let mut requires = Vec::new();
         let mut verified_by = Vec::new();
         let mut satisfied_by = Vec::new();
+        let mut attributes = Vec::new();
 
         if self.check(&TokenKind::OpenBrace) {
             self.advance();
@@ -684,6 +685,9 @@ impl<'a> SysmlParser<'a> {
                     self.expect_semi()?;
                 } else if let Some(d) = sub_doc {
                     text = d;
+                } else if self.check(&TokenKind::Attribute) {
+                    let attr = self.parse_attribute_decl(sub_doc)?;
+                    attributes.push(attr);
                 } else if self.check(&TokenKind::Assume) {
                     self.advance();
                     assumes.push(self.read_until_semi());
@@ -716,6 +720,7 @@ impl<'a> SysmlParser<'a> {
             req_id,
             text,
             doc,
+            attributes,
             assumes,
             requires,
             verified_by,
@@ -1667,6 +1672,47 @@ package TestPkg {
         assert_eq!(comp.attributes[3].name, "state");
         assert_eq!(comp.attributes[4].name, "action");
         assert_eq!(comp.attributes[5].name, "port");
+    }
+
+    #[test]
+    fn test_parse_requirement_with_attributes() {
+        let source = r#"
+package ReqPkg {
+    requirement def REQ_0001_Demo {
+        id = "REQ-0001";
+        text = "The system shall process data.";
+        attribute uuidv5 : String = "5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9";
+        attribute complexity_class : String = "Class P";
+        attribute ac_01_demo : String = "Given: input. When: run. Then: success.";
+        verify by AC_01_Demo;
+        satisfy by DemoEngine;
+    }
+}
+"#;
+        let pkg = SysmlParser::parse_source(source, "Default").unwrap();
+        assert_eq!(pkg.requirement_defs.len(), 1);
+        let req = &pkg.requirement_defs[0];
+        assert_eq!(req.name, "REQ_0001_Demo");
+        assert_eq!(req.req_id, "REQ-0001");
+        assert_eq!(req.text, "The system shall process data.");
+        assert_eq!(req.attributes.len(), 3);
+        assert_eq!(req.attributes[0].name, "uuidv5");
+        assert_eq!(
+            req.attributes[0].default_value.as_deref(),
+            Some("\"5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9\"")
+        );
+        assert_eq!(req.attributes[1].name, "complexity_class");
+        assert_eq!(
+            req.attributes[1].default_value.as_deref(),
+            Some("\"Class P\"")
+        );
+        assert_eq!(req.attributes[2].name, "ac_01_demo");
+        assert_eq!(
+            req.attributes[2].default_value.as_deref(),
+            Some("\"Given: input. When: run. Then: success.\"")
+        );
+        assert_eq!(req.verified_by, vec!["AC_01_Demo"]);
+        assert_eq!(req.satisfied_by, vec!["DemoEngine"]);
     }
 }
 

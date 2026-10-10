@@ -180,6 +180,8 @@ pub struct RequirementDef {
     pub text: String,
     pub doc: Option<String>,
     #[serde(default)]
+    pub attributes: Vec<AttributeDef>,
+    #[serde(default)]
     pub assumes: Vec<String>,
     #[serde(default)]
     pub requires: Vec<String>,
@@ -618,6 +620,7 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
         let doc = cap.name("doc").map(|d| d.as_str().trim().to_string());
         let mut req_id = String::new();
         let mut text = String::new();
+        let mut attributes = Vec::new();
 
         if let Some(body) = cap.name("body") {
             let body_str = body.as_str();
@@ -627,6 +630,7 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
             if let Some(txt_cap) = text_re.captures(body_str) {
                 text = txt_cap["text"].to_string();
             }
+            attributes = parse_attribute_defs(body_str);
         }
 
         reqs.push(RequirementDef {
@@ -634,6 +638,7 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
             req_id,
             text,
             doc,
+            attributes,
             ..Default::default()
         });
     }
@@ -1028,6 +1033,32 @@ part def VehicleSystem {
         assert_eq!(ports[4].name, "cmd");
         assert_eq!(ports[4].direction, "inout");
         assert_eq!(ports[4].type_name, "Command");
+    }
+
+    #[test]
+    fn test_parse_requirement_defs_with_attributes() {
+        let text = r#"
+            requirement def REQ_0001_Test {
+                id = "REQ-0001";
+                text = "System shall do something.";
+                attribute uuidv5 : String = "5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9";
+                attribute complexity_class : String = "Class P";
+            }
+        "#;
+        let reqs = parse_requirement_defs(text);
+        assert_eq!(reqs.len(), 1);
+        assert_eq!(reqs[0].req_id, "REQ-0001");
+        assert_eq!(reqs[0].attributes.len(), 2);
+        assert_eq!(reqs[0].attributes[0].name, "uuidv5");
+        assert_eq!(
+            reqs[0].attributes[0].default_value.as_deref(),
+            Some("\"5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9\"")
+        );
+        assert_eq!(reqs[0].attributes[1].name, "complexity_class");
+        assert_eq!(
+            reqs[0].attributes[1].default_value.as_deref(),
+            Some("\"Class P\"")
+        );
     }
 }
 

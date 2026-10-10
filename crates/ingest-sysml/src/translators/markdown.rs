@@ -391,6 +391,127 @@ fn extract_req_metadata(
     (uuid, complexity, standard, diagnostics)
 }
 
+fn clean_bdd_text(raw: &str) -> String {
+    let link_re = Regex::new(r"\[([^\]]+)\]\([^\)]+\)").unwrap();
+    let text = link_re.replace_all(raw, "$1");
+    let text = text.replace('`', "");
+    let text = text.replace('$', "");
+    let latex_cmd_re = Regex::new(r"\\[a-zA-Z]+\{?([a-zA-Z0-9_\s]*)\}?").unwrap();
+    let text = latex_cmd_re.replace_all(&text, "$1");
+    let text = text.replace('\\', "");
+    let ws_re = Regex::new(r"\s+").unwrap();
+    let mut cleaned = ws_re.replace_all(&text, " ").trim().to_string();
+    cleaned = cleaned.replace('"', "\\\"");
+    cleaned
+}
+
+fn extract_bullet_content(line: &str, tag: &str) -> String {
+    let lower = line.to_ascii_lowercase();
+    if let Some(pos) = lower.find(tag) {
+        let after = &line[pos + tag.len()..];
+        let cleaned = after.trim_start_matches(|c: char| c == '*' || c == '`' || c.is_whitespace());
+        clean_bdd_text(cleaned)
+    } else {
+        clean_bdd_text(line)
+    }
+}
+
+/// Extracted Acceptance Criterion tuple: (ac_num_str, clean_ac_slug, bdd_text)
+fn extract_acceptance_criteria(content: &str) -> Vec<(String, String, String)> {
+    let ac_header_re = Regex::new(
+        r#"(?m)^###\s+(?:Acceptance\s+Criteria:?\s*)?AC-?(?P<num>\d+)\s*[:\-]?\s*(?P<title>.*?)$"#,
+    )
+    .unwrap();
+
+    let mut ac_list = Vec::new();
+    let lines: Vec<&str> = content.lines().collect();
+    let mut i = 0;
+    let n = lines.len();
+
+    while i < n {
+        let line = lines[i].trim();
+        if let Some(caps) = ac_header_re.captures(line) {
+            let num: usize = caps["num"].parse().unwrap_or(0);
+            let ac_num_str = format!("{:02}", num);
+            let raw_title = caps["title"].trim();
+            let clean_ac_slug = sanitize_identifier(raw_title, "Criteria");
+
+            i += 1;
+            let mut given = String::new();
+            let mut when = String::new();
+            let mut then = String::new();
+            let mut diag = String::new();
+            let mut fallback_lines = Vec::new();
+
+            while i < n {
+                let cur_line = lines[i].trim();
+                if cur_line.starts_with('#') || cur_line.starts_with("---") {
+                    break;
+                }
+                if !cur_line.is_empty() {
+                    let lower = cur_line.to_ascii_lowercase();
+                    if lower.contains("given:") {
+                        given = extract_bullet_content(cur_line, "given:");
+                    } else if lower.contains("when:") {
+                        when = extract_bullet_content(cur_line, "when:");
+                    } else if lower.contains("then:") {
+                        then = extract_bullet_content(cur_line, "then:");
+                    } else if lower.contains("diagnostic:") {
+                        diag = extract_bullet_content(cur_line, "diagnostic:");
+                    } else {
+                        fallback_lines.push(cur_line);
+                    }
+                }
+                i += 1;
+            }
+
+            let mut parts = Vec::new();
+            if !given.is_empty() {
+                parts.push(format!("Given: {}", given.trim().trim_end_matches('.')));
+            }
+            if !when.is_empty() {
+                parts.push(format!("When: {}", when.trim().trim_end_matches('.')));
+            }
+            if !then.is_empty() {
+                parts.push(format!("Then: {}", then.trim().trim_end_matches('.')));
+            }
+            if !diag.is_empty() {
+                parts.push(format!("Diagnostic: {}", diag.trim().trim_end_matches('.')));
+            }
+
+            let mut bdd_text = if !parts.is_empty() {
+                format!("{}.", parts.join(". "))
+            } else if !fallback_lines.is_empty() {
+                let joined = fallback_lines.join(" ");
+                clean_bdd_text(&joined)
+            } else {
+                format!("AC-{} verification criteria.", ac_num_str)
+            };
+
+            if bdd_text.len() > 600 {
+                let truncate_pos = match bdd_text[..600].rfind(' ') {
+                    Some(pos) if pos > 400 => pos,
+                    _ => 600,
+                };
+                let mut s = bdd_text[..truncate_pos].trim_end().to_string();
+                if s.ends_with('\\') {
+                    s.pop();
+                }
+                if !s.ends_with('.') {
+                    s.push('.');
+                }
+                bdd_text = s;
+            }
+
+            ac_list.push((ac_num_str, clean_ac_slug, bdd_text));
+        } else {
+            i += 1;
+        }
+    }
+
+    ac_list
+}
+
 /// Represents an intermediate parsed Markdown section between structural headings.
 ///
 /// Contains the heading text, optional component target, collected prose documentation lines,
@@ -634,11 +755,55 @@ impl MarkdownTranslator {
                     uuid, complexity, standard, diagnostics
                 );
 
+                let mut req_attributes = Vec::new();
+
+                // Metadata attributes
+                req_attributes.push(AttributeDef {
+                    name: "uuidv5".to_string(),
+                    type_name: "String".to_string(),
+                    default_value: Some(format!("\"{}\"", uuid)),
+                    doc: None,
+                });
+                req_attributes.push(AttributeDef {
+                    name: "complexity_class".to_string(),
+                    type_name: "String".to_string(),
+                    default_value: Some(format!("\"{}\"", complexity)),
+                    doc: None,
+                });
+                req_attributes.push(AttributeDef {
+                    name: "governing_standard".to_string(),
+                    type_name: "String".to_string(),
+                    default_value: Some(format!("\"{}\"", standard)),
+                    doc: None,
+                });
+                req_attributes.push(AttributeDef {
+                    name: "diagnostic_codes".to_string(),
+                    type_name: "String".to_string(),
+                    default_value: Some(format!("\"{}\"", diagnostics)),
+                    doc: None,
+                });
+
+                // Acceptance criteria attributes and verify_by targets
+                let mut verified_by = Vec::new();
+                let ac_items = extract_acceptance_criteria(content);
+                for (ac_num_str, clean_ac_slug, ac_bdd_text) in ac_items {
+                    let ac_attr_name = format!("ac_{}_{}", ac_num_str, clean_ac_slug.to_ascii_lowercase());
+                    req_attributes.push(AttributeDef {
+                        name: ac_attr_name,
+                        type_name: "String".to_string(),
+                        default_value: Some(format!("\"{}\"", ac_bdd_text)),
+                        doc: None,
+                    });
+                    verified_by.push(format!("AC_{}_{}", ac_num_str, clean_ac_slug));
+                }
+
                 let req_def = RequirementDef {
                     name: req_name,
                     req_id: req_id.clone(),
                     text: normative_text,
                     doc: Some(doc_str),
+                    attributes: req_attributes,
+                    verified_by,
                     satisfied_by: vec![sub_meta.engine_name],
                     ..Default::default()
                 };
@@ -712,10 +877,13 @@ impl MarkdownTranslator {
                     }
                 }
 
-                // Add constituent part definitions (e.g. AC parts)
+                // Add constituent BOM part definitions (excluding any orphan AC parts)
                 if let Some(parts_map) = subsystem_parts.get_mut(&sub_idx) {
                     for part in sub_pkg.part_defs {
-                        if !parts_map.contains_key(&part.name) {
+                        if !part.name.starts_with("AC_")
+                            && !part.name.starts_with("ac_")
+                            && !parts_map.contains_key(&part.name)
+                        {
                             parts_map.insert(part.name.clone(), part);
                         }
                     }
@@ -742,7 +910,10 @@ impl MarkdownTranslator {
                 let mut parts = vec![engine_part];
                 if let Some(extra_parts) = subsystem_parts.remove(&idx) {
                     for (p_name, part) in extra_parts {
-                        if p_name != meta.engine_name {
+                        if p_name != meta.engine_name
+                            && !p_name.starts_with("AC_")
+                            && !p_name.starts_with("ac_")
+                        {
                             parts.push(part);
                         }
                     }
@@ -1070,13 +1241,21 @@ impl MarkdownTranslator {
                 let norm_header = fmt_strip_re.replace_all(raw_header, "").trim().to_ascii_lowercase();
                 let clean_header_key = non_alnum_re.replace_all(&norm_header, " ").trim().to_string();
 
-                let is_functional = NON_COMPONENT_SECTION_KEYWORDS.iter().any(|&kw| {
+                let is_ac = norm_header.starts_with("ac-")
+                    || norm_header.starts_with("ac ")
+                    || norm_header.starts_with("acceptance criteria")
+                    || clean_header_key.starts_with("ac ")
+                    || clean_header_key.starts_with("acceptance criteria");
+
+                let is_functional = is_ac || NON_COMPONENT_SECTION_KEYWORDS.iter().any(|&kw| {
                     clean_header_key == kw
                         || clean_header_key.starts_with(&format!("{} ", kw))
                         || clean_header_key.ends_with(&format!(" {}", kw))
                 });
 
-                if is_functional {
+                if is_ac {
+                    current_component_target = None;
+                } else if is_functional {
                     let level = h_cap.get(1).unwrap().as_str().len();
                     if level <= 2 {
                         current_component_target = None;
@@ -1865,32 +2044,9 @@ Prose
         assert!(attr_names.contains(&"Diagnostic_Code_Bindings"));
         assert!(attr_names.contains(&"Governing_Standard"));
 
-        // Verify PartDef parts:
+        // Verify PartDef parts: AC parts must NOT be in part_defs
         let part_names: Vec<&str> = pkg.part_defs.iter().map(|p| p.name.as_str()).collect();
-        assert!(part_names.contains(&"_1_Normative_Statement"));
-        assert!(part_names.contains(&"_2_Formal_Invariant"));
-        assert!(part_names.contains(&"_3_Computational_Complexity_Algorithmic_Bounds"));
-        assert!(part_names.contains(&"_4_Verification_Conformance_Criteria"));
-        assert!(part_names.contains(&"AC_01_Pure_Schema_Driven_Symbol_Derivation"));
-        assert!(part_names.contains(&"AC_02_Zero_Domain_Vocabulary_Contamination"));
-        assert!(part_names.contains(&"AC_03_Deterministic_RFC_4122_UUIDv5_Topological_Path_Anchors"));
-        assert!(part_names.contains(&"AC_04_Bitwise_Determinism_across_Repeated_Invocations"));
-
-        // Verify that AC parts have docstrings containing Given-When-Then BDD scenarios
-        let ac1 = pkg.part_defs.iter().find(|p| p.name == "AC_01_Pure_Schema_Driven_Symbol_Derivation").unwrap();
-        assert!(ac1.doc.is_some());
-        let doc1 = ac1.doc.as_ref().unwrap();
-        assert!(doc1.contains("Given:"));
-        assert!(doc1.contains("When:"));
-        assert!(doc1.contains("Then:"));
-        assert!(doc1.contains("E0100"));
-
-        let ac4 = pkg.part_defs.iter().find(|p| p.name == "AC_04_Bitwise_Determinism_across_Repeated_Invocations").unwrap();
-        assert!(ac4.doc.is_some());
-        let doc4 = ac4.doc.as_ref().unwrap();
-        assert!(doc4.contains("Given:"));
-        assert!(doc4.contains("When:"));
-        assert!(doc4.contains("Then:"));
+        assert!(!part_names.iter().any(|name| name.starts_with("AC_")));
 
         // Verify formal RequirementDef entity (RED TDD expectation)
         assert_eq!(pkg.requirement_defs.len(), 1);
@@ -1904,6 +2060,44 @@ Prose
         assert!(doc.contains("Standard:"));
         assert!(doc.contains("Diagnostics: E0100"));
         assert_eq!(req.satisfied_by, vec!["SystemVisionEngine".to_string()]);
+
+        // Verify metadata attributes on RequirementDef
+        let req_attr_names: Vec<&str> = req.attributes.iter().map(|a| a.name.as_str()).collect();
+        assert!(req_attr_names.contains(&"uuidv5"));
+        assert!(req_attr_names.contains(&"complexity_class"));
+        assert!(req_attr_names.contains(&"governing_standard"));
+        assert!(req_attr_names.contains(&"diagnostic_codes"));
+
+        // Verify AC attributes on RequirementDef
+        assert!(req_attr_names.contains(&"ac_01_pure_schema_driven_symbol_derivation"));
+        assert!(req_attr_names.contains(&"ac_02_zero_domain_vocabulary_contamination"));
+        assert!(req_attr_names.contains(&"ac_03_deterministic_rfc_4122_uuidv5_topological_path_anchors"));
+        assert!(req_attr_names.contains(&"ac_04_bitwise_determinism_across_repeated_invocations"));
+
+        let ac1 = req.attributes.iter().find(|a| a.name == "ac_01_pure_schema_driven_symbol_derivation").unwrap();
+        let ac1_val = ac1.default_value.as_ref().unwrap();
+        assert!(ac1_val.contains("Given:"));
+        assert!(ac1_val.contains("When:"));
+        assert!(ac1_val.contains("Then:"));
+        assert!(ac1_val.contains("Diagnostic:"));
+        assert!(ac1_val.contains("E0100"));
+
+        let ac4 = req.attributes.iter().find(|a| a.name == "ac_04_bitwise_determinism_across_repeated_invocations").unwrap();
+        let ac4_val = ac4.default_value.as_ref().unwrap();
+        assert!(ac4_val.contains("Given:"));
+        assert!(ac4_val.contains("When:"));
+        assert!(ac4_val.contains("Then:"));
+
+        // Verify verified_by bindings
+        assert_eq!(
+            req.verified_by,
+            vec![
+                "AC_01_Pure_Schema_Driven_Symbol_Derivation".to_string(),
+                "AC_02_Zero_Domain_Vocabulary_Contamination".to_string(),
+                "AC_03_Deterministic_RFC_4122_UUIDv5_Topological_Path_Anchors".to_string(),
+                "AC_04_Bitwise_Determinism_across_Repeated_Invocations".to_string(),
+            ]
+        );
     }
 
     #[test]
@@ -1956,6 +2150,18 @@ Prose
         assert_eq!(combined.connection_defs[5].name, "c_safety_to_icd");
         assert_eq!(combined.connection_defs[6].name, "c_icd_to_projections");
         assert_eq!(combined.connection_defs[7].name, "c_projections_to_codegen");
+
+        // Verify no subsystem packages contain detached AC parts
+        for sub_pkg in &combined.packages {
+            for part in &sub_pkg.part_defs {
+                assert!(
+                    !part.name.starts_with("AC_") && !part.name.starts_with("ac_"),
+                    "Subsystem {} contains detached AC part: {}",
+                    sub_pkg.name,
+                    part.name
+                );
+            }
+        }
     }
 
     #[test]
@@ -1987,6 +2193,18 @@ Prose
             assert_eq!(pkg.name, meta.pkg_name);
             let has_engine = pkg.part_defs.iter().any(|p| p.name == meta.engine_name);
             assert!(has_engine, "Missing engine {} in {}", meta.engine_name, pkg.name);
+        }
+
+        // Verify no subsystem packages contain detached AC parts across all 199 requirements
+        for sub_pkg in &combined.packages {
+            for part in &sub_pkg.part_defs {
+                assert!(
+                    !part.name.starts_with("AC_") && !part.name.starts_with("ac_"),
+                    "Subsystem {} contains detached AC part: {}",
+                    sub_pkg.name,
+                    part.name
+                );
+            }
         }
 
         assert_eq!(combined.connection_defs.len(), 8);

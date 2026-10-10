@@ -186,6 +186,9 @@ impl SysmlSerializable for RequirementDef {
         if !self.text.is_empty() {
             lines.push(format!("{}    text = \"{}\";", pad, self.text));
         }
+        for a in &self.attributes {
+            lines.push(a.to_sysml(indent + 4));
+        }
         for a in &self.assumes {
             lines.push(format!("{}    assume {};", pad, a));
         }
@@ -511,6 +514,41 @@ mod tests {
         assert!(sysml.starts_with("    port out rules_out : CompilerRulePort {"));
         assert!(sysml.contains("attribute protocol_family : String = \"CAN\";"));
         assert!(sysml.ends_with("    }"));
+    }
+
+    #[test]
+    fn test_serialize_requirement_def_with_attributes() {
+        let req = RequirementDef {
+            name: "REQ_0001_Test".to_string(),
+            req_id: "REQ-0001".to_string(),
+            text: "The system shall perform verification.".to_string(),
+            attributes: vec![
+                AttributeDef {
+                    name: "uuidv5".to_string(),
+                    type_name: "String".to_string(),
+                    default_value: Some("\"5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9\"".to_string()),
+                    doc: None,
+                },
+                AttributeDef {
+                    name: "ac_01_test".to_string(),
+                    type_name: "String".to_string(),
+                    default_value: Some("\"Given: X. When: Y. Then: Z.\"".to_string()),
+                    doc: None,
+                },
+            ],
+            verified_by: vec!["AC_01_Test".to_string()],
+            satisfied_by: vec!["TestEngine".to_string()],
+            ..Default::default()
+        };
+
+        let sysml = req.to_sysml(0);
+        assert!(sysml.contains("requirement def REQ_0001_Test {"));
+        assert!(sysml.contains("    id = \"REQ-0001\";"));
+        assert!(sysml.contains("    text = \"The system shall perform verification.\";"));
+        assert!(sysml.contains("    attribute uuidv5 : String = \"5a4d7a99-0419-5c2b-ba0e-ccabdb05f1c9\";"));
+        assert!(sysml.contains("    attribute ac_01_test : String = \"Given: X. When: Y. Then: Z.\";"));
+        assert!(sysml.contains("    verify by AC_01_Test;"));
+        assert!(sysml.contains("    satisfy by TestEngine;"));
     }
 }
 
