@@ -1,6 +1,6 @@
 {
-  "sha256": "354091f91da374a9a95cc34b496844e03d058ffc851a96118102f1eef25a3718",
-  "total_lines": 5728,
+  "sha256": "5402ab38fec8bd50fe2c6860cf35ebb3e8f1723ed52fa3e49e918002130c8a6d",
+  "total_lines": 5758,
   "node_counts": {
     "action_defs": 6,
     "attribute_defs": 42,
@@ -11,7 +11,7 @@
     "groupings": 0,
     "hazard_defs": 0,
     "identities": 0,
-    "interaction_defs": 0,
+    "interaction_defs": 6,
     "item_defs": 4,
     "leaves": 42,
     "lists": 6,
@@ -24,7 +24,7 @@
     "state_defs": 1,
     "test_case_defs": 0,
     "typedefs": 0,
-    "use_case_defs": 0
+    "use_case_defs": 6
   },
   "schema_nodes": [
     "AgileProjectionEngine",
@@ -300,6 +300,12 @@
     "Subsystem_9_Downstream_Specification_Projections",
     "SysML_Model",
     "SystemVisionEngine",
+    "UC01SystemVisionAndSchemaIngestion",
+    "UC02GrammarLoweringAndASTConstruction",
+    "UC03SafetyAssuranceAndSTPAVerification",
+    "UC04DownstreamSpecificationAndBacklogProjection",
+    "UC05MultiTargetCodeGenAndSimulationSynthesis",
+    "UC06BaselineConformanceAndDiagnosticTriage",
     "U_text_text",
     "UnauthorizedModelTampering",
     "UniversalIngestionEngine",
@@ -380,7 +386,50 @@
   ],
   "operational_activities": [],
   "operational_exchanges": [],
-  "operational_scenarios": [],
+  "operational_scenarios": [
+    {
+      "id": "SCN-01",
+      "name": "UC06BaselineConformanceAndDiagnosticTriage",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-02",
+      "name": "UC03SafetyAssuranceAndSTPAVerification",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-03",
+      "name": "UC04DownstreamSpecificationAndBacklogProjection",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-04",
+      "name": "UC02GrammarLoweringAndASTConstruction",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-05",
+      "name": "UC01SystemVisionAndSchemaIngestion",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-06",
+      "name": "UC05MultiTargetCodeGenAndSimulationSynthesis",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    }
+  ],
   "operational_nodes": [],
   "file_manifest": [
     {

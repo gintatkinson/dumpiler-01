@@ -206,7 +206,7 @@ impl SysmlSymbolIndex {
         }
     }
 
-    fn index_state(&mut self, state: &StateDef) {
+    pub fn index_state(&mut self, state: &StateDef) {
         if !state.name.is_empty() {
             self.state_names.insert(state.name.clone());
         }

@@ -1,73 +1,85 @@
 ---
-title: "Epic 04: Subsystem_2_Universal_Schema_Ingestion_Engine"
+title: "Epic 04: Subsystem 2 Universal Schema Ingestion Engine"
 version: "1.0.0"
 date: "2026-10-10"
 type: epic
-subsystem: "Subsystem_2_Universal_Schema_Ingestion_Engine"
+package: "Subsystem_2_Universal_Schema_Ingestion_Engine"
+subsystem: "Universal Ingestion"
+issue_id: 104
 generation_mode: subagent
 ---
 
-# Epic 04: Subsystem_2_Universal_Schema_Ingestion_Engine
+# Epic 04: Subsystem 2 Universal Schema Ingestion Engine
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Epic 04: Subsystem_2_Universal_Schema_Ingestion_Engine |
+| **Title** | Epic 04: Subsystem 2 Universal Schema Ingestion Engine |
 | **Version** | 1.0.0 |
 | **Date** | 2026-10-10 |
 | **Type** | epic |
-| **Subsystem** | Subsystem_2_Universal_Schema_Ingestion_Engine |
+| **Package** | Subsystem_2_Universal_Schema_Ingestion_Engine |
+| **Subsystem** | Universal Ingestion |
+| **Issue ID** | #104 |
 | **Generation Mode** | subagent |
 
 ## 1. Context
-Structural Architecture for Subsystem 2 Universal Schema Ingestion Engine
+Subsystem specification for Universal Ingestion (Subsystem_2_Universal_Schema_Ingestion_Engine) establishing architectural layout, mathematical invariants, algorithmic complexity bounds, and verification criteria.
 
 ## 2. Requirements & Checklist
-- [ ] REQ-EPIC-04-01: Subsystem capability implementation for Subsystem_2_Universal_Schema_Ingestion_Engine.
-- [ ] REQ-EPIC-04-02: Semantic verification and conformance against schema definitions.
+- [ ] #20 - Feature 11: [Universal Ingestion] Universal Ingestion Engine
+- [ ] #21 - Feature 12: [Universal Ingestion] Normative Statement
+- [ ] #22 - Feature 13: [Universal Ingestion] Formal Invariant
+- [ ] #23 - Feature 14: [Universal Ingestion] Complexity Bounds
+- [ ] #24 - Feature 15: [Universal Ingestion] Conformance Criteria
+
 
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
 
+
 #### Associated User Stories
 *To be populated after Phase 3*
 
 ## 3. Architecture
-Subsystem architectural layout and component allocation for Subsystem_2_Universal_Schema_Ingestion_Engine.
+Subsystem structural composition, port allocations, and directional data connectors realized by UniversalIngestionEngine.
 
 ## 4. Operational Considerations
-Operational lifecycle, deterministic lowering execution, and error handling policies for Subsystem_2_Universal_Schema_Ingestion_Engine.
+Deterministic compilation passes, error containment, and provable polynomial complexity execution.
 
 ## 5. Security & Governance
-Safety-critical invariants, access governance, and zero-hardcoded domain rule adherence.
+Safety-critical invariant satisfaction, formal trace matrix closure, and zero hardcoded domain semantics.
 
 ## 6. Source References
-Schema source definitions in `schema/subsystems/` and system architecture in `schema/model.sysml`.
+Authoritative subsystem specifications and normative systems engineering standards:
+- System Architecture Model: `schema/model.sysml`
+- Subsystem Specification Model: `schema/subsystems/subsystem_02_universal_schema_ingestion_engine/architecture.sysml`
+- Subsystem Requirements Model: `schema/subsystems/subsystem_02_universal_schema_ingestion_engine/requirements.sysml`
+- Normative Systems Engineering Standard: ISO/IEC/IEEE 15288:2023 §6.4.3 Architecture Definition Process
+
+Subsystem architectural composition and formal invariants derive from `schema/model.sysml` pursuant to ISO/IEC/IEEE 15288.
 
 ## System-Level UML Class Diagram
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem {
-        +execute_pipeline() void
-    }
-    class UniversalIngestionEngine {
-        +execute() void
-    }
-    DEAPCompilerSystem --> UniversalIngestionEngine : orchestrates
+    class DEAPCompilerSystem
+    class UniversalIngestionEngine
+    DEAPCompilerSystem --> UniversalIngestionEngine : contains
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
-    Idle --> Processing : dispatch
-    Processing --> Verification : verify
-    Verification --> Completed : pass
-    Verification --> Fault : fail
-    Fault --> Idle : reset
-    Completed --> [*]
+    [*] --> Bootstrapping
+    Bootstrapping --> Ingesting : dispatch
+    Ingesting --> Compiling : parse_complete
+    Compiling --> Verifying : ast_lowered
+    Verifying --> EmitSuccess : pass
+    Compiling --> FaultTerminated : error
+    Verifying --> FaultTerminated : fail
+    EmitSuccess --> [*]
 ```

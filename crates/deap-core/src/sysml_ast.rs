@@ -985,8 +985,7 @@ pub fn parse_state_defs(content: &str) -> Vec<StateDef> {
         let mut entry_action = None;
         let mut do_action = None;
         let mut exit_action = None;
-
-        if let Some(body) = cap.name("body") {
+        let sub_states = if let Some(body) = cap.name("body") {
             let body_str = body.as_str();
             if let Some(e_cap) = entry_re.captures(body_str) {
                 entry_action = Some(e_cap["act"].trim().to_string());
@@ -997,7 +996,10 @@ pub fn parse_state_defs(content: &str) -> Vec<StateDef> {
             if let Some(x_cap) = exit_re.captures(body_str) {
                 exit_action = Some(x_cap["act"].trim().to_string());
             }
-        }
+            parse_state_defs(body_str)
+        } else {
+            Vec::new()
+        };
 
         states.push(StateDef {
             name,
@@ -1006,7 +1008,7 @@ pub fn parse_state_defs(content: &str) -> Vec<StateDef> {
             do_action,
             exit_action,
             transitions: Vec::new(),
-            sub_states: Vec::new(),
+            sub_states,
         });
     }
     states

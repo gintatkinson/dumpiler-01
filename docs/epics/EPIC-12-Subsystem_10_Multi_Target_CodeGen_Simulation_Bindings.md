@@ -1,73 +1,85 @@
 ---
-title: "Epic 12: Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings"
+title: "Epic 12: Subsystem 10 Multi Target CodeGen Simulation Bindings"
 version: "1.0.0"
 date: "2026-10-10"
 type: epic
-subsystem: "Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings"
+package: "Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings"
+subsystem: "Multi-Target CodeGen"
+issue_id: 112
 generation_mode: subagent
 ---
 
-# Epic 12: Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings
+# Epic 12: Subsystem 10 Multi Target CodeGen Simulation Bindings
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Epic 12: Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings |
+| **Title** | Epic 12: Subsystem 10 Multi Target CodeGen Simulation Bindings |
 | **Version** | 1.0.0 |
 | **Date** | 2026-10-10 |
 | **Type** | epic |
-| **Subsystem** | Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings |
+| **Package** | Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings |
+| **Subsystem** | Multi-Target CodeGen |
+| **Issue ID** | #112 |
 | **Generation Mode** | subagent |
 
 ## 1. Context
-Structural Architecture for Subsystem 10 Multi Target CodeGen Simulation Bindings
+Subsystem specification for Multi-Target CodeGen (Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings) establishing architectural layout, mathematical invariants, algorithmic complexity bounds, and verification criteria.
 
 ## 2. Requirements & Checklist
-- [ ] REQ-EPIC-12-01: Subsystem capability implementation for Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings.
-- [ ] REQ-EPIC-12-02: Semantic verification and conformance against schema definitions.
+- [ ] #60 - Feature 51: [Multi-Target CodeGen] CodeGen Engine
+- [ ] #61 - Feature 52: [Multi-Target CodeGen] Normative Statement
+- [ ] #62 - Feature 53: [Multi-Target CodeGen] Formal Invariant
+- [ ] #63 - Feature 54: [Multi-Target CodeGen] Complexity Bounds
+- [ ] #64 - Feature 55: [Multi-Target CodeGen] Conformance Criteria
+
 
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
 
+
 #### Associated User Stories
 *To be populated after Phase 3*
 
 ## 3. Architecture
-Subsystem architectural layout and component allocation for Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings.
+Subsystem structural composition, port allocations, and directional data connectors realized by CodeGenEngine.
 
 ## 4. Operational Considerations
-Operational lifecycle, deterministic lowering execution, and error handling policies for Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings.
+Deterministic compilation passes, error containment, and provable polynomial complexity execution.
 
 ## 5. Security & Governance
-Safety-critical invariants, access governance, and zero-hardcoded domain rule adherence.
+Safety-critical invariant satisfaction, formal trace matrix closure, and zero hardcoded domain semantics.
 
 ## 6. Source References
-Schema source definitions in `schema/subsystems/` and system architecture in `schema/model.sysml`.
+Authoritative subsystem specifications and normative systems engineering standards:
+- System Architecture Model: `schema/model.sysml`
+- Subsystem Specification Model: `schema/subsystems/subsystem_10_multi_target_codegen_simulation_bindings/architecture.sysml`
+- Subsystem Requirements Model: `schema/subsystems/subsystem_10_multi_target_codegen_simulation_bindings/requirements.sysml`
+- Normative Systems Engineering Standard: ISO/IEC/IEEE 15288:2023 §6.4.3 Architecture Definition Process
+
+Subsystem architectural composition and formal invariants derive from `schema/model.sysml` pursuant to ISO/IEC/IEEE 15288.
 
 ## System-Level UML Class Diagram
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem {
-        +execute_pipeline() void
-    }
-    class CodeGenEngine {
-        +execute() void
-    }
-    DEAPCompilerSystem --> CodeGenEngine : orchestrates
+    class DEAPCompilerSystem
+    class CodeGenEngine
+    DEAPCompilerSystem --> CodeGenEngine : contains
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
-    Idle --> Processing : dispatch
-    Processing --> Verification : verify
-    Verification --> Completed : pass
-    Verification --> Fault : fail
-    Fault --> Idle : reset
-    Completed --> [*]
+    [*] --> Bootstrapping
+    Bootstrapping --> Ingesting : dispatch
+    Ingesting --> Compiling : parse_complete
+    Compiling --> Verifying : ast_lowered
+    Verifying --> EmitSuccess : pass
+    Compiling --> FaultTerminated : error
+    Verifying --> FaultTerminated : fail
+    EmitSuccess --> [*]
 ```

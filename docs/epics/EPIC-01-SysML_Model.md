@@ -1,73 +1,84 @@
 ---
-title: "Epic 01: SysML_Model"
+title: "Epic 01: System Architecture and Compiler Primacy"
 version: "1.0.0"
 date: "2026-10-10"
 type: epic
-subsystem: "SysML_Model"
+package: "DEAP_Compiler_System"
+subsystem: "System Architecture"
+issue_id: 101
 generation_mode: subagent
 ---
 
-# Epic 01: SysML_Model
+# Epic 01: System Architecture and Compiler Primacy
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Epic 01: SysML_Model |
+| **Title** | Epic 01: System Architecture and Compiler Primacy |
 | **Version** | 1.0.0 |
 | **Date** | 2026-10-10 |
 | **Type** | epic |
-| **Subsystem** | SysML_Model |
+| **Package** | DEAP_Compiler_System |
+| **Subsystem** | System Architecture |
+| **Issue ID** | #101 |
 | **Generation Mode** | subagent |
 
 ## 1. Context
-Subsystem specification for SysML_Model
+System-level architecture definition establishing compiler primacy, component interconnection, and pure schema-driven lowering guarantees across the DEAP framework.
 
 ## 2. Requirements & Checklist
-- [ ] REQ-EPIC-01-01: Subsystem capability implementation for SysML_Model.
-- [ ] REQ-EPIC-01-02: Semantic verification and conformance against schema definitions.
+- [ ] #10 - Feature 01: [ConOps] Human Engineer Interface
+- [ ] #11 - Feature 02: [ConOps] CI Continuous Integration Runner
+- [ ] #12 - Feature 03: [ConOps] Remote Artifact Registry Interface
+- [ ] #13 - Feature 04: [ConOps] Downstream Application Host Interface
+- [ ] #14 - Feature 05: [Architecture] DEAP Compiler System Architecture
+
 
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
 
+
 #### Associated User Stories
 *To be populated after Phase 3*
 
 ## 3. Architecture
-Subsystem architectural layout and component allocation for SysML_Model.
+Top-level structural decomposition interconnecting external ConOps operational actors with the core compiler engine and downstream projection adapters.
 
 ## 4. Operational Considerations
-Operational lifecycle, deterministic lowering execution, and error handling policies for SysML_Model.
+Deterministic compilation passes, continuous integration execution gates, and reproducible artifact delivery.
 
 ## 5. Security & Governance
-Safety-critical invariants, access governance, and zero-hardcoded domain rule adherence.
+Zero-mocking persistence mandate, strict platform isolation, and zero hardcoded domain concepts.
 
 ## 6. Source References
-Schema source definitions in `schema/subsystems/` and system architecture in `schema/model.sysml`.
+Authoritative architecture definitions and normative systems engineering standards:
+- Schema SSOT Architecture: `schema/model.sysml`
+- ConOps Operational Activities: `schema/conops/activities.sysml`
+- Normative Systems Engineering Standard: ISO/IEC/IEEE 15288:2023 §6.4.3 Architecture Definition Process
+
+The system architecture and formal verification invariants derive from `schema/model.sysml` pursuant to ISO/IEC/IEEE 15288.
 
 ## System-Level UML Class Diagram
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem {
-        +execute_pipeline() void
-    }
-    class UniversalIngestionEngine {
-        +execute() void
-    }
-    DEAPCompilerSystem --> UniversalIngestionEngine : orchestrates
+    class DEAPCompilerSystem
+    class SystemVisionEngine
+    DEAPCompilerSystem --> SystemVisionEngine : contains
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
-    Idle --> Processing : dispatch
-    Processing --> Verification : verify
-    Verification --> Completed : pass
-    Verification --> Fault : fail
-    Fault --> Idle : reset
-    Completed --> [*]
+    [*] --> Bootstrapping
+    Bootstrapping --> Ingesting : dispatch
+    Ingesting --> Compiling : parse_complete
+    Compiling --> Verifying : ast_lowered
+    Verifying --> EmitSuccess : pass
+    Compiling --> FaultTerminated : error
+    Verifying --> FaultTerminated : fail
+    EmitSuccess --> [*]
 ```

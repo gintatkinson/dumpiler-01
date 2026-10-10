@@ -1,73 +1,85 @@
 ---
-title: "Epic 05: Subsystem_3_Core_Metamodel_Node_Arena"
+title: "Epic 05: Subsystem 3 Core Metamodel Node Arena"
 version: "1.0.0"
 date: "2026-10-10"
 type: epic
-subsystem: "Subsystem_3_Core_Metamodel_Node_Arena"
+package: "Subsystem_3_Core_Metamodel_Node_Arena"
+subsystem: "Node Arena AST Graph"
+issue_id: 105
 generation_mode: subagent
 ---
 
-# Epic 05: Subsystem_3_Core_Metamodel_Node_Arena
+# Epic 05: Subsystem 3 Core Metamodel Node Arena
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Epic 05: Subsystem_3_Core_Metamodel_Node_Arena |
+| **Title** | Epic 05: Subsystem 3 Core Metamodel Node Arena |
 | **Version** | 1.0.0 |
 | **Date** | 2026-10-10 |
 | **Type** | epic |
-| **Subsystem** | Subsystem_3_Core_Metamodel_Node_Arena |
+| **Package** | Subsystem_3_Core_Metamodel_Node_Arena |
+| **Subsystem** | Node Arena AST Graph |
+| **Issue ID** | #105 |
 | **Generation Mode** | subagent |
 
 ## 1. Context
-Structural Architecture for Subsystem 3 Core Metamodel Node Arena
+Subsystem specification for Node Arena AST Graph (Subsystem_3_Core_Metamodel_Node_Arena) establishing architectural layout, mathematical invariants, algorithmic complexity bounds, and verification criteria.
 
 ## 2. Requirements & Checklist
-- [ ] REQ-EPIC-05-01: Subsystem capability implementation for Subsystem_3_Core_Metamodel_Node_Arena.
-- [ ] REQ-EPIC-05-02: Semantic verification and conformance against schema definitions.
+- [ ] #25 - Feature 16: [Node Arena AST Graph] Node Arena AST Graph Engine
+- [ ] #26 - Feature 17: [Node Arena AST Graph] Normative Statement
+- [ ] #27 - Feature 18: [Node Arena AST Graph] Formal Invariant
+- [ ] #28 - Feature 19: [Node Arena AST Graph] Complexity Bounds
+- [ ] #29 - Feature 20: [Node Arena AST Graph] Conformance Criteria
+
 
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
 *To be populated after Phase 3*
 
+
 #### Associated User Stories
 *To be populated after Phase 3*
 
 ## 3. Architecture
-Subsystem architectural layout and component allocation for Subsystem_3_Core_Metamodel_Node_Arena.
+Subsystem structural composition, port allocations, and directional data connectors realized by NodeArenaASTGraphEngine.
 
 ## 4. Operational Considerations
-Operational lifecycle, deterministic lowering execution, and error handling policies for Subsystem_3_Core_Metamodel_Node_Arena.
+Deterministic compilation passes, error containment, and provable polynomial complexity execution.
 
 ## 5. Security & Governance
-Safety-critical invariants, access governance, and zero-hardcoded domain rule adherence.
+Safety-critical invariant satisfaction, formal trace matrix closure, and zero hardcoded domain semantics.
 
 ## 6. Source References
-Schema source definitions in `schema/subsystems/` and system architecture in `schema/model.sysml`.
+Authoritative subsystem specifications and normative systems engineering standards:
+- System Architecture Model: `schema/model.sysml`
+- Subsystem Specification Model: `schema/subsystems/subsystem_03_core_metamodel_node_arena/architecture.sysml`
+- Subsystem Requirements Model: `schema/subsystems/subsystem_03_core_metamodel_node_arena/requirements.sysml`
+- Normative Systems Engineering Standard: ISO/IEC/IEEE 15288:2023 §6.4.3 Architecture Definition Process
+
+Subsystem architectural composition and formal invariants derive from `schema/model.sysml` pursuant to ISO/IEC/IEEE 15288.
 
 ## System-Level UML Class Diagram
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem {
-        +execute_pipeline() void
-    }
-    class NodeArenaASTGraphEngine {
-        +execute() void
-    }
-    DEAPCompilerSystem --> NodeArenaASTGraphEngine : orchestrates
+    class DEAPCompilerSystem
+    class NodeArenaASTGraphEngine
+    DEAPCompilerSystem --> NodeArenaASTGraphEngine : contains
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
-    Idle --> Processing : dispatch
-    Processing --> Verification : verify
-    Verification --> Completed : pass
-    Verification --> Fault : fail
-    Fault --> Idle : reset
-    Completed --> [*]
+    [*] --> Bootstrapping
+    Bootstrapping --> Ingesting : dispatch
+    Ingesting --> Compiling : parse_complete
+    Compiling --> Verifying : ast_lowered
+    Verifying --> EmitSuccess : pass
+    Compiling --> FaultTerminated : error
+    Verifying --> FaultTerminated : fail
+    EmitSuccess --> [*]
 ```

@@ -95,6 +95,36 @@ package SysML_Model {
     assert constraint SC_024_SafetyConstraint {
         SC_024 == true;
     }
+    use case def UC06BaselineConformanceAndDiagnosticTriage {
+        subject CompilerAssuranceEngine;
+        actor OperatorConsole;
+        objective "";
+    }
+    use case def UC03SafetyAssuranceAndSTPAVerification {
+        subject SafetyAssuranceEngine;
+        actor OperatorConsole;
+        objective "";
+    }
+    use case def UC04DownstreamSpecificationAndBacklogProjection {
+        subject AgileProjectionEngine;
+        actor OperatorConsole;
+        objective "";
+    }
+    use case def UC02GrammarLoweringAndASTConstruction {
+        subject GrammarLoweringEngine;
+        actor OperatorConsole;
+        objective "";
+    }
+    use case def UC01SystemVisionAndSchemaIngestion {
+        subject UniversalIngestionEngine;
+        actor OperatorConsole;
+        objective "";
+    }
+    use case def UC05MultiTargetCodeGenAndSimulationSynthesis {
+        subject CodeGenEngine;
+        actor OperatorConsole;
+        objective "";
+    }
     doc /* ConOps Level 0 Operational Activities */
     package ConOps {
         doc /* Ingest OEM documentation and structural schema artifacts into the compiler */

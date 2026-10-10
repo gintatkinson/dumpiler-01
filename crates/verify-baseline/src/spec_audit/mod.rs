@@ -365,10 +365,8 @@ pub fn load_sysml_symbol_index(repo_root: &Path) -> Result<SysmlSymbolIndex, Spe
     };
 
     let mut index = SysmlSymbolIndex::from_model(&model);
-    for st in top_states {
-        if !st.name.is_empty() {
-            index.state_names.insert(st.name);
-        }
+    for st in &top_states {
+        index.index_state(st);
     }
 
     Ok(index)
