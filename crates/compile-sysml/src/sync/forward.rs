@@ -53,34 +53,48 @@ pub fn forward_sync_sysml_to_specs(
     let mut generated_files = HashMap::new();
     let today_iso = Utc::now().format("%Y-%m-%d").to_string();
 
-    // 1. Epics (EPIC-*.md) from CapabilityDef or PartDef
-    let mut capabilities = pkg.capability_defs.clone();
-    if capabilities.is_empty() {
-        for part in &pkg.part_defs {
-            capabilities.push(deap_core::sysml_ast::CapabilityDef {
-                name: format!("{}Capability", part.name),
-                doc: Some(format!("Autonomous operational capability management for {} subsystem", part.name)),
-                subsystem: Some(part.name.clone()),
-                description: Some(format!("Autonomous operational capability management for {} subsystem", part.name)),
-                ..Default::default()
-            });
-        }
-    }
+    // 1. Epics (EPIC-*.md) from CapabilityDef or Subsystem Packages
+    let capabilities = pkg.get_all_capabilities();
+    let epics_data: Vec<(String, String, String)> = if !capabilities.is_empty() {
+        capabilities
+            .into_iter()
+            .map(|cap| {
+                let cap_name = sanitize_id(&cap.name);
+                let subsys = cap
+                    .subsystem
+                    .as_deref()
+                    .filter(|s| !s.is_empty())
+                    .map(sanitize_id)
+                    .unwrap_or_else(|| sanitize_id(&pkg.name));
+                let doc = cap
+                    .doc
+                    .clone()
+                    .or(cap.description)
+                    .unwrap_or_else(|| format!("System capability specification for {}", cap_name));
+                (cap_name, subsys, doc)
+            })
+            .collect()
+    } else {
+        pkg.get_all_packages()
+            .into_iter()
+            .filter(|p| p.name != "DEAP_Compiler_System")
+            .map(|subpkg| {
+                let cap_name = sanitize_id(&subpkg.name);
+                let subsys = sanitize_id(&subpkg.name);
+                let doc = subpkg
+                    .doc
+                    .as_deref()
+                    .map(|d| d.trim())
+                    .filter(|d| !d.is_empty())
+                    .map(|d| d.to_string())
+                    .unwrap_or_else(|| format!("Subsystem specification for {}", cap_name));
+                (cap_name, subsys, doc)
+            })
+            .collect()
+    };
 
-    for (idx, cap) in capabilities.iter().enumerate() {
+    for (idx, (cap_name, subsys, doc)) in epics_data.iter().enumerate() {
         let i = idx + 1;
-        let cap_name = sanitize_id(&cap.name);
-        let subsys = cap
-            .subsystem
-            .as_deref()
-            .filter(|s| !s.is_empty())
-            .map(sanitize_id)
-            .unwrap_or_else(|| "CoreController".to_string());
-        let doc = cap
-            .doc
-            .clone()
-            .unwrap_or_else(|| format!("System capability specification for {}", cap_name));
-
         let content = format!(
             r#"---
 title: "Epic {i:02}: {cap_name}"
@@ -114,7 +128,7 @@ generation_mode: subagent
 ```mermaid
 classDiagram
     class {subsys} {{
-        +perform{cap_name}()
+        +void perform{cap_name}()
     }}
 ```
 "#
@@ -125,7 +139,8 @@ classDiagram
     }
 
     // 2. Features (FEAT-*.md) from PartDef & ActionDef
-    for (idx, part) in pkg.part_defs.iter().enumerate() {
+    let all_parts = pkg.get_all_parts();
+    for (idx, part) in all_parts.iter().enumerate() {
         let i = idx + 1;
         let part_name = sanitize_id(&part.name);
 
@@ -140,11 +155,11 @@ classDiagram
         }
 
         let mut logical_ops_bullets = Vec::new();
-        if part.actions.is_empty() {
-            let default_act = format!("Execute{}Task", part_name);
-            member_lines.push(format!("        +void {}(String inCommand)", default_act));
+        if part.actions.is_empty() && part.operations.is_empty() {
+            let default_act = format!("execute_{}", part_name.to_lowercase());
+            member_lines.push(format!("        +void {}()", default_act));
             logical_ops_bullets.push(format!(
-                "- `+{}(String inCommand) : void` - Executes core operations for {}",
+                "- `+{}() : void` - Executes operations for {}",
                 default_act, part_name
             ));
         } else {
@@ -152,8 +167,17 @@ classDiagram
                 let act_name = sanitize_id(&act.name);
                 member_lines.push(format!("        +void {}()", act_name));
                 logical_ops_bullets.push(format!(
-                    "- `+{}() : void` - Dispatches control action {}",
+                    "- `+{}() : void` - Dispatches action {}",
                     act_name, act_name
+                ));
+            }
+            for op in &part.operations {
+                let op_name = sanitize_id(&op.name);
+                let ret_type = op.return_type.as_deref().unwrap_or("void");
+                member_lines.push(format!("        +{} {}()", ret_type, op_name));
+                logical_ops_bullets.push(format!(
+                    "- `+{}() : {}` - Operation for {}",
+                    op_name, ret_type, part_name
                 ));
             }
         }
@@ -213,35 +237,18 @@ Formal constraints and invariants enforced by {part_name}.
         generated_files.insert(rel_path, content);
     }
 
-    // 3. User Stories (US-*.md) from Interactions or Actions
-    let mut interactions = pkg.interaction_defs.clone();
-    if interactions.is_empty() {
-        interactions.push(deap_core::sysml_ast::InteractionDef {
-            name: "TelemetrySync".to_string(),
-            doc: Some("System telemetry synchronization flow".to_string()),
-            lifelines: vec!["SensorSuite".to_string(), "CoreController".to_string()],
-            messages: vec!["ProcessSensorStream".to_string()],
-            triggers: vec!["PeriodicTelemetryTimer".to_string()],
-        });
-        interactions.push(deap_core::sysml_ast::InteractionDef {
-            name: "CommandExecution".to_string(),
-            doc: Some("Mission plan command execution flow".to_string()),
-            lifelines: vec!["OperatorConsole".to_string(), "CoreController".to_string()],
-            messages: vec!["SendMissionPlan".to_string()],
-            triggers: vec!["OperatorCommandEvent".to_string()],
-        });
-    }
-
+    // 3. User Stories (US-*.md) from Interactions
+    let interactions = pkg.get_all_interactions();
     for (idx, inter) in interactions.iter().enumerate() {
         let i = idx + 1;
         let inter_name = sanitize_id(&inter.name);
         let lifelines = if inter.lifelines.is_empty() {
-            vec!["OperatorConsole".to_string(), "CoreController".to_string()]
+            vec![format!("{}Source", inter_name), format!("{}Target", inter_name)]
         } else {
-            inter.lifelines.clone()
+            inter.lifelines.iter().map(|l| sanitize_id(l)).collect()
         };
         let messages = if inter.messages.is_empty() {
-            vec!["ExecuteTask".to_string()]
+            vec![format!("process_{}", inter_name.to_lowercase())]
         } else {
             inter.messages.clone()
         };
@@ -249,7 +256,7 @@ Formal constraints and invariants enforced by {part_name}.
             .triggers
             .first()
             .cloned()
-            .unwrap_or_else(|| "OperationalTrigger".to_string());
+            .unwrap_or_else(|| format!("{}_Trigger", inter_name));
         let tc_name = format!("TC_{}", inter_name);
         let subject_part = lifelines.get(1).unwrap_or(&lifelines[0]).clone();
 
@@ -305,12 +312,12 @@ generation_mode: subagent
 Scenario: Verify {inter_name} Nominal Flow
   Given the system is initialized in nominal operational state
   When the {trigger} occurs
-  Then the command is executed successfully within real-time latency bounds.
+  Then the interaction completes successfully within real-time latency bounds.
 
 ## Test Steps
 - step InitializeTestHarness
 - step DispatchCommand
-- step VerifyTelemetryResponse
+- step VerifyResponse
 "#
         );
 
@@ -319,26 +326,7 @@ Scenario: Verify {inter_name} Nominal Flow
     }
 
     // 4. Use Cases (UC-*.md) from UseCaseDef
-    let mut use_cases = pkg.use_case_defs.clone();
-    if use_cases.is_empty() {
-        use_cases.push(deap_core::sysml_ast::UseCaseDef {
-            name: "ExecuteAutonomousMission".to_string(),
-            doc: Some("Execute scheduled autonomous mission profile within operational envelope.".to_string()),
-            actors: vec!["OperatorConsole".to_string()],
-            subject: Some("CoreController".to_string()),
-            objective: Some("Execute scheduled autonomous mission profile within operational envelope.".to_string()),
-            ..Default::default()
-        });
-        use_cases.push(deap_core::sysml_ast::UseCaseDef {
-            name: "HandleSafetyFailsafe".to_string(),
-            doc: Some("Detect boundary violation and command failsafe hold state.".to_string()),
-            actors: vec!["CoreController".to_string()],
-            subject: Some("SafetyWatchdog".to_string()),
-            objective: Some("Detect boundary violation and command failsafe hold state.".to_string()),
-            ..Default::default()
-        });
-    }
-
+    let use_cases = pkg.get_all_use_cases();
     for (idx, uc) in use_cases.iter().enumerate() {
         let i = idx + 1;
         let uc_name = sanitize_id(&uc.name);
@@ -347,9 +335,13 @@ Scenario: Verify {inter_name} Nominal Flow
             .as_deref()
             .filter(|s| !s.is_empty())
             .map(sanitize_id)
-            .unwrap_or_else(|| "CoreController".to_string());
+            .unwrap_or_else(|| format!("{}_Subject", uc_name));
         let actors: Vec<String> = if uc.actors.is_empty() {
-            vec!["OperatorConsole".to_string()]
+            if let Some(ref a) = uc.actor {
+                vec![sanitize_id(a)]
+            } else {
+                vec![format!("{}_Actor", uc_name)]
+            }
         } else {
             uc.actors.iter().map(|a| sanitize_id(a)).collect()
         };
@@ -363,6 +355,7 @@ Scenario: Verify {inter_name} Nominal Flow
         let objective = uc
             .objective
             .clone()
+            .or_else(|| uc.doc.clone())
             .unwrap_or_else(|| format!("Execute formal operational objective for {}", uc_name));
 
         let content = format!(
@@ -416,6 +409,41 @@ flowchart TD
 
     // 5. STPA Matrix (safety/STPA_MATRIX.md)
     let ucas = expand_cartesian_stpa(pkg);
+    let all_constraints = pkg.get_all_constraints();
+
+    let mut sc_table = String::new();
+    sc_table.push_str("| SC ID | Constraint Statement / Description | Controller / Subsystem | Traceability / UCA |\n");
+    sc_table.push_str("| :--- | :--- | :--- | :--- |\n");
+
+    for (idx, c) in all_constraints.iter().enumerate() {
+        let sc_id = format!("SC-{:02}", idx + 1);
+        let desc = c.doc.as_deref().filter(|d| !d.is_empty()).unwrap_or(&c.expression);
+        let desc_clean = if desc.is_empty() { &c.name } else { desc }.replace('|', "\\|");
+        let uca_trace = ucas
+            .iter()
+            .find(|u| u.constraint == sc_id || u.constraint == c.name)
+            .map(|u| u.id.as_str())
+            .unwrap_or("-");
+        let controller = ucas
+            .iter()
+            .find(|u| u.constraint == sc_id || u.constraint == c.name)
+            .map(|u| u.controller.as_str())
+            .unwrap_or("-");
+        sc_table.push_str(&format!(
+            "| **{}** | {} | {} | {} |\n",
+            sc_id, desc_clean, controller, uca_trace
+        ));
+    }
+
+    for u in &ucas {
+        if !all_constraints.iter().any(|c| c.name == u.constraint) {
+            sc_table.push_str(&format!(
+                "| **{}** | System shall prevent {} during {} | {} | {} |\n",
+                u.constraint, u.guide_word, u.control_action, u.controller, u.id
+            ));
+        }
+    }
+
     let mut uca_table = String::new();
     uca_table.push_str("| UCA ID | Controller | Control Action | Guide Word | Hazard | Safety Constraint |\n");
     uca_table.push_str("| :--- | :--- | :--- | :--- | :--- | :--- |\n");
@@ -430,10 +458,7 @@ flowchart TD
         r#"# STPA Safety & Failure Mode Tracking Matrix
 
 ## 1. Formal Safety Constraints
-| SC ID | Constraint Statement / Description | Controller / Subsystem | Traceability / UCA |
-| :--- | :--- | :--- | :--- |
-| **SC-01** | The system shall maintain flight parameters within certified limits | CoreController | UCA-001 |
-
+{sc_table}
 ## 2. STPA Unsafe Control Actions (UCA) Matrix
 {uca_table}
 "#
@@ -492,8 +517,130 @@ mod tests {
         let generated = forward_sync_sysml_to_specs(&pkg, &opts).unwrap();
         assert!(generated.keys().any(|k| k.starts_with("epics/")));
         assert!(generated.keys().any(|k| k.starts_with("features/")));
-        assert!(generated.keys().any(|k| k.starts_with("user-stories/")));
-        assert!(generated.keys().any(|k| k.starts_with("use-cases/")));
         assert!(generated.contains_key("safety/STPA_MATRIX.md"));
+    }
+
+    #[test]
+    fn test_recursive_package_traversal_picks_up_subpackage_elements() {
+        let mut root = PackageDef {
+            name: "DEAP_Compiler_System".to_string(),
+            ..Default::default()
+        };
+        let mut sub = PackageDef {
+            name: "Subsystem_Alpha".to_string(),
+            ..Default::default()
+        };
+        sub.capability_defs.push(deap_core::sysml_ast::CapabilityDef {
+            name: "AlphaCapability".to_string(),
+            subsystem: Some("Subsystem_Alpha".to_string()),
+            ..Default::default()
+        });
+        sub.part_defs.push(PartDef {
+            name: "AlphaPart".to_string(),
+            ..Default::default()
+        });
+        sub.use_case_defs.push(deap_core::sysml_ast::UseCaseDef {
+            name: "AlphaUseCase".to_string(),
+            subject: Some("AlphaPart".to_string()),
+            ..Default::default()
+        });
+        sub.interaction_defs.push(deap_core::sysml_ast::InteractionDef {
+            name: "AlphaInteraction".to_string(),
+            lifelines: vec!["Source".to_string(), "Target".to_string()],
+            ..Default::default()
+        });
+        root.packages.push(sub);
+
+        let opts = ForwardSyncOptions {
+            schema_path: PathBuf::from("schema/test.sysml"),
+            docs_dir: PathBuf::from("docs"),
+            out_dir: None,
+            dry_run: true,
+            force: true,
+        };
+
+        let generated = forward_sync_sysml_to_specs(&root, &opts).unwrap();
+        assert!(generated.keys().any(|k| k.contains("AlphaCapability")), "Subpackage capability must generate Epic");
+        assert!(generated.keys().any(|k| k.contains("AlphaPart")), "Subpackage part must generate Feature");
+        assert!(generated.keys().any(|k| k.contains("AlphaUseCase")), "Subpackage use case must generate Use Case");
+        assert!(generated.keys().any(|k| k.contains("AlphaInteraction")), "Subpackage interaction must generate User Story");
+    }
+
+    #[test]
+    fn test_zero_hardcoded_domain_strings_exist_in_output_specifications() {
+        let mut pkg = PackageDef {
+            name: "GenericCompiler".to_string(),
+            ..Default::default()
+        };
+        let mut sub = PackageDef {
+            name: "ParserSubsystem".to_string(),
+            ..Default::default()
+        };
+        sub.part_defs.push(PartDef {
+            name: "LexerEngine".to_string(),
+            ..Default::default()
+        });
+        pkg.packages.push(sub);
+
+        let opts = ForwardSyncOptions {
+            schema_path: PathBuf::from("schema/test.sysml"),
+            docs_dir: PathBuf::from("docs"),
+            out_dir: None,
+            dry_run: true,
+            force: true,
+        };
+
+        let generated = forward_sync_sysml_to_specs(&pkg, &opts).unwrap();
+        let forbidden = [
+            "CoreController",
+            "TelemetrySync",
+            "ExecuteAutonomousMission",
+            "HandleSafetyFailsafe",
+            "SensorSuite",
+            "OperatorConsole",
+            "SafetyWatchdog",
+            "flight parameters",
+        ];
+
+        for (path, content) in &generated {
+            for bad in &forbidden {
+                assert!(
+                    !content.contains(bad),
+                    "File '{}' contains forbidden domain string '{}'",
+                    path,
+                    bad
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_empty_collections_do_not_emit_phantom_specifications() {
+        let mut pkg = PackageDef {
+            name: "CleanSystem".to_string(),
+            ..Default::default()
+        };
+        pkg.part_defs.push(PartDef {
+            name: "CleanPart".to_string(),
+            ..Default::default()
+        });
+
+        let opts = ForwardSyncOptions {
+            schema_path: PathBuf::from("schema/test.sysml"),
+            docs_dir: PathBuf::from("docs"),
+            out_dir: None,
+            dry_run: true,
+            force: true,
+        };
+
+        let generated = forward_sync_sysml_to_specs(&pkg, &opts).unwrap();
+        assert!(
+            !generated.keys().any(|k| k.starts_with("use-cases/")),
+            "Empty use cases must not emit phantom use-case files"
+        );
+        assert!(
+            !generated.keys().any(|k| k.starts_with("user-stories/")),
+            "Empty interactions must not emit phantom user-story files"
+        );
     }
 }

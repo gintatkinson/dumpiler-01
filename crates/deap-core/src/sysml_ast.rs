@@ -422,6 +422,132 @@ pub struct PackageDef {
     pub connection_defs: Vec<ConnectionDef>,
 }
 
+impl PackageDef {
+    /// Returns self and all nested packages recursively in depth-first order.
+    pub fn get_all_packages(&self) -> Vec<&PackageDef> {
+        let mut result = vec![self];
+        for subpkg in &self.packages {
+            result.extend(subpkg.get_all_packages());
+        }
+        result
+    }
+
+    /// Returns all subsystem capability definitions declared across self and all nested packages.
+    pub fn get_all_capabilities(&self) -> Vec<CapabilityDef> {
+        let mut result = Vec::new();
+        for pkg in self.get_all_packages() {
+            result.extend(pkg.capability_defs.clone());
+            for part in &pkg.part_defs {
+                collect_part_capabilities(part, &mut result);
+            }
+        }
+        result
+    }
+
+    /// Returns all structural part definitions declared across self and all nested packages.
+    pub fn get_all_parts(&self) -> Vec<PartDef> {
+        let mut result = Vec::new();
+        for pkg in self.get_all_packages() {
+            for part in &pkg.part_defs {
+                collect_part_and_subdefs(part, &mut result);
+            }
+        }
+        result
+    }
+
+    /// Returns all use case definitions declared across self and all nested packages.
+    pub fn get_all_use_cases(&self) -> Vec<UseCaseDef> {
+        let mut result = Vec::new();
+        for pkg in self.get_all_packages() {
+            result.extend(pkg.use_case_defs.clone());
+            for part in &pkg.part_defs {
+                collect_part_use_cases(part, &mut result);
+            }
+        }
+        result
+    }
+
+    /// Returns all interaction sequence definitions declared across self and all nested packages.
+    pub fn get_all_interactions(&self) -> Vec<InteractionDef> {
+        let mut result = Vec::new();
+        for pkg in self.get_all_packages() {
+            result.extend(pkg.interaction_defs.clone());
+            for part in &pkg.part_defs {
+                collect_part_interactions(part, &mut result);
+            }
+        }
+        result
+    }
+
+    /// Returns all action definitions declared across self and all nested packages.
+    pub fn get_all_actions(&self) -> Vec<ActionDef> {
+        let mut result = Vec::new();
+        for pkg in self.get_all_packages() {
+            result.extend(pkg.action_defs.clone());
+            for part in &pkg.part_defs {
+                collect_part_actions(part, &mut result);
+            }
+        }
+        result
+    }
+
+    /// Returns all constraint definitions and invariants declared across self and all nested packages.
+    pub fn get_all_constraints(&self) -> Vec<ConstraintDef> {
+        let mut result = Vec::new();
+        for pkg in self.get_all_packages() {
+            result.extend(pkg.constraint_defs.clone());
+            for part in &pkg.part_defs {
+                collect_part_constraints(part, &mut result);
+            }
+        }
+        result
+    }
+}
+
+fn collect_part_and_subdefs(part: &PartDef, result: &mut Vec<PartDef>) {
+    result.push(part.clone());
+    for sub in &part.parts {
+        if sub.is_def {
+            collect_part_and_subdefs(sub, result);
+        }
+    }
+}
+
+fn collect_part_capabilities(part: &PartDef, result: &mut Vec<CapabilityDef>) {
+    result.extend(part.capabilities.clone());
+    for sub in &part.parts {
+        collect_part_capabilities(sub, result);
+    }
+}
+
+fn collect_part_use_cases(part: &PartDef, result: &mut Vec<UseCaseDef>) {
+    result.extend(part.use_cases.clone());
+    for sub in &part.parts {
+        collect_part_use_cases(sub, result);
+    }
+}
+
+fn collect_part_interactions(part: &PartDef, result: &mut Vec<InteractionDef>) {
+    result.extend(part.interactions.clone());
+    for sub in &part.parts {
+        collect_part_interactions(sub, result);
+    }
+}
+
+fn collect_part_actions(part: &PartDef, result: &mut Vec<ActionDef>) {
+    result.extend(part.actions.clone());
+    for sub in &part.parts {
+        collect_part_actions(sub, result);
+    }
+}
+
+fn collect_part_constraints(part: &PartDef, result: &mut Vec<ConstraintDef>) {
+    result.extend(part.constraints.clone());
+    for sub in &part.parts {
+        collect_part_constraints(sub, result);
+    }
+}
+
 /// Legacy and high-level SysML model container for backwards compatibility.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct SysmlModel {
@@ -1203,6 +1329,64 @@ part def VehicleSystem {
         assert!(!reqs[0].constraints[0].is_assertion);
         assert_eq!(reqs[0].constraints[1].name, "Invariant_Zero_Hardcoded_Domain_Concepts");
         assert!(reqs[0].constraints[1].is_assertion);
+    }
+
+    #[test]
+    fn test_package_def_recursive_ast_collectors() {
+        let mut root = PackageDef {
+            name: "Root".to_string(),
+            ..Default::default()
+        };
+        let mut sub = PackageDef {
+            name: "Sub".to_string(),
+            ..Default::default()
+        };
+        let mut nested = PackageDef {
+            name: "Nested".to_string(),
+            ..Default::default()
+        };
+
+        sub.capability_defs.push(CapabilityDef {
+            name: "SubCap".to_string(),
+            ..Default::default()
+        });
+        nested.part_defs.push(PartDef {
+            name: "NestedPart".to_string(),
+            ..Default::default()
+        });
+        nested.use_case_defs.push(UseCaseDef {
+            name: "NestedUC".to_string(),
+            ..Default::default()
+        });
+        nested.interaction_defs.push(InteractionDef {
+            name: "NestedInter".to_string(),
+            ..Default::default()
+        });
+        sub.action_defs.push(ActionDef {
+            name: "SubAction".to_string(),
+            ..Default::default()
+        });
+        nested.constraint_defs.push(ConstraintDef {
+            name: "NestedConstraint".to_string(),
+            ..Default::default()
+        });
+
+        sub.packages.push(nested);
+        root.packages.push(sub);
+
+        assert_eq!(root.get_all_packages().len(), 3);
+        assert_eq!(root.get_all_capabilities().len(), 1);
+        assert_eq!(root.get_all_capabilities()[0].name, "SubCap");
+        assert_eq!(root.get_all_parts().len(), 1);
+        assert_eq!(root.get_all_parts()[0].name, "NestedPart");
+        assert_eq!(root.get_all_use_cases().len(), 1);
+        assert_eq!(root.get_all_use_cases()[0].name, "NestedUC");
+        assert_eq!(root.get_all_interactions().len(), 1);
+        assert_eq!(root.get_all_interactions()[0].name, "NestedInter");
+        assert_eq!(root.get_all_actions().len(), 1);
+        assert_eq!(root.get_all_actions()[0].name, "SubAction");
+        assert_eq!(root.get_all_constraints().len(), 1);
+        assert_eq!(root.get_all_constraints()[0].name, "NestedConstraint");
     }
 }
 
