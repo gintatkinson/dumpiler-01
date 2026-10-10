@@ -285,14 +285,10 @@ Per [`rules/platform-independence.md`](rules/platform-independence.md):
 
 ## Step 5: Parity Verification Gate 23 & Backlog Synchronization
 
-1. **Mandatory Local Verification Gate (Gate 23 - ICDCompletenessValidator)**:
+1. **Mandatory Local Verification Gate (Gate 23 - ICD Completeness)**:
    Before committing or creating tracker issues, the Worker ICD MUST run local verification checks:
    ```bash
-   python3 skills/spec-orchestrator/parity_auditor/src/parity_auditor/validators/icd_completeness_validator.py
-   ```
-   and the model coverage verifier:
-   ```bash
-   ./skills/spec-orchestrator/scripts/verify_model_coverage.py --spec-only --allow-missing-specs --only <spec>
+   ./target/release/verify-baseline . --spec-only
    ```
    - Asserts 100% port connection parity (zero dangling ports: $\mathcal{D}_{\mathrm{port}} = \emptyset$).
    - Asserts 100% signal dictionary coverage of schema interface leaves ($\Omega_{\mathrm{coverage}} = 1.0$).
@@ -328,7 +324,7 @@ Per [`rules/platform-independence.md`](rules/platform-independence.md):
      ```
    - Execute post-creation verification check:
      ```bash
-     gh issue view <ID> --json body | python3 -c "import sys,json; b=json.load(sys.stdin)['body']; assert 'Source References' in b or 'References' in b, 'Body is a stub'"
+     gh issue view <ID> --json body -q .body | grep -E 'Source References|References' >/dev/null || (echo "Body is a stub" >&2; exit 1)
      ```
 
 5. **Commit & Return Control**:

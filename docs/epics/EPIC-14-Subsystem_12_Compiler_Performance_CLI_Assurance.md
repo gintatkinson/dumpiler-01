@@ -37,11 +37,11 @@ Subsystem specification for Compiler Performance (Subsystem_12_Compiler_Performa
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- [ ] #100 - [Use Case 06: Baseline Conformance and Diagnostic Triage Workflow](../use-cases/UC-06-Baseline_Conformance_and_Diagnostic_Triage_Workflow.md)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- [ ] #94 - [User Story 06: Verify Multi-File Baseline Parity and Governance Gates](../user-stories/US-06-Verify_Baseline_Parity.md)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by CompilerAssuranceEngine.

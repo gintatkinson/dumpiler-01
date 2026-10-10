@@ -21,8 +21,8 @@ Error: No .sysml schema file found in schema/.
 If starting from unstructured OEM prose manuals, PDF documentation, or BOM markdown tables:
   1. Place your OEM documentation or extract tables into schema/ or schema/extracted/.
   2. Execute Step 0.0 Level 0 OEM Ground Truth Ingestion:
-     python3 skills/spec-orchestrator/scripts/sysmlv2_ingest.py --schema <path_to_markdown> --format markdown --out schema/model.sysml
-  3. Re-run compile_sysml.py --compile to satisfy the compilation gate.";
+     ./target/release/ingest-sysml --schema <path_to_markdown> --format markdown --out schema/model.sysml
+  3. Re-run ./target/release/compile-sysml --compile to satisfy the compilation gate.";
 
 #[derive(Parser, Debug)]
 #[command(name = "compile-sysml")]

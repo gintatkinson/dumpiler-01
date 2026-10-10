@@ -37,11 +37,11 @@ Subsystem specification for Multi-Target CodeGen (Subsystem_10_Multi_Target_Code
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- [ ] #99 - [Use Case 05: Multi-Target CodeGen and Simulation Synthesis Workflow](../use-cases/UC-05-Multi_Target_CodeGen_and_Simulation_Synthesis_Workflow.md)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by CodeGenEngine.

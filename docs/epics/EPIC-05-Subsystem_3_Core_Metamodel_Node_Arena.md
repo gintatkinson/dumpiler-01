@@ -37,11 +37,11 @@ Subsystem specification for Node Arena AST Graph (Subsystem_3_Core_Metamodel_Nod
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- [ ] #90 - [User Story 02: Parse SysML v2 AST and Construct Arena Graph](../user-stories/US-02-Parse_SysML_AST.md)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by NodeArenaASTGraphEngine.

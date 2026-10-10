@@ -3,6 +3,7 @@ title: "Use Case 03: Safety Assurance and STPA Verification Workflow"
 version: "1.0.0"
 date: "2026-10-10"
 type: use-case
+epic: "EPIC-09-Subsystem_7_Formal_Safety_Traceability_Verification"
 use_case_def: "UC_03_Safety_Assurance_and_STPA_Verification"
 subject: "SafetyAssuranceEngine"
 actors:
@@ -62,8 +63,8 @@ flowchart TD
 ## 8. Realization Matrix
 | Specification Item | Type | Link / Reference |
 | :--- | :--- | :--- |
-| **#91** | User Story | User Story 03: Validate Model Semantics and Typing Constraints |
-| **#35** | Feature | Feature 26: [Physical Metrology Flow] Physical Metrology Flow Engine |
+| **#91** | User Story | [User Story 03: Validate Model Semantics and Typing Constraints](../user-stories/US-03-Validate_Model_Semantics.md) |
+| **#35** | Feature | [Feature 26: [Physical Metrology Flow] Physical Metrology Flow Engine](../features/FEAT-26-MetrologyFlowEngine.md) |
 
 ## Source References
 Use case operational flows and lifecycle activity references:

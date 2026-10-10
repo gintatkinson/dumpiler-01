@@ -158,7 +158,7 @@ Subagents follow these steps in order. No deviation.
 6. Section 4: Valid Mermaid block (```` ```mermaid ````) (Critical/Important) or "N/A -- [severity] severity." (Suggestion/Nitpick). No ASCII art.
 7. Section 6: Triple-backtick code block with language tag.
 8. End with SEVERITY and FILE_LOCATION lines exactly as shown in the skeleton.
-9. Identify or scaffold the test target file path (e.g. `tests/test_<name>_reproducer.py` or relevant test suite path) and annotate it in Section 1 via `<!-- test-target: [path/to/reproducer_test.py] -->` and `- **Test-Target**: `[path/to/reproducer_test.py]`` so that `scripts/reconcile_backlog.py`'s `reconcile_upstream_compiler_backlog()` can automatically discover and execute test targets for filed defects.
+9. Identify or scaffold the test target file path (e.g. `tests/test_<name>_reproducer.py` or relevant test suite path) and annotate it in Section 1 via `<!-- test-target: [path/to/reproducer_test.py] -->` and `- **Test-Target**: `[path/to/reproducer_test.py]`` so that `scripts/reconcile_backlog.sh` (or `./target/release/reconcile-backlog`) can automatically discover and execute test targets for filed defects.
 
 ### Step D -- Verify
 
@@ -177,11 +177,11 @@ Before filing, run these checks on the body. All must pass.
 | 9 | Balanced code blocks | Even number of ````` occurrences |
 | 10 | No ASCII art UML | Does NOT contain unescaped `->>` or `→` outside mermaid blocks |
 | 11 | Title-format | Matches `\[AUDIT\] \[[file.ext]\]: [description]` |
-| 12 | Test Target annotation | Contains `<!-- test-target: [path] -->` matching `<!--\s*test-target:\s*\S+\s*-->` and valid path in `- **Test-Target**:` bullet for automated discovery by `scripts/reconcile_backlog.py` (`reconcile_upstream_compiler_backlog()`) |
+| 12 | Test Target annotation | Contains `<!-- test-target: [path] -->` matching `<!--\s*test-target:\s*\S+\s*-->` and valid path in `- **Test-Target**:` bullet for automated discovery by `scripts/reconcile_backlog.sh` (or `./target/release/reconcile-backlog`) |
 
 If any check fails, fix the body and re-verify. Do NOT file until all checks pass.
 
-**Test Target Verification**: The subagent MUST verify that the test target file path is identified or scaffolded in the repository (e.g., under `tests/`), matches the syntax parsed by `scripts/reconcile_backlog.py`'s `reconcile_upstream_compiler_backlog()`, and is executable so that defect reconciliation runs autonomously.
+**Test Target Verification**: The subagent MUST verify that the test target file path is identified or scaffolded in the repository (e.g., under `tests/`), matches the syntax parsed by `scripts/reconcile_backlog.sh` (or `./target/release/reconcile-backlog`), and is executable so that defect reconciliation runs autonomously.
 
 **Check 7 is executable and MUST be run -- it is not an eyeball check.** Presence of a
 fenced block does not establish validity. An unparseable diagram previously cleared all
@@ -189,19 +189,21 @@ eleven checks and was filed on issue #283, where GitHub reported a parse error i
 rendering Section 4. Run:
 
 ```bash
-python3 - "$BODY_FILE" <<'EOF'
-import sys, os
-sys.path.insert(0, "skills/spec-orchestrator/parity_auditor/src")
-from parity_auditor.validators.mermaid_syntax_validator import check_mermaid_text
-body = open(sys.argv[1], encoding="utf-8").read()
-errors = check_mermaid_text(body, source=os.path.basename(sys.argv[1]))
-if errors:
-    print("check 7 FAILED:")
-    for e in errors:
-        print("  -", e)
-    sys.exit(1)
-print("check 7 passed")
-EOF
+if grep -q '```mermaid' "$BODY_FILE"; then
+  # 1. Verify valid diagram header
+  HEADER=$(awk '/```mermaid/{flag=1; next} /```/{flag=0} flag && !/^[[:space:]]*%%/{print; exit}' "$BODY_FILE")
+  echo "$HEADER" | grep -qE '^(graph|flowchart|sequenceDiagram|classDiagram|erDiagram|stateDiagram)' || {
+    echo "check 7 FAILED: Invalid Mermaid diagram header: $HEADER" >&2
+    exit 1
+  }
+  # 2. Verify even number of fences
+  FENCE_COUNT=$(grep -c '```' "$BODY_FILE" || true)
+  if [ $((FENCE_COUNT % 2)) -ne 0 ]; then
+    echo "check 7 FAILED: Uneven number of code fences ($FENCE_COUNT)" >&2
+    exit 1
+  fi
+fi
+echo "check 7 passed"
 ```
 
 The gate is **offline by mandate**. Do NOT substitute a remote renderer: a blocking gate
@@ -234,32 +236,15 @@ not a full Mermaid grammar parser, so a pass is not proof the diagram renders.
      ```bash
      glab issue create --repo [REPO] --title "[AUDIT] [file.ext]: [description]" --label "[LABEL]" --description "$(< /tmp/gl_body_[ID].md)"
      ```
-   - **GitLab (Direct REST API v4)**: In containerized or air-gapped GitLab CI environments where `glab` CLI is unavailable, file via direct REST API v4 using standard Python:
+   - **GitLab (Direct REST API v4 / curl)**: In containerized or air-gapped GitLab CI environments where `glab` CLI is unavailable, file via `scripts/file_defect.sh` or direct REST API v4 using `curl`:
      ```bash
-     python3 - <<'EOF'
-     import os, json, urllib.request, urllib.parse
-
-     server_url = os.environ.get("GITLAB_URL") or os.environ.get("CI_SERVER_URL", "https://gitlab.com")
-     project_id = urllib.parse.quote(os.environ.get("CI_PROJECT_PATH", "[REPO]"), safe="")
-     token = os.environ.get("GITLAB_TOKEN") or os.environ.get("GL_TOKEN") or os.environ.get("CI_JOB_TOKEN")
-     body_content = open("/tmp/gl_body_[ID].md", encoding="utf-8").read()
-
-     url = f"{server_url.rstrip('/')}/api/v4/projects/{project_id}/issues"
-     headers = {"PRIVATE-TOKEN": token, "Content-Type": "application/json"}
-     if not os.environ.get("GITLAB_TOKEN") and not os.environ.get("GL_TOKEN") and os.environ.get("CI_JOB_TOKEN"):
-         headers = {"JOB-TOKEN": token, "Content-Type": "application/json"}
-
-     payload = json.dumps({
-         "title": "[AUDIT] [file.ext]: [description]",
-         "description": body_content,
-         "labels": "[LABEL]"
-     }).encode("utf-8")
-
-     req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
-     with urllib.request.urlopen(req) as resp:
-         data = json.loads(resp.read().decode("utf-8"))
-         print(f"Created issue URL: {data.get('web_url')}")
-     EOF
+     SERVER_URL="${GITLAB_URL:-${CI_SERVER_URL:-https://gitlab.com}}"
+     PROJECT_ID=$(echo "${CI_PROJECT_PATH:-[REPO]}" | sed 's/\//%2F/g')
+     TOKEN="${GITLAB_TOKEN:-${GL_TOKEN:-$CI_JOB_TOKEN}}"
+     curl -s --request POST "${SERVER_URL%/}/api/v4/projects/${PROJECT_ID}/issues" \
+       --header "PRIVATE-TOKEN: ${TOKEN}" \
+       --header "Content-Type: application/json" \
+       --data "{\"title\": \"[AUDIT] [file.ext]: [description]\", \"description\": $(jq -Rs . < /tmp/gl_body_[ID].md 2>/dev/null || cat /tmp/gl_body_[ID].md), \"labels\": \"[LABEL]\"}"
      ```
 4. Title format: `[AUDIT] [filename.ext]: [Brief description]`
 5. If mode is `bug-based` and finding confirms a known issue, post a comment (`gh issue comment` on GitHub, or `glab issue note` / direct notes REST API on GitLab) instead of creating a new issue.

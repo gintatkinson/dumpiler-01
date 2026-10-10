@@ -44,7 +44,7 @@ Immediately following installation and on EVERY new session startup, before acce
 
 ## Strict Prohibition of Unit Tests & Exclusive Semantic Acceptance Testing Mandate
 - **Unit Tests Strictly Forbidden**: Creating, maintaining, or executing unit test suites (`tests/`, `test_*.py`, `pytest`) is strictly forbidden across this repository. Coordinators and subagents must never create unit test files or invoke `pytest`.
-- **Exclusive Semantic Acceptance Testing**: All verification across the pipeline must be performed exclusively via end-to-end semantic acceptance testing against real schemas and domain specifications (`crates/ingest-sysml`, `crates/compile-sysml`, `crates/verify-baseline`, or Python wrapper `scripts/e2e_acceptance_harness.py`).
+- **Exclusive Semantic Acceptance Testing**: All verification across the pipeline must be performed exclusively via end-to-end semantic acceptance testing against real schemas and domain specifications (`crates/ingest-sysml`, `crates/compile-sysml`, `crates/verify-baseline`, `crates/reconcile-backlog`, or `./target/release/verify-baseline`).
 - **Forbidden Test Workspace Creation**: Creating mock test projects, mock repository directories, or test-runner scripts (such as `test_project/` or `run_tests.py`) directly inside the workspace is strictly forbidden.
 
 ## Mandatory Workspace-Relative Paths Invariant
@@ -84,7 +84,7 @@ Immediately following installation and on EVERY new session startup, before acce
 - **Mandatory Tracker Issue Transition Gate**: Every issue referenced in the commit log must carry `status:fixed-resolved` (or `status::fixed-resolved` on GitLab) and verification evidence comments prior to walkthrough completion.
 
 ## Mandatory Upstream Tooling Bug Reporting
-- If a tooling bug or limitation is identified in shared pipeline scripts, dispatch a subagent with `skills/adversarial-code-auditor/SKILL.md` to produce a 7-section defect dossier and submit via `python3 scripts/file_defect.py`. Do not apply silent local-only patches.
+- If a tooling bug or limitation is identified in shared pipeline scripts, dispatch a subagent with `skills/adversarial-code-auditor/SKILL.md` to produce a 7-section defect dossier and submit via `scripts/file_defect.sh` (or `./target/release/file-defect`). Do not apply silent local-only patches.
 
 ## Documentation Integrity -- No Wholesale Replacement Without Approval
 - You are strictly forbidden from replacing, truncating, or rewriting any documentation file in a way that removes substantial content unless explicitly approved by the user in the current conversation turn.
@@ -106,7 +106,7 @@ Immediately following installation and on EVERY new session startup, before acce
 - **Subagent Tool Locking**: Subagents must only execute tools within their explicit domain.
 
 ## Backlog Reconciliation Mandate
-- Before finalizing any implementation branch commit, merge, or PR, execute `python3 skills/spec-orchestrator/scripts/reconcile_backlog.py` to synchronize local specifications, checklists, and diagrams with the issue tracker.
+- Before finalizing any implementation branch commit, merge, or PR, execute `./target/release/reconcile-backlog` (or `scripts/reconcile_backlog.sh`) to synchronize local specifications, checklists, and diagrams with the issue tracker.
 
 ## Mermaid Syntax & Diagram Integrity Rules
 - Every Mermaid diagram MUST have matching closing fences (```` ``` ```` on a new line). Leaking fences are forbidden.

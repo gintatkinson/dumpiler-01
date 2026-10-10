@@ -77,7 +77,7 @@ fragmentation issue #289 fixed for the Mermaid rules. The per-trigger requiremen
 themselves are data, not prose, and live in `rules/behavioral_triggers.json`.
 
 These rules are mechanically enforced, offline, by
-`parity_auditor/validators/behavioral.py`. Before issue #304 they were enforced and
+`./target/release/verify-baseline` (Gate 27: Behavioral Trigger Coverage). Before issue #304 they were enforced and
 stated in no document at all -- the orphan-enforcement shape recorded as #299 -- so a
 subagent drafting a User Story could not have known the requirement existed.
 
@@ -117,7 +117,7 @@ vocabulary is platform-specific, so this file is its normative home and
 `.pipeline/profiles/<platform>.md` supplies the vocabulary. That division follows
 `rules/platform-independence.md` § *Where platform-specific details belong*.
 
-Enforced offline by `parity_auditor/validators/codebase.py`. Every rule below was
+Enforced offline by `./target/release/verify-baseline` (Gates 7, 8, 9, 10, 12, 13, 14, 15, 17, 18, 19, 20). Every rule below was
 enforced before issue #304 and stated in no document -- the orphan-enforcement shape
 recorded as issue #299 -- so nothing generating code into a downstream workspace could
 have been told what it had to satisfy.
@@ -218,7 +218,7 @@ degrades silently rather than failing loudly.
 
 # Rule: Hierarchical Concept of Operations & Tactical Mission Intent Integrity
 
-**ALWAYS enforce:** All Concept of Operations (`docs/conops/units/conops/` and `CONOPS.md`) and Tactical Mission Intent (`docs/conops/units/mission_intent/` and `MISSION_INTENT.md`) specifications in the Digital Engineering Autonomous Pipeline (DEAP) MUST adhere strictly to pure open schema contracts ($N \ge N_{\mathrm{min}}$ with zero static row caps), open multi-domain threat taxonomies across all 7 operational domains, mandatory INCOSE SEH v5.0 MoE/MoP mathematical formulations, 100% public clause citations, and deterministic modular assembly via `scripts/assemble_conops.py`.
+**ALWAYS enforce:** All Concept of Operations (`docs/conops/units/conops/` and `CONOPS.md`) and Tactical Mission Intent (`docs/conops/units/mission_intent/` and `MISSION_INTENT.md`) specifications in the Digital Engineering Autonomous Pipeline (DEAP) MUST adhere strictly to pure open schema contracts ($N \ge N_{\mathrm{min}}$ with zero static row caps), open multi-domain threat taxonomies across all 7 operational domains, mandatory INCOSE SEH v5.0 MoE/MoP mathematical formulations, 100% public clause citations, and deterministic modular assembly via `./target/release/assemble-conops` (or `scripts/assemble_conops.sh`).
 
 ## Scope and Normative Authority
 
@@ -238,9 +238,9 @@ This governance standard is aligned with:
 - **OMG UAF v1.2 / v2.0**: Unified Architecture Framework Operational Domain Views (Op-Pr, Op-Tx, Op-Is).
 
 Enforced offline by:
-- `parity_auditor/validators/conops_completeness_validator.py` (Gate 26)
-- `parity_auditor/validators/coverage_digest_validator.py` (Gate 28)
-- `parity_auditor/validators/obligation_witness_validator.py` (Gate 29)
+- `./target/release/verify-baseline` (Gate 26: ConOps Completeness)
+- `./target/release/verify-baseline` (Gate 28: Coverage Digest Integrity)
+- `./target/release/verify-baseline` (Gate 29: Obligation Witness Parity)
 
 ### Architecture Hierarchy & Standards Governance (INCOSE SEH v5.0 §3.4.4 / ISO/IEC/IEEE 15288:2023 / ISO/IEC/IEEE 29148:2018 §6.4.2)
 
@@ -310,7 +310,7 @@ Per [`rules/latex-katex-integrity.md`](latex-katex-integrity.md):
 
 ### 6. Deterministic Modular Assembly & Cross-Model Allocation
 - **Modular Unit Storage**: ConOps and Mission Intent specifications MUST be authored as discrete modular unit files under `docs/conops/units/conops/` (12 modules: `01_METADATA_AND_OVERVIEW.md` through `12_EMERGENCY_DECISION_MATRIX.md`) and `docs/conops/units/mission_intent/` (10 modules: `01_COMMANDERS_INTENT.md` through `10_OPERATIONAL_ALLOCATION_TAGS.md`).
-- **Deterministic Assembly Engine**: Master documents (`docs/conops/CONOPS.md` and `docs/conops/MISSION_INTENT.md`) MUST be compiled via `python3 scripts/assemble_conops.py`.
+- **Deterministic Assembly Engine**: Master documents (`docs/conops/CONOPS.md` and `docs/conops/MISSION_INTENT.md`) MUST be compiled via `./target/release/assemble-conops` (or `cargo run -p assemble-conops --bin assemble-conops`).
 - **Zero Placeholder Tokens**: Assembled specifications MUST contain zero unresolved `{{...}}` template tokens.
 - **Gate 24 Operational Allocation**: Every UAF Operational Activity (`OA-XX`) and METL Task (`MET-XX`) MUST define a machine-verifiable Gate 24 allocation tag (`/// OperationalAllocation: [OA-XX]` or `/// OperationalAllocation: [MET-XX]`) linking operational tasks to structural and behavioral SysML v2 AST elements.
 
@@ -513,7 +513,7 @@ gate, rather than two file-local assertions that no document generalises and no 
 
 These standards govern Tier 1 domain models and clean architecture boundaries across all supported target platforms. They ensure immutability, exhaustive error handling, static type safety, and spec-to-code traceability across downstream application codebases.
 
-Enforced offline by `parity_auditor/validators/profile_compliance_validator.py` and platform profiles (`.pipeline/profiles/<platform>.md`).
+Enforced offline by `./target/release/verify-baseline` and platform profiles (`.pipeline/profiles/<platform>.md`).
 
 ## The 15 Non-Negotiable Domain Engineering Standards
 
@@ -826,7 +826,7 @@ To guarantee diagram readability, visual ergonomics, and prevent extreme horizon
 ## Document integrity constraints
 
 These are the non-Mermaid constraints on the same corpus, enforced offline by
-`parity_auditor/validators/docs.py`. They are stated here because each one exists to keep
+`./target/release/verify-baseline` (Gates 3, 4, 11). They are stated here because each one exists to keep
 a Tier 1 document functional and standard-agnostic, or to keep it parseable by the tools
 that read it -- the same subject as the rules above. The three fence rules are deliberately
 **distinct** from `mermaid-fence-must-be-closed` in the Mermaid syntax checker: that rule
@@ -867,7 +867,7 @@ to say which checker fired.
 
 **This file is the single normative home for Mermaid syntax constraints.** Skills that emit Mermaid MUST reference this section rather than restating their own subset. These rules were previously fragmented across four files with disjoint subsets, so an author working from one file could breach a constraint documented in another -- see issue #289.
 
-These rules are mechanically enforced, offline, by `parity_auditor/validators/mermaid_syntax_validator.py`. That checker is a rule checker, not a full Mermaid grammar parser: a clean result means no documented rule was violated, which is not proof that a diagram renders. Blocking gates must not call remote renderers -- see `.pipeline/upstream/pipeline-tooling.md` § *Validation Gates*.
+These rules are mechanically enforced, offline, by `./target/release/verify-baseline` (Gate 2: Mermaid Syntax & Structure). That checker is a rule checker, not a full Mermaid grammar parser: a clean result means no documented rule was violated, which is not proof that a diagram renders. Blocking gates must not call remote renderers -- see `.pipeline/upstream/pipeline-tooling.md` § *Validation Gates*.
 
 
 
@@ -1357,9 +1357,9 @@ Treating textual specifications and models as separate entities inevitably cause
 ## Required assertion classes
 
 A test suite can be green, large, and still assert nothing about the constraints the
-specifications actually state. These are the assertion classes the parity auditor
+specifications actually state. These are the assertion classes the baseline verification
 requires a downstream test suite to demonstrate, enforced offline by
-`parity_auditor/validators/test_completeness_validator.py`. They are stated here rather
+`./target/release/verify-baseline` (Gate 16: Test Completeness). They are stated here rather
 than in a platform profile because the checker scans every supported test file type
 (`_test.dart`, `.test.ts`, `.test.tsx`, `.spec.ts`, `.spec.tsx`) and the requirement is
 about what is asserted, not about which framework asserts it.
@@ -1413,13 +1413,13 @@ TDD prevents false confidence. A test written after the code is confirmation bia
 - When constructing links to files in issue descriptions, dynamically determine the remote URL from the repository settings (e.g., `meta.upstream_repository`). Never use relative paths like `../features/...` in issue bodies.
 - **Registered Issues Must Have A Local Specification**: every tracker issue carrying the Epic or Feature label MUST have a corresponding local specification file. A registered issue with no file means the branch baseline is incomplete, and the reconciler will write checklist state back to an issue whose specification nobody can read.
 - **Local Indices Must Not Collide With Registered Issues**: a local specification whose ordinal (`epic-02`, `feat-07`) is already claimed on the tracker by a *differently titled* issue is a collision and MUST be renumbered. Reconciliation addresses specifications by ordinal, so the ambiguity silently retargets updates at the wrong issue.
-- **Local Specification Titles Must Be Unique Within A Spec Type**: no two Epics, no two Features, no two User Stories and no two Use Cases may declare titles that normalise to the same key. Uniqueness is scoped **per spec type, not globally**: an Epic naming a theme and a Feature delivering part of it may legitimately share a subject, and the tracker treats `(spec type, normalised title)` as the identity for exactly that reason. Reconciliation builds its issue lookup on the normalised title, so two specifications of one type sharing a key resolve to whichever issue was seen last -- one body is published over the other and the loser is orphaned. Enforced offline by `parity_auditor/validators/spec_title_uniqueness_validator.py`, using the same normalisation as `reconcile_backlog.py` so the gate collides in exactly the space the reconciler collides in.
-- **Generated Item Titles Must Be Namespaced To Their Source Module**: a subagent drafting one item from one schema node MUST prefix the generated Epic, Feature, User Story and Use Case title with a bracketed short-code identifying the bounded context it came from -- for example `[NI-Location] Geo Location` rather than `Geo Location`. Item subagents draft in isolation and never see one another's output, so a node name that recurs across modules (`geo-location`, `status`, `interface` are the standard cases) produces the same title twice and neither subagent is in a position to notice. The namespace is what makes the item identifiable in a shared backlog without opening it. What is mechanically gated is the *effect* -- the uniqueness rule above; the gate does not check the shape of the prefix, because a prefix-shape check would reject every specification written before this rule and the invariant that actually protects the tracker is uniqueness rather than any particular spelling. That gap is recorded in `tests/rule_contracts.py` under `KNOWN_UNREGISTERED_FAMILIES` rather than left silent.
+- **Local Specification Titles Must Be Unique Within A Spec Type**: no two Epics, no two Features, no two User Stories and no two Use Cases may declare titles that normalise to the same key. Uniqueness is scoped **per spec type, not globally**: an Epic naming a theme and a Feature delivering part of it may legitimately share a subject, and the tracker treats `(spec type, normalised title)` as the identity for exactly that reason. Reconciliation builds its issue lookup on the normalised title, so two specifications of one type sharing a key resolve to whichever issue was seen last -- one body is published over the other and the loser is orphaned. Enforced offline by `./target/release/verify-baseline` (Gate 6: Spec Title Uniqueness), using the same normalisation as `./target/release/reconcile-backlog` so the gate collides in exactly the space the reconciler collides in.
+- **Generated Item Titles Must Be Namespaced To Their Source Module**: a subagent drafting one item from one schema node MUST prefix the generated Epic, Feature, User Story and Use Case title with a bracketed short-code identifying the bounded context it came from -- for example `[NI-Location] Geo Location` rather than `Geo Location`. Item subagents draft in isolation and never see one another's output, so a node name that recurs across modules (`geo-location`, `status`, `interface` are the standard cases) produces the same title twice and neither subagent is in a position to notice. The namespace is what makes the item identifiable in a shared backlog without opening it. What is mechanically gated is the *effect* -- the uniqueness rule above; the gate does not check the shape of the prefix, because a prefix-shape check would reject every specification written before this rule and the invariant that actually protects the tracker is uniqueness rather than any particular spelling. That gap is recorded in the baseline verification rules registry under `KNOWN_UNREGISTERED_FAMILIES` rather than left silent.
 
 ## What local files are for
 
 - Local markdown files (`docs/epics/`, `docs/features/`, etc.) are the specification source, but their checklist states may be stale.
-- Always sync local state with the tracker state using the backlog reconciliation script (e.g., `reconcile_backlog.py`).
+- Always sync local state with the tracker state using the backlog reconciliation engine (`./target/release/reconcile-backlog` or `scripts/reconcile_backlog.sh`).
 - The authoritative "done" state lives in the issue tracker, not in local frontmatter.
 
 ## Multi-Provider Issue Tracker Standards (GitHub & GitLab)
@@ -1510,7 +1510,7 @@ complete, and every UML diagram it carries must be a valid model rather than a p
 ## Scope and normative home
 
 **This file is the single normative home for the model-integrity constraints enforced by
-`parity_auditor/validators/uml.py`.** They span all four backlog document types, so
+`./target/release/verify-baseline` (Gate 1: UML Model Structure & Stereotypes).** They span all four backlog document types, so
 stating them in any one worker skill would fragment them across four files with disjoint
 subsets -- the failure issue #289 fixed for the Mermaid rules by designating one home.
 The worker skills own the *templates*; this file owns the *rules* the templates exist to

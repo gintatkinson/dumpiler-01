@@ -3,6 +3,7 @@ title: "Use Case 02: Grammar Lowering and AST Construction Workflow"
 version: "1.0.0"
 date: "2026-10-10"
 type: use-case
+epic: "EPIC-06-Subsystem_4_Complete_SysMLv2_KerML_Grammar"
 use_case_def: "UC_02_Grammar_Lowering_and_AST_Construction"
 subject: "GrammarLoweringEngine"
 actors:
@@ -62,8 +63,8 @@ flowchart TD
 ## 8. Realization Matrix
 | Specification Item | Type | Link / Reference |
 | :--- | :--- | :--- |
-| **#90** | User Story | User Story 02: Parse SysML v2 AST and Construct Arena Graph |
-| **#25** | Feature | Feature 16: [Node Arena AST Graph] Node Arena AST Graph Engine |
+| **#90** | User Story | [User Story 02: Parse SysML v2 AST and Construct Arena Graph](../user-stories/US-02-Parse_SysML_AST.md) |
+| **#25** | Feature | [Feature 16: [Node Arena AST Graph] Node Arena AST Graph Engine](../features/FEAT-16-NodeArenaASTGraphEngine.md) |
 
 ## Source References
 Use case operational flows and lifecycle activity references:

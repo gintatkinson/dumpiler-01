@@ -37,11 +37,11 @@ Subsystem specification for State Solvers (Subsystem_6_Spatio_Temporal_State_Sol
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by StateMachineSolverEngine.

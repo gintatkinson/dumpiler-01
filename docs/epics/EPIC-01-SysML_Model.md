@@ -37,11 +37,11 @@ System-level architecture definition establishing compiler primacy, component in
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
 
 ## 3. Architecture
 Top-level structural decomposition interconnecting external ConOps operational actors with the core compiler engine and downstream projection adapters.

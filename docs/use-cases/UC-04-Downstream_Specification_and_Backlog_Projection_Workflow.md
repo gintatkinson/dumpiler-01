@@ -3,6 +3,7 @@ title: "Use Case 04: Downstream Specification and Backlog Projection Workflow"
 version: "1.0.0"
 date: "2026-10-10"
 type: use-case
+epic: "EPIC-11-Subsystem_9_Downstream_Specification_Projections"
 use_case_def: "UC_04_Downstream_Specification_and_Backlog_Projection"
 subject: "AgileProjectionEngine"
 actors:
@@ -62,8 +63,8 @@ flowchart TD
 ## 8. Realization Matrix
 | Specification Item | Type | Link / Reference |
 | :--- | :--- | :--- |
-| **#92** | User Story | User Story 04: Transpile Safety Assurance and STPA Matrices |
-| **#45** | Feature | Feature 36: [Safety Traceability] Safety Assurance Engine |
+| **#92** | User Story | [User Story 04: Transpile Safety Assurance and STPA Matrices](../user-stories/US-04-Transpile_Safety_Artifacts.md) |
+| **#45** | Feature | [Feature 36: [Safety Traceability] Safety Assurance Engine](../features/FEAT-36-SafetyAssuranceEngine.md) |
 
 ## Source References
 Use case operational flows and lifecycle activity references:

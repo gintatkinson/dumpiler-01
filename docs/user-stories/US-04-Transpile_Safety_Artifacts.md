@@ -3,6 +3,7 @@ title: "User Story 04: Transpile Safety Assurance and STPA Matrices"
 version: "1.0.0"
 date: "2026-10-10"
 type: user-story
+epic: "EPIC-09-Subsystem_7_Formal_Safety_Traceability_Verification"
 interaction: "OA_04_Transpile_Safety_Artifacts"
 subject: "SafetyAssuranceEngine"
 issue_id: 92
@@ -43,9 +44,9 @@ sequenceDiagram
 - [ ] AC-US-04-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
 
 ## Required Features
-- [ ] #11 - Feature 02: [ConOps] CI Continuous Integration Runner
-- [ ] #45 - Feature 36: [Safety Traceability] Safety Assurance Engine
-- [ ] #50 - Feature 41: [ICD Interconnect] ICD Interconnect Engine
+- [ ] #11 - [Feature 02: [ConOps] CI Continuous Integration Runner](../features/FEAT-02-CIContinuousIntegrationRunner.md) (automated pipeline execution for safety analysis)
+- [ ] #45 - [Feature 36: [Safety Traceability] Safety Assurance Engine](../features/FEAT-36-SafetyAssuranceEngine.md) (safety assurance and STPA matrix synthesis)
+- [ ] #50 - [Feature 41: [ICD Interconnect] ICD Interconnect Engine](../features/FEAT-41-ICDEngine.md) (ICD interconnect verification and contract validation)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:

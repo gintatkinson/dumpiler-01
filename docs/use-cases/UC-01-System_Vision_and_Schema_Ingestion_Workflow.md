@@ -3,6 +3,7 @@ title: "Use Case 01: System Vision and Schema Ingestion Workflow"
 version: "1.0.0"
 date: "2026-10-10"
 type: use-case
+epic: "EPIC-04-Subsystem_2_Universal_Schema_Ingestion_Engine"
 use_case_def: "UC_01_System_Vision_and_Schema_Ingestion"
 subject: "UniversalIngestionEngine"
 actors:
@@ -62,8 +63,8 @@ flowchart TD
 ## 8. Realization Matrix
 | Specification Item | Type | Link / Reference |
 | :--- | :--- | :--- |
-| **#89** | User Story | User Story 01: Ingest OEM Documentation and Schema Artifacts |
-| **#15** | Feature | Feature 06: [System Vision] System Vision Engine |
+| **#89** | User Story | [User Story 01: Ingest OEM Documentation and Schema Artifacts](../user-stories/US-01-Ingest_OEM_Artifacts.md) |
+| **#15** | Feature | [Feature 06: [System Vision] System Vision Engine](../features/FEAT-06-SystemVisionEngine.md) |
 
 ## Source References
 Use case operational flows and lifecycle activity references:

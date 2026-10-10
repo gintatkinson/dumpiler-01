@@ -37,11 +37,11 @@ Subsystem specification for Safety Traceability (Subsystem_7_Formal_Safety_Trace
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- [ ] #97 - [Use Case 03: Safety Assurance and STPA Verification Workflow](../use-cases/UC-03-Safety_Assurance_and_STPA_Verification_Workflow.md)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- [ ] #92 - [User Story 04: Transpile Safety Assurance and STPA Matrices](../user-stories/US-04-Transpile_Safety_Artifacts.md)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by SafetyAssuranceEngine.

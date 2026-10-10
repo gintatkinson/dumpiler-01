@@ -3,6 +3,7 @@ title: "Use Case 05: Multi-Target CodeGen and Simulation Synthesis Workflow"
 version: "1.0.0"
 date: "2026-10-10"
 type: use-case
+epic: "EPIC-12-Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings"
 use_case_def: "UC_05_Multi_Target_CodeGen_and_Simulation_Synthesis"
 subject: "CodeGenEngine"
 actors:
@@ -62,8 +63,8 @@ flowchart TD
 ## 8. Realization Matrix
 | Specification Item | Type | Link / Reference |
 | :--- | :--- | :--- |
-| **#93** | User Story | User Story 05: Synthesize Downstream Agile Backlog Projections |
-| **#55** | Feature | Feature 46: [Downstream Projections] Agile Projection Engine |
+| **#93** | User Story | [User Story 05: Synthesize Downstream Agile Backlog Projections](../user-stories/US-05-Synthesize_Downstream_Projections.md) |
+| **#55** | Feature | [Feature 46: [Downstream Projections] Agile Projection Engine](../features/FEAT-46-AgileProjectionEngine.md) |
 
 ## Source References
 Use case operational flows and lifecycle activity references:

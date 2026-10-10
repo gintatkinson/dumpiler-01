@@ -37,11 +37,11 @@ Subsystem specification for Downstream Projections (Subsystem_9_Downstream_Speci
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- [ ] #98 - [Use Case 04: Downstream Specification and Backlog Projection Workflow](../use-cases/UC-04-Downstream_Specification_and_Backlog_Projection_Workflow.md)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- [ ] #93 - [User Story 05: Synthesize Downstream Agile Backlog Projections](../user-stories/US-05-Synthesize_Downstream_Projections.md)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by AgileProjectionEngine.

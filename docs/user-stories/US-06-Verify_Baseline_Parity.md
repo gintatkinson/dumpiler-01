@@ -3,6 +3,7 @@ title: "User Story 06: Verify Multi-File Baseline Parity and Governance Gates"
 version: "1.0.0"
 date: "2026-10-10"
 type: user-story
+epic: "EPIC-14-Subsystem_12_Compiler_Performance_CLI_Assurance"
 interaction: "OA_06_Verify_Baseline_Parity"
 subject: "CompilerAssuranceEngine"
 issue_id: 94
@@ -43,9 +44,9 @@ sequenceDiagram
 - [ ] AC-US-06-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
 
 ## Required Features
-- [ ] #11 - Feature 02: [ConOps] CI Continuous Integration Runner
-- [ ] #65 - Feature 56: [Diagnostic Error Catalog] Diagnostic Error Catalog Engine
-- [ ] #70 - Feature 61: [Compiler Performance] Compiler Assurance Engine
+- [ ] #11 - [Feature 02: [ConOps] CI Continuous Integration Runner](../features/FEAT-02-CIContinuousIntegrationRunner.md) (continuous integration gate for baseline parity check)
+- [ ] #65 - [Feature 56: [Diagnostic Error Catalog] Diagnostic Error Catalog Engine](../features/FEAT-56-DiagnosticErrorCatalogEngine.md) (diagnostic error catalog aggregation and triage)
+- [ ] #70 - [Feature 61: [Compiler Performance] Compiler Assurance Engine](../features/FEAT-61-CompilerAssuranceEngine.md) (compiler assurance verification and gate conformance)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:

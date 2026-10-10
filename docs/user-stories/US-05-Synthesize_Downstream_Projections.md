@@ -3,6 +3,7 @@ title: "User Story 05: Synthesize Downstream Agile Backlog Projections"
 version: "1.0.0"
 date: "2026-10-10"
 type: user-story
+epic: "EPIC-11-Subsystem_9_Downstream_Specification_Projections"
 interaction: "OA_05_Synthesize_Downstream_Projections"
 subject: "AgileProjectionEngine"
 issue_id: 93
@@ -43,9 +44,9 @@ sequenceDiagram
 - [ ] AC-US-05-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
 
 ## Required Features
-- [ ] #10 - Feature 01: [ConOps] Human Engineer Interface
-- [ ] #55 - Feature 46: [Downstream Projections] Agile Projection Engine
-- [ ] #60 - Feature 51: [Multi-Target CodeGen] CodeGen Engine
+- [ ] #10 - [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md) (engineer interface for downstream projection commands)
+- [ ] #55 - [Feature 46: [Downstream Projections] Agile Projection Engine](../features/FEAT-46-AgileProjectionEngine.md) (agile backlog projection generation)
+- [ ] #60 - [Feature 51: [Multi-Target CodeGen] CodeGen Engine](../features/FEAT-51-CodeGenEngine.md) (multi-target codegen and downstream language bindings)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:

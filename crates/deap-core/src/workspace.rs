@@ -189,38 +189,80 @@ pub fn check_downstream_instructions_exist(repo_root: &Path) -> Result<(), Vec<S
     }
 }
 
-/// Check 15: Verify scripts/reconcile_backlog.py exists, is non-empty, and is executable.
+/// Check 15: Verify reconcile-backlog tooling exists and is executable/buildable.
+///
+/// Supports:
+/// 1. Native compiled binary: `target/release/reconcile-backlog`
+/// 2. Crate source directory: `crates/reconcile-backlog` (with Cargo.toml and src/main.rs)
+/// 3. POSIX shell wrapper script: `scripts/reconcile_backlog.sh`
+/// 4. Legacy python script: `scripts/reconcile_backlog.py`
 pub fn check_reconcile_backlog_tooling_exists(repo_root: &Path) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
-    let reconcile_path = repo_root.join("scripts").join("reconcile_backlog.py");
 
-    if !reconcile_path.is_file() {
-        errors.push(format!(
-            "Check 15 failed: scripts/reconcile_backlog.py missing in repository root '{}'.",
-            repo_root.display()
-        ));
-    } else {
-        let size = fs::metadata(&reconcile_path).map(|m| m.len()).unwrap_or(0);
-        if size == 0 {
-            errors.push(format!(
-                "Check 15 failed: scripts/reconcile_backlog.py is empty in repository root '{}'.",
-                repo_root.display()
-            ));
-        }
+    let release_bin = repo_root.join("target").join("release").join("reconcile-backlog");
+    let crate_dir = repo_root.join("crates").join("reconcile-backlog");
+    let crate_cargo = crate_dir.join("Cargo.toml");
+    let crate_src = crate_dir.join("src").join("main.rs");
+    let shell_script = repo_root.join("scripts").join("reconcile_backlog.sh");
+    let py_script = repo_root.join("scripts").join("reconcile_backlog.py");
 
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            if let Ok(metadata) = fs::metadata(&reconcile_path) {
-                let permissions = metadata.permissions();
-                if permissions.mode() & 0o111 == 0 {
-                    errors.push(format!(
-                        "Check 15 failed: scripts/reconcile_backlog.py is not executable in repository root '{}'.",
-                        repo_root.display()
-                    ));
+    let has_release_bin = release_bin.is_file() && fs::metadata(&release_bin).map(|m| m.len() > 0).unwrap_or(false);
+    let has_crate = crate_cargo.is_file() && crate_src.is_file();
+    let has_shell = shell_script.is_file();
+    let has_py = py_script.is_file();
+
+    if has_release_bin || has_crate || has_shell || has_py {
+        // If shell script exists, ensure non-empty and executable on unix
+        if has_shell {
+            let size = fs::metadata(&shell_script).map(|m| m.len()).unwrap_or(0);
+            if size == 0 {
+                errors.push(format!(
+                    "Check 15 failed: scripts/reconcile_backlog.sh is empty in repository root '{}'.",
+                    repo_root.display()
+                ));
+            }
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                if let Ok(metadata) = fs::metadata(&shell_script) {
+                    let permissions = metadata.permissions();
+                    if permissions.mode() & 0o111 == 0 {
+                        errors.push(format!(
+                            "Check 15 failed: scripts/reconcile_backlog.sh is not executable in repository root '{}'.",
+                            repo_root.display()
+                        ));
+                    }
                 }
             }
         }
+        // If legacy python script exists without native tooling, check size & executable
+        if has_py && !has_crate && !has_release_bin && !has_shell {
+            let size = fs::metadata(&py_script).map(|m| m.len()).unwrap_or(0);
+            if size == 0 {
+                errors.push(format!(
+                    "Check 15 failed: scripts/reconcile_backlog.py is empty in repository root '{}'.",
+                    repo_root.display()
+                ));
+            }
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                if let Ok(metadata) = fs::metadata(&py_script) {
+                    let permissions = metadata.permissions();
+                    if permissions.mode() & 0o111 == 0 {
+                        errors.push(format!(
+                            "Check 15 failed: scripts/reconcile_backlog.py is not executable in repository root '{}'.",
+                            repo_root.display()
+                        ));
+                    }
+                }
+            }
+        }
+    } else {
+        errors.push(format!(
+            "Check 15 failed: Reconcile backlog tooling missing in repository root '{}' (expected target/release/reconcile-backlog, crates/reconcile-backlog, or scripts/reconcile_backlog.sh).",
+            repo_root.display()
+        ));
     }
 
     if errors.is_empty() {
@@ -394,6 +436,33 @@ mod tests {
         }
 
         assert!(check_reconcile_backlog_tooling_exists(&tmp.path).is_ok());
+    }
+
+    #[test]
+    fn test_check_reconcile_backlog_tooling_rust_native() {
+        let tmp = TempDir::new("reconcile_rust");
+        // Empty workspace must fail
+        assert!(check_reconcile_backlog_tooling_exists(&tmp.path).is_err());
+
+        // Case A: crates/reconcile-backlog
+        let crate_dir = tmp.path.join("crates/reconcile-backlog/src");
+        fs::create_dir_all(&crate_dir).unwrap();
+        File::create(tmp.path.join("crates/reconcile-backlog/Cargo.toml")).unwrap();
+        File::create(tmp.path.join("crates/reconcile-backlog/src/main.rs")).unwrap();
+        assert!(check_reconcile_backlog_tooling_exists(&tmp.path).is_ok());
+
+        // Case B: scripts/reconcile_backlog.sh
+        let tmp_sh = TempDir::new("reconcile_sh");
+        fs::create_dir_all(tmp_sh.path.join("scripts")).unwrap();
+        let sh_path = tmp_sh.path.join("scripts/reconcile_backlog.sh");
+        let mut f = File::create(&sh_path).unwrap();
+        writeln!(f, "#!/bin/sh\n./target/release/reconcile-backlog \"$@\"").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&sh_path, fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        assert!(check_reconcile_backlog_tooling_exists(&tmp_sh.path).is_ok());
     }
 
     #[test]

@@ -392,7 +392,7 @@ graph TD
 
 ### 4.1 Level 0: Super-System & Operational Context (ConOps / Mission Intent)
 
-**Repository Home:** `schema/conops/` (SysML v2 model units) and `docs/conops/CONOPS.md` (assembled Markdown specification via `scripts/assemble_conops.py`).
+**Repository Home:** `schema/conops/` (SysML v2 model units) and `docs/conops/CONOPS.md` (assembled Markdown specification via `./target/release/assemble-conops` or `scripts/assemble_conops.sh`).
 
 #### Scope and Role
 Level 0 models the external operational environment in which the system operates. In accordance with ISO/IEC/IEEE 29148:2018 §6.4.2, INCOSE SEH v5.0 §3.4.4, and UAF v2.0 Operational Domain:

@@ -2,7 +2,7 @@
 
 ---
 name: spec-conops-engineering
-description: "Synthesize hierarchical Concept of Operations (docs/conops/units/conops/) and Tactical Mission Intent (docs/conops/units/mission_intent/) specification units adhering to ISO/IEC/IEEE 29148:2018, INCOSE SE Handbook v5.0, NATO STANAG 4586, and MIL-STD-882E with pure schema contracts, zero truncation, and deterministic assembly via scripts/assemble_conops.py."
+description: "Synthesize hierarchical Concept of Operations (docs/conops/units/conops/) and Tactical Mission Intent (docs/conops/units/mission_intent/) specification units adhering to ISO/IEC/IEEE 29148:2018, INCOSE SE Handbook v5.0, NATO STANAG 4586, and MIL-STD-882E with pure schema contracts, zero truncation, and deterministic assembly via ./target/release/assemble-conops (or scripts/assemble_conops.sh)."
 version: "1.0"
 metadata:
   title: "Hierarchical ConOps & Mission Intent Engineering"
@@ -16,7 +16,7 @@ Use this skill as the single canonical workflow for transforming high-level oper
 
 In accordance with [`rules/conops-mission-intent-integrity.md`](../../rules/conops-mission-intent-integrity.md), [`rules/sysml-ssot-completeness.md`](../../rules/sysml-ssot-completeness.md), and [`rules/latex-katex-integrity.md`](../../rules/latex-katex-integrity.md), ConOps and Mission Intent specifications bridge high-level operational intent with downstream structural extraction (Level 2 Epics and Features) and Model-Based Design (MBD) synthesis.
 
-All specification units are authored as discrete, modular markdown files under `docs/conops/units/conops/` and `docs/conops/units/mission_intent/` adhering strictly to JSON Schema data contracts (`.pipeline/schemas/conops_specification_schema.json` and `.pipeline/schemas/mission_intent_specification_schema.json`) and compiled into canonical documents via `scripts/assemble_conops.py`.
+All specification units are authored as discrete, modular markdown files under `docs/conops/units/conops/` and `docs/conops/units/mission_intent/` adhering strictly to JSON Schema data contracts (`.pipeline/schemas/conops_specification_schema.json` and `.pipeline/schemas/mission_intent_specification_schema.json`) and compiled into canonical documents via `./target/release/assemble-conops` (or `scripts/assemble_conops.sh`).
 
 ### Architecture Hierarchy & Standards Governance (INCOSE SEH v5.0 §3.4.4 / ISO/IEC/IEEE 15288:2023 / ISO/IEC/IEEE 29148:2018 §6.4.2)
 
@@ -509,13 +509,13 @@ All analytical content across safety engineering deliverables (`docs/safety/STPA
 Once all unit files are written and verified, execute the deterministic assembly engine:
 
 ```bash
-python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir docs/conops/ --verify
+./target/release/assemble-conops --input-dir docs/conops/units/ --output-dir docs/conops/ --verify
 ```
 
 and compile the master specification documents:
 
 ```bash
-python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir docs/conops/
+./target/release/assemble-conops --input-dir docs/conops/units/ --output-dir docs/conops/
 ```
 
 ### Assembly Engine Responsibilities:
@@ -531,9 +531,9 @@ python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir d
 
 Before completing Phase 0.75, the `Worker ConOps` must execute and pass all required parity gates:
 
-1. **Gate 26 Verification (ConOps & Mission Intent Completeness Validator)**:
+1. **Gate 26 Verification (ConOps & Mission Intent Completeness)**:
    ```bash
-   python3 -m unittest tests.test_conops_and_mission_intent_validators
+   ./target/release/verify-baseline . --gate conops
    ```
    - Asserts all 12 mandatory sections exist in `CONOPS.md` and all 10 mandatory sections exist in `MISSION_INTENT.md`.
    - Validates boundary containment margin calculation ($R_{\mathrm{containment}} \ge R_{\mathrm{min}}$).
@@ -542,8 +542,8 @@ Before completing Phase 0.75, the `Worker ConOps` must execute and pass all requ
    - Validates METL task allocations.
 
 2. **Gate 28 & Gate 29 Verification**:
-   - Verify that all ConOps-allocated obligations in `docs/research/RESEARCH_INVENTORY.md` are witnessed in `docs/conops/CONOPS.md` and `docs/conops/MISSION_INTENT.md` per `obligation_witness_validator.py` (Gate 29).
-   - Verify coverage metrics per `coverage_digest_validator.py` (Gate 28).
+   - Verify that all ConOps-allocated obligations in `docs/research/RESEARCH_INVENTORY.md` are witnessed in `docs/conops/CONOPS.md` and `docs/conops/MISSION_INTENT.md` per `./target/release/verify-baseline` (Gate 29).
+   - Verify coverage metrics per `./target/release/verify-baseline` (Gate 28).
 
 3. **Untracked Infrastructure & Pre-Commit Check**:
    ```bash

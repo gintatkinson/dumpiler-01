@@ -35,7 +35,7 @@ pub fn check_downstream_instructions_exist(repo_root: &Path) -> Result<(), Vec<S
     core_check_downstream_instructions_exist(repo_root)
 }
 
-/// Check 15: Verify scripts/reconcile_backlog.py exists, is non-empty, and is executable.
+/// Check 15: Verify reconcile-backlog tooling exists and is executable/buildable.
 pub fn check_reconcile_backlog_tooling_exists(repo_root: &Path) -> Result<(), Vec<String>> {
     core_check_reconcile_backlog_tooling_exists(repo_root)
 }

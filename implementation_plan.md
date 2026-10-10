@@ -1,201 +1,176 @@
-# Implementation Plan -- Autonomous Specification Synthesis, Native Rust Verification & Live GitHub Issue Projection
+# Implementation Plan -- Autonomous Native Rust Migration, Zero-Python Mandate & Flawless Pipeline Outputs ("Ralph Loop")
 
-## 1. Baseline Health & Session Initialization
-- **Repository Classification:** `DOWNSTREAM_CUSTOMER_PROJECT` (Indicator: `.pipeline/upstream/` absent).
-- **Current Baseline Status:** 31/31 baseline checks passing (`./target/release/verify-baseline . --no-domain`).
-- **Current Workspace State:**
-  - Administrative issues #1 through #9 exist on the GitHub tracker (`gintatkinson/dumpiler-01`).
-  - Zero Epics, Features, User Stories, or Use Cases exist as published GitHub Issues.
-  - Native Rust Specification Auditor is fully operational (`crates/verify-baseline/src/spec_audit/`) executing audits in ~180 ms.
-  - 14 Epics (`docs/epics/`) and 65 Features (`docs/features/`) exist in draft form on disk, but carry 832 spec audit findings (synthetic operations `execute_pipeline()`, ungrounded state machine states, duplicate titles across 12 subsystems, missing LUMI 3-layer semantic chains, and missing `## Source References`).
-  - `docs/user-stories/` and `docs/use-cases/` have not yet been synthesized.
-- **Objective:** Systematically synthesize, verify, and project 100% of the specification hierarchy (14 Epics, 65 Features, 6 User Stories, 6 Use Cases) into live GitHub Issues with full bidirectional frontmatter synchronization, tasklist cross-linking, native Rust gated verification (0 findings), and remote Git synchronization.
+## 1. Ground Truth, Defect Root Causes & Objectives
+
+### Ground Truth & Defect Analysis
+1. **Defect 1: Unresolved Placeholders in Live Issues & Epics**:
+   - All 14 Epics (`docs/epics/EPIC-01` through `EPIC-14`) and their corresponding live GitHub issues ([#101](https://github.com/gintatkinson/dumpiler-01/issues/101)--[#114](https://github.com/gintatkinson/dumpiler-01/issues/114)) contain the unpopulated placeholder block:
+     ```markdown
+     ### Associated Use Cases & User Stories
+
+     #### Associated Use Cases
+     *To be populated after Phase 3*
+
+     #### Associated User Stories
+     *To be populated after Phase 3*
+     ```
+   - **Root Cause**: `scripts/reconcile_backlog.py` injected this block because User Stories (`docs/user-stories/US-*.md`) and Use Cases (`docs/use-cases/UC-*.md`) cited features using bare issue numbers (`#15`) without relative paths (`docs/features/FEAT-*.md`) or explicit `epic:` frontmatter metadata. `reconcile_backlog.py` failed to map them to parent Epics and inserted fallback placeholder strings, then pushed them to GitHub.
+
+2. **Defect 2: Incomplete Rust Port (37 Python Files Remaining)**:
+   - While `compile-sysml`, `assemble-conops`, `ingest-sysml`, and the specification auditor in `verify-baseline` were ported to Rust, **37 Python scripts remain** across `scripts/` and `skills/`.
+   - Crucially, `scripts/reconcile_backlog.py` remains active and is hard-coded into Baseline Check 15 (`crates/verify-baseline/src/runner.rs` and `crates/deap-core/src/workspace.rs`).
+   - Other remaining Python scripts include `file_defect.py`, `generate_wbs_suite.py`, `install_pipeline.py`, `setup_git_hooks.py`, and translators in `skills/spec-orchestrator/scripts/translators/`.
+
+3. **Defect 3: Documentation & Installation Instruction Drift**:
+   - `README.md`, `CLAUDE.md`, `AGENTS.md`, `.pipeline/constitution.md`, `.pipeline/ACTIVE_RULES_BUNDLE.md`, `rules/`, and `skills/` still document `python3 scripts/...` commands instead of native Rust `./target/release/...` binaries.
+
+### Mission Objectives ("Ralph Until Done")
+- **100% Native Rust Architecture**: Port all backlog reconciliation and utility scripts into native Rust binaries / crates.
+- **Zero Python Mandate**: Delete 100% of `.py` files (`find . -name "*.py"` must return 0 files).
+- **Flawless Specification Outputs**: Eliminate all placeholder text (`*To be populated after Phase 3*`) across all local files and live GitHub issues.
+- **Documentation & Installer Parity**: Update all documentation, instructions, and rules to native Rust workflows.
+- **Continuous Gated Verification**: Execute the Ralph loop until all workspace tests pass, all 31 baseline checks pass, 91 specs pass audit with 0 findings, and remote git sync is clean.
 
 ---
 
-## 2. Architecture & Traceability Matrix
+## 2. End-to-End Architecture
 
 ```mermaid
 flowchart TD
-    subgraph SSOT["SysML v2 Architectural & Behavioral SSOT"]
+    subgraph S1["Work Package 1: Traceability Repair & Epic Checklist Resolution"]
         direction TB
-        MODEL["Root Architecture (schema/model.sysml)"]
-        CONOPS["ConOps Lifecycle (schema/conops/*.sysml)"]
-        SUBSYS["12 Subsystem Schemas (schema/subsystems/*/)"]
-        REQ["203 Formal Requirements & BDD Criteria"]
+        S1_MAP["Map 6 Stories & 6 Use Cases to 14 Subsystem Epics"]
+        S1_US["Update US-01..06 with relative links & epic metadata"]
+        S1_UC["Update UC-01..06 with relative links & realization matrix"]
+        S1_EPIC["Populate EPIC-01..14 with resolved Story/Use-Case checklists"]
+        S1_GH["Push updated bodies to GitHub Issues #101..#114"]
     end
 
-    subgraph Matrix["Specification Hierarchy (docs/)"]
+    subgraph S2["Work Package 2: Native Rust Backlog Reconciler (crates/reconcile-backlog)"]
         direction TB
-        EPICS["14 Epics (docs/epics/)"]
-        FEATS["65 Features (docs/features/)"]
-        STORIES["6 User Stories (docs/user-stories/)"]
-        USECASES["6 Use Cases (docs/use-cases/)"]
+        S2_RUST["Implement crates/reconcile-backlog (zero-copy pulldown-cmark)"]
+        S2_CLI["Bidirectional GitHub/GitLab issue reconciliation & tasklist sync"]
+        S2_CHECK15["Update Baseline Check 15 in deap-core & verify-baseline"]
+        S2_VERIFY["Verify native Rust binary passes Check 15"]
     end
 
-    subgraph Verification["Native Rust Gated Verification (<0.2s)"]
+    subgraph S3["Work Package 3: Port Remaining Python Tools & Zero-Python Purge"]
         direction TB
-        AUDIT["./target/release/verify-baseline . --spec-only"]
-        GATE_TITLE["Spec Title Uniqueness (100% unique)"]
-        GATE_UML["UML Model Integrity (Zero phantom symbols)"]
-        GATE_LUMI["LUMI 3-Layer Semantic Chain"]
-        GATE_PROV["Provenance & Cardinality Bounds (3-15/3-10)"]
+        S3_TOOLS["Port file_defect, generate_wbs, installer & hooks to native Rust"]
+        S3_TRANS["Integrate translators into crates/ingest-sysml"]
+        S3_PURGE["Execute zero-python purge: delete all 37 *.py files"]
+        S3_VERIFY["Assert find . -name '*.py' returns 0 files"]
     end
 
-    subgraph Projection["Remote GitHub Issue Tracker"]
+    subgraph S4["Work Package 4: Documentation & Instruction Modernization"]
         direction TB
-        GH_FEAT["Publish 65 Features (label: feature)"]
-        GH_EPIC["Inject #F_IDs -> Publish 14 Epics (label: epic)"]
-        GH_US["Inject #F_IDs -> Publish 6 Stories (label: user-story)"]
-        GH_UC["Inject Realization Matrix -> Publish 6 Use Cases (label: use-case)"]
-        RECON["Backlog Reconciliation (scripts/reconcile_backlog.py)"]
+        S4_DOCS["Update README.md, CLAUDE.md, AGENTS.md, constitution, ACTIVE_RULES"]
+        S4_RULES["Update rules/ and skills/ to eliminate all python3 references"]
+        S4_CHECK["Verify zero broken references and 100% Rust command lines"]
     end
 
-    SSOT --> Matrix
-    Matrix --> Verification
-    Verification --> Projection
+    subgraph S5["Work Package 5: Ralph Loop & Final Remote Verification"]
+        direction TB
+        S5_TEST["cargo test --workspace (100% pass)"]
+        S5_BASE["./target/release/verify-baseline . --no-domain (31/31 pass)"]
+        S5_SPEC["./target/release/verify-baseline . --spec-only (91 files, 0 findings)"]
+        S5_PAYLOAD["Closed-loop live payload inspection via gh issue view"]
+        S5_PUSH["git commit with neutral citation (refs #9) and push to main"]
+    end
+
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
 ```
 
 ---
 
-## 3. Five-Stage Execution Roadmap & Micro-Tasks
+## 3. Detailed Work Packages
 
-### Stage 1: Schema AST Ingestion & Traceability Matrix Mapping
-- **Objective:** Ingest all 12 subsystem directories under `schema/subsystems/`, root `schema/model.sysml`, and `schema/conops/` to construct the comprehensive traceability graph:
-  - 14 Epics: Root Model, ConOps, and Subsystems 01--12.
-  - 65 Features: 5 System/Actor components + 12 Subsystems x 5 components (Execution Engine, Normative Statement, Formal Invariant, Complexity Bounds, Conformance Criteria).
-  - 6 User Stories: Operational activities `OA_01` through `OA_06` mapped from `schema/conops/activities.sysml`.
-  - 6 Use Cases: System interaction workflows realizing ConOps operational activities and subsystem execution engines.
-- **Traceability Anchors:**
-  - Extract Given-When-Then BDD acceptance criteria (`ac_01`..`ac_04`) and diagnostic codes from `requirements.sysml` across all 12 subsystems.
-  - Map declared execution engine ports and attributes from `architecture.sysml`.
-  - Map discrete lifecycle state transitions from `schema/conops/operational_modes.sysml` (`CompilerLifecycleModes`: `Bootstrapping`, `Ingesting`, `Compiling`, `Verifying`, `EmitSuccess`, `FaultTerminated`).
+### Work Package 1: Traceability Repair & Epic Checklist Resolution
+- **Files Modified**:
+  - `docs/user-stories/US-01-Ingest_OEM_Artifacts.md` through `US-06-Verify_Baseline_Parity.md`
+  - `docs/use-cases/UC-01-System_Vision_and_Schema_Ingestion_Workflow.md` through `UC-06-Baseline_Conformance_and_Diagnostic_Triage_Workflow.md`
+  - `docs/epics/EPIC-01-SysML_Model.md` through `EPIC-14-Subsystem_12_Compiler_Performance_CLI_Assurance.md`
+- **Actions**:
+  1. Add parent `epic:` metadata and canonical relative file links (`docs/features/FEAT-XX-...md`) to all 6 User Stories.
+  2. Add parent `epic:` metadata and canonical relative file links (`docs/features/FEAT-XX-...md`, `docs/user-stories/US-XX-...md`) to all 6 Use Cases.
+  3. Replace the `*To be populated after Phase 3*` placeholders in `docs/epics/EPIC-01`--`EPIC-14` with the actual mapped User Stories and Use Cases. For subsystems that have no assigned operational ConOps scenarios, explicitly document `- None allocated (structural subsystem component)` to prevent placeholder recurrence.
+  4. Update live GitHub issues #101--#114 using `gh issue edit <ID> --body-file <EPIC_PATH>`.
+  5. Inspect live published payloads using `gh issue view` to confirm that all 14 Epic issues are 100% free of placeholder text.
 
----
+### Work Package 2: Native Rust Backlog Reconciler (`crates/reconcile-backlog`)
+- **Files Created / Modified**:
+  - `crates/reconcile-backlog/Cargo.toml`
+  - `crates/reconcile-backlog/src/main.rs`
+  - `crates/reconcile-backlog/src/frontmatter.rs`
+  - `crates/reconcile-backlog/src/checklist.rs`
+  - `crates/reconcile-backlog/src/tracker.rs`
+  - `crates/deap-core/src/workspace.rs` (update Check 15)
+  - `crates/verify-baseline/src/checks/structural.rs` (update Check 15)
+  - `crates/verify-baseline/src/runner.rs` (update Check 15)
+  - `Cargo.toml` (workspace members)
+- **Actions**:
+  1. Create a native Rust crate `crates/reconcile-backlog` that:
+     - Scans `docs/epics/`, `docs/features/`, `docs/user-stories/`, `docs/use-cases/`.
+     - Extracts YAML frontmatter and resolves titles, normalized names, and issue IDs.
+     - Synchronizes checklist states between local markdown and remote GitHub issues via `gh` CLI.
+     - Injects canonical `issue_id:` frontmatter into local files.
+     - Contains ZERO placeholder string fallback injections.
+  2. Update Check 15 in `crates/deap-core` and `crates/verify-baseline` to assert that `./target/release/reconcile-backlog` (or `crates/reconcile-backlog`) exists and is functional.
+  3. Build and test: `cargo build --release --bin reconcile-backlog`.
 
-### Stage 2: Pure Schema-Driven Specification Synthesis & Disambiguation
-Synthesize 100% compliant specifications adhering to DO-178C Level A / ASIL D standards.
+### Work Package 3: Port Remaining Python Tools & Zero-Python Purge
+- **Files Created / Modified / Deleted**:
+  - Port utilities to `crates/deap-core/src/tools/` or native CLI binaries (`crates/file-defect`, `crates/generate-wbs`, `crates/install-pipeline`).
+  - Integrate schema translators into `crates/ingest-sysml`.
+  - Delete all 37 `.py` files across `scripts/` and `skills/`.
+- **Actions**:
+  1. Port `scripts/file_defect.py` to native Rust CLI (`file-defect`).
+  2. Port `scripts/generate_wbs_suite.py` to native Rust CLI (`generate-wbs`).
+  3. Replace `scripts/install_pipeline.py` with pure POSIX shell installer `scripts/install_pipeline.sh` calling compiled Rust binaries.
+  4. Port `scripts/setup_git_hooks.py` to POSIX shell `scripts/setup_git_hooks.sh`.
+  5. Delete all `.py` files:
+     ```bash
+     find . -name "*.py" -not -path "*/.*" -not -path "./target/*" -delete
+     ```
+  6. Verify `find . -name "*.py"` returns 0 files.
 
-#### Micro-Task 2.1: Title Disambiguation & Subsystem Context Framing
-- **Rule:** Every specification title MUST be globally unique to satisfy `spec-title-uniqueness`.
-- **Formatting Standard:**
-  - Features: `Feature XX: [Subsystem Name] Component Name` (e.g. `Feature 07: [System Vision] Normative Statement`, `Feature 12: [Universal Ingestion] Normative Statement`).
-  - Epics: `Epic XX: [Subsystem/Domain] Functional Area`.
-  - User Stories: `User Story XX: [Activity Name] Description`.
-  - Use Cases: `Use Case XX: [Workflow Name] Operational Workflow`.
+### Work Package 4: Documentation, Installation & Rules Modernization
+- **Files Modified**:
+  - `README.md`
+  - `CLAUDE.md`
+  - `AGENTS.md`
+  - `.pipeline/constitution.md`
+  - `.pipeline/ACTIVE_RULES_BUNDLE.md`
+  - `rules/` (all files citing Python scripts)
+  - `skills/` (all files citing Python scripts)
+  - `docs/OPERATOR_PROMPT_CATALOG.md`
+- **Actions**:
+  1. Replace all citations of `python3 scripts/compile_sysml.py` with `./target/release/compile-sysml`.
+  2. Replace all citations of `python3 scripts/reconcile_backlog.py` with `./target/release/reconcile-backlog`.
+  3. Replace all citations of `python3 scripts/assemble_conops.py` with `./target/release/assemble-conops`.
+  4. Replace all citations of `python3 scripts/verify_downstream_baseline.py` and `parity_auditor` with `./target/release/verify-baseline`.
+  5. Update installation instructions in `README.md` to reference Rust toolchain (`cargo build --release`) and `scripts/install_pipeline.sh`.
+  6. Rebuild `.pipeline/ACTIVE_RULES_BUNDLE.md` to ensure zero stale Python citations exist in the consolidated governance bundle.
 
-#### Micro-Task 2.2: 14 Epics Synthesis (`docs/epics/EPIC-*.md`)
-- **Metadata:**
-  - YAML frontmatter: `title`, `version: "1.0.0"`, `date: "2026-10-10"`, `type: epic`, `package`, `subsystem`, `issue_id: 0`, `generation_mode: subagent`.
-- **Mandatory Sections:**
-  - `## 1. Context`
-  - `## 2. Requirements & Checklist`: Populated tasklist linking constituent features (between 3 and 15 features per epic, satisfying cardinality bounds).
-  - `## 3. Architecture`
-  - `## 4. Operational Considerations`
-  - `## 5. Security & Governance`
-  - `## 6. Source References`: Verbatim citations to `schema/model.sysml` and `schema/subsystems/`.
-  - `## System-Level UML Class Diagram`: Containment relations using strictly declared AST parts (zero synthetic member operations).
-  - `## System State Machine Diagram`: Valid states strictly matching `CompilerLifecycleModes` (`Bootstrapping`, `Ingesting`, `Compiling`, `Verifying`, `EmitSuccess`, `FaultTerminated`).
-
-#### Micro-Task 2.3: 65 Features Synthesis (`docs/features/FEAT-*.md`)
-- **Metadata:**
-  - YAML frontmatter: `title`, `version: "1.0.0"`, `date: "2026-10-10"`, `type: feature`, `part`, `part_def`, `subsystem`, `issue_id: 0`, `generation_mode: subagent`.
-- **Mandatory Sections & Contents:**
-  - `## UML Class Diagram`: Real UML class diagram with strictly declared AST ports/attributes (zero synthetic `execute_pipeline()` or `execute_*()` methods).
-  - `## Interface Requirements`:
-    - `### 1. Test Data Shape` (clean JSON payload).
-    - `### 2. Validation & Constraints` (derived from formal invariants).
-    - `### 3. Visual Layout & Arrangement` (LUMI layout containment).
-    - `### 4. Interactive Flow & States`.
-  - **LUMI 3-Layer Semantic Chain:**
-    - `### Layer 1: Domain State & Signal Model`
-    - `### Layer 2: Logic & Safety State Management`
-    - `### Layer 3: Presentation & Actuator Interface Binding`
-  - `## Acceptance Criteria (BDD)`:
-    - 3 to 10 Given-When-Then BDD scenarios extracted directly from `requirements.sysml` (`ac_01`..`ac_04`) satisfying cardinality bounds.
-  - `## Source References`:
-    - Verbatim clause numbers and schema paths (e.g. `schema/subsystems/subsystem_XX_*/requirements.sysml`).
-
-#### Micro-Task 2.4: 6 User Stories Synthesis (`docs/user-stories/US-*.md`)
-- **Metadata:**
-  - YAML frontmatter: `title`, `version: "1.0.0"`, `date: "2026-10-10"`, `type: user-story`, `interaction`, `subject`, `issue_id: 0`, `generation_mode: subagent`.
-- **Mandatory Sections:**
-  - `## UML Sequence Diagram`: Sequence diagram referencing declared external actors (`HumanEngineer`, `CIContinuousIntegrationRunner`) and declared parts (`DEAPCompilerSystem`, `UniversalIngestionEngine`, etc.) with declared action messages (`OA_01_Ingest_OEM_Artifacts()`, etc.).
-  - `## Acceptance Criteria (BDD)`: Given-When-Then scenarios.
-  - `## Required Features`: Tasklist referencing constituent Feature IDs.
-  - `## Source References`: Verbatim citations to `schema/conops/activities.sysml`.
-
-#### Micro-Task 2.5: 6 Use Cases Synthesis (`docs/use-cases/UC-*.md`)
-- **Metadata:**
-  - YAML frontmatter: `title`, `version: "1.0.0"`, `date: "2026-10-10"`, `type: use-case`, `use_case_def`, `subject`, `actors`, `issue_id: 0`, `generation_mode: subagent`.
-- **Mandatory Sections:**
-  - `## UML Diagrams`: Flowchart or sequence diagram of interaction.
-  - `## 1. Actors`: Declared primary actor.
-  - `## 2. Preconditions`
-  - `## 3. Trigger`
-  - `## 4. Main Success Scenario`: Numbered step sequence.
-  - `## 5. Alternate and Exception Flows`
-  - `## 6. Postconditions`
-  - `## 8. Realization Matrix`: Table linking constituent User Stories and Features.
-  - `## Source References`: Schema clause citations.
-
----
-
-### Stage 3: Native Rust Gated Pre-Flight Verification
-- **Execution Command:** `./target/release/verify-baseline . --spec-only`
-- **Success Criteria:**
-  - Audit completes in `<200 ms` with `0 findings` and exit code 0 (`passed: true`).
-  - Zero ungrounded operations or phantom states in Mermaid diagrams.
-  - Zero unclosed fences or unquoted angle brackets.
-  - Zero `spec-title-uniqueness` collisions.
-  - Zero missing `Source References` sections.
-  - All cardinality bounds satisfied (3--15 features for Epics, 3--10 ACs for Features).
+### Work Package 5: The "Ralph Until Done" Verification Loop & Git Sync
+- **Actions**:
+  1. **Compilation Gate**: `cargo build --release --workspace` (must pass with 0 errors, 0 warnings).
+  2. **Workspace Test Suite**: `cargo test --workspace` (all unit and integration tests must pass).
+  3. **Zero-Python Verification Gate**: `find . -name "*.py"` must return exactly 0 results.
+  4. **Zero-Placeholder Verification Gate**: `git grep -i "to be populated after phase 3"` must return exactly 0 matches.
+  5. **Baseline Conformance Gate**: `./target/release/verify-baseline . --no-domain` must pass all 31/31 checks cleanly.
+  6. **Specification Quality & Coverage Audit Gate**: `./target/release/verify-baseline . --spec-only` must pass across all 91 specifications with 0 findings in <0.2s.
+  7. **Closed-Loop Remote Payload Verification**: Fetch sample live issues across Epics (#101--#114), Features (#10--#74), Stories (#89--#94), and Use Cases (#95--#100) via `gh issue view` to confirm 100% formatted markdown integrity.
+  8. **Remote Git Synchronization**: Commit all changes with neutral citation `feat(pipeline): complete native rust port, zero-python purge, and epic checklist reconciliation (refs #9)` and push to `origin/main`.
+  9. **Clean Working Tree Assertion**: Verify `git status` is clean and `git diff origin/main` is empty.
 
 ---
 
-### Stage 4: High-Velocity Remote Issue Publication & Closed-Loop Verification
-- **Tooling:** GitHub CLI (`gh issue create` / `gh issue view`).
-- **Dependency-Ordered Publication Protocol:**
-  1. **Features First (65 Features):**
-     - Publish `docs/features/FEAT-01-*.md` through `FEAT-65-*.md` with `--label "feature"`.
-     - Capture assigned remote Issue IDs (`#F_01`..`#F_65`).
-     - Closed-loop payload verification on sample: `gh issue view <ID> --json number,title,labels`.
-  2. **Epics Second (14 Epics):**
-     - Inject assigned `#F_ID` numbers into parent Epic checklists (`- [ ] #<F_ID> - [Feature Title]`).
-     - Publish `docs/epics/EPIC-01-*.md` through `EPIC-14-*.md` with `--label "epic"`.
-     - Capture assigned remote Epic Issue IDs (`#E_01`..`#E_14`).
-     - Closed-loop payload verification on sample: `gh issue view <ID> --json number,title,labels`.
-  3. **User Stories Third (6 User Stories):**
-     - Inject assigned `#F_ID` numbers into User Story `Required Features` checklists.
-     - Publish `docs/user-stories/US-01-*.md` through `US-06-*.md` with `--label "user-story"`.
-     - Capture assigned remote Story Issue IDs (`#S_01`..`#S_06`).
-     - Closed-loop payload verification on sample: `gh issue view <ID> --json number,title,labels`.
-  4. **Use Cases Fourth (6 Use Cases):**
-     - Inject assigned `#S_ID` and `#F_ID` numbers into Use Case Realization Matrices.
-     - Publish `docs/use-cases/UC-01-*.md` through `UC-06-*.md` with `--label "use-case"`.
-     - Capture assigned remote Use Case Issue IDs (`#U_01`..`#U_06`).
-     - Closed-loop payload verification on sample: `gh issue view <ID> --json number,title,labels`.
-
----
-
-### Stage 5: Frontmatter Backlog Reconciliation, Baseline Audit & Remote Sync
-- **Micro-Task 5.1: Frontmatter Canonical Issue ID Injection:**
-  - Inject permanent `issue_id: <int>` into the YAML frontmatter and metadata tables of all 91 local markdown specifications matching their assigned remote GitHub Issue IDs.
-- **Micro-Task 5.2: Backlog Reconciliation:**
-  - Execute `python3 scripts/reconcile_backlog.py` to synchronize all checklists, frontmatter IDs, and tracker states.
-- **Micro-Task 5.3: Baseline Conformance & Spec Audit Verification:**
-  - Run `./target/release/verify-baseline . --no-domain` (assert 31/31 baseline checks pass cleanly with exit code 0).
-  - Run `./target/release/verify-baseline . --spec-only` (assert 100% clean spec audit, 0 findings, <0.2s).
-- **Micro-Task 5.4: Remote Git Synchronization:**
-  - Commit all updated specifications with neutral citation: `docs(specs): project full specification hierarchy to github issues (refs #9)`.
-  - Push to `origin/main`.
-  - Verify `git diff origin/main` is completely empty.
-
----
-
-## 4. Verification & Safety Invariants
-- **Zero Regex:** All AST matching, section validation, and token scanning execute via zero-copy byte tokens.
-- **Fail-Closed Robustness:** Zero unwrap/expect in non-test paths.
-- **Zero Em Dash Invariant:** Unicode `\u2014` is strictly forbidden across all files, commit messages, and output.
-- **Commit Message Non-Closure Invariant:** Commit messages strictly use neutral citations `(#<id>)` or `(refs #<id>)`. Auto-closing keywords are strictly prohibited.
-- **Closed-Loop Payload Verification Gate:** Exit code 0 is never sufficient proof of success. LIVE published payloads are verified via `gh issue view`.
+## 4. Invariants & Governance Compliance
+- **Zero Em Dash Invariant**: Unicode `\u2014` is strictly forbidden across all files, code comments, and commit messages. Use ASCII `--` exclusively.
+- **Commit Message Non-Closure Invariant**: Neutral citations `(refs #9)` or `(#9)` exclusively. Auto-closing keywords (`fix #`, `closes #`) are strictly prohibited.
+- **Fail-Closed Robustness**: Zero `unwrap()`, `expect()`, or `panic!()` in non-test paths in all Rust code.
+- **Strict Planning Gate**: No files outside `implementation_plan.md` will be touched until the user explicitly responds with approval (`PROCEED`).

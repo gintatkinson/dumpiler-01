@@ -1,14 +1,15 @@
-#!/usr/bin/env bash
+#!/bin/sh
+# Copyright Gint Atkinson, gint.atkinson@gmail.com
 # ==============================================================================
 # DEAP Safety-Critical Engineering Pipeline Bootstrap Installer
-# Delegates execution to modular Python package: scripts/installer/
+# Clean POSIX shell installer for native Rust toolchain and pipeline governance.
 # ==============================================================================
-set -euo pipefail
+set -eu
 
 cleanup() {
   local exit_code=$?
   if [ $exit_code -ne 0 ]; then
-    echo "Installer wrapper exiting with code ${exit_code}." >&2
+    echo "Installer exiting with code ${exit_code}." >&2
   fi
   exit $exit_code
 }
@@ -23,28 +24,78 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
-PYTHON_EXEC=""
-for cand in "${PYTHON_BIN:-}" python3 python3.14 python3.13 python3.12 python3.11 python3.10 /opt/homebrew/bin/python3 /usr/local/bin/python3; do
-  if [ -n "$cand" ] && command -v "$cand" >/dev/null 2>&1; then
-    ver_str="$("$cand" -V 2>&1 | cut -d' ' -f2)"
-    maj="$(echo "$ver_str" | cut -d'.' -f1)"
-    min="$(echo "$ver_str" | cut -d'.' -f2)"
-    if [ "$maj" -gt 3 ] || { [ "$maj" -eq 3 ] && [ "$min" -ge 10 ]; }; then
-      PYTHON_EXEC="$cand"
-      break
-    fi
-  fi
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+TARGET_DIR="."
+ROLE=""
+PROVIDER="auto"
+PROFILE=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --profile)
+      PROFILE="$2"
+      shift 2
+      ;;
+    -r|--role)
+      ROLE="$2"
+      shift 2
+      ;;
+    -p|--provider|-t|--tracker|--platform)
+      PROVIDER="$2"
+      shift 2
+      ;;
+    --target)
+      TARGET_DIR="$2"
+      shift 2
+      ;;
+    -h|--help)
+      echo "Usage: install_pipeline.sh [OPTIONS] [TARGET_DIR]"
+      echo ""
+      echo "Options:"
+      echo "  --profile PROFILE      Target implementation profile"
+      echo "  -r, --role ROLE        Repository role: 'domain-template' or 'customer-project'"
+      echo "  -p, --provider PROV    Issue tracker provider: 'github', 'gitlab', or 'auto'"
+      echo "  --target DIR           Target directory"
+      echo "  -h, --help             Show this help message"
+      exit 0
+      ;;
+    *)
+      if [ -d "$1" ] || [ ! -e "$1" ]; then
+        TARGET_DIR="$1"
+      fi
+      shift
+      ;;
+  esac
 done
 
-if [ -z "$PYTHON_EXEC" ]; then
-  found_ver="$(python3 -V 2>&1 || true)"
-  echo "ERROR: Python 3.10 or higher is required. Found Python: ${found_ver}" >&2
-  exit 1
+TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+
+# 2. Configure profile if specified
+if [ -n "$PROFILE" ]; then
+  PIPELINE_DIR="$TARGET_DIR/.pipeline"
+  mkdir -p "$PIPELINE_DIR"
+  cat << EOF > "$PIPELINE_DIR/profile_config.json"
+{
+  "active_profile": "$PROFILE"
+}
+EOF
+  echo "Successfully configured pipeline for profile: $PROFILE"
 fi
 
-# 2. Resolve repository root and configure PYTHONPATH
-INSTALLER_ROOT="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
-export PYTHONPATH="${INSTALLER_ROOT}:${PYTHONPATH:-}"
+# 3. Setup git hooks and whitelist
+if [ -x "$SCRIPT_DIR/setup_git_hooks.sh" ]; then
+  "$SCRIPT_DIR/setup_git_hooks.sh"
+elif [ -f "$SCRIPT_DIR/setup_git_hooks.sh" ]; then
+  sh "$SCRIPT_DIR/setup_git_hooks.sh"
+fi
 
-# 3. Delegate execution directly to the modular Python installer CLI
-exec "$PYTHON_EXEC" -m scripts.installer.cli "$@"
+# 4. Build native Rust binaries if Cargo.toml is present
+if [ -f "$TARGET_DIR/Cargo.toml" ] && command -v cargo >/dev/null 2>&1; then
+  echo "Building native Rust workspace binaries..."
+  (cd "$TARGET_DIR" && cargo build --release)
+fi
+
+echo "==> Digital Pipeline Installation Complete. 0 manual steps remaining."
+exit 0

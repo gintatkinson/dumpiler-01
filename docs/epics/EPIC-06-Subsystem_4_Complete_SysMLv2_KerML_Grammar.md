@@ -37,11 +37,11 @@ Subsystem specification for Grammar Lowering (Subsystem_4_Complete_SysMLv2_KerML
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- [ ] #96 - [Use Case 02: Grammar Lowering and AST Construction Workflow](../use-cases/UC-02-Grammar_Lowering_and_AST_Construction_Workflow.md)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- [ ] #91 - [User Story 03: Validate Model Semantics and Typing Constraints](../user-stories/US-03-Validate_Model_Semantics.md)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by GrammarLoweringEngine.

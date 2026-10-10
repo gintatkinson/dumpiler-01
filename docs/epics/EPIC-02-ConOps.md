@@ -45,11 +45,21 @@ Concept of Operations specifications detailing external actor interactions, oper
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- [ ] #95 - [Use Case 01: System Vision and Schema Ingestion Workflow](../use-cases/UC-01-System_Vision_and_Schema_Ingestion_Workflow.md)
+- [ ] #96 - [Use Case 02: Grammar Lowering and AST Construction Workflow](../use-cases/UC-02-Grammar_Lowering_and_AST_Construction_Workflow.md)
+- [ ] #97 - [Use Case 03: Safety Assurance and STPA Verification Workflow](../use-cases/UC-03-Safety_Assurance_and_STPA_Verification_Workflow.md)
+- [ ] #98 - [Use Case 04: Downstream Specification and Backlog Projection Workflow](../use-cases/UC-04-Downstream_Specification_and_Backlog_Projection_Workflow.md)
+- [ ] #99 - [Use Case 05: Multi-Target CodeGen and Simulation Synthesis Workflow](../use-cases/UC-05-Multi_Target_CodeGen_and_Simulation_Synthesis_Workflow.md)
+- [ ] #100 - [Use Case 06: Baseline Conformance and Diagnostic Triage Workflow](../use-cases/UC-06-Baseline_Conformance_and_Diagnostic_Triage_Workflow.md)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- [ ] #89 - [User Story 01: Ingest OEM Documentation and Schema Artifacts](../user-stories/US-01-Ingest_OEM_Artifacts.md)
+- [ ] #90 - [User Story 02: Parse SysML v2 AST and Construct Arena Graph](../user-stories/US-02-Parse_SysML_AST.md)
+- [ ] #91 - [User Story 03: Validate Model Semantics and Typing Constraints](../user-stories/US-03-Validate_Model_Semantics.md)
+- [ ] #92 - [User Story 04: Transpile Safety Assurance and STPA Matrices](../user-stories/US-04-Transpile_Safety_Artifacts.md)
+- [ ] #93 - [User Story 05: Synthesize Downstream Agile Backlog Projections](../user-stories/US-05-Synthesize_Downstream_Projections.md)
+- [ ] #94 - [User Story 06: Verify Multi-File Baseline Parity and Governance Gates](../user-stories/US-06-Verify_Baseline_Parity.md)
 
 ## 3. Architecture
 External operational interfaces binding human systems engineers and continuous integration runners to the compiler lifecycle.

@@ -3,6 +3,7 @@ title: "Use Case 06: Baseline Conformance and Diagnostic Triage Workflow"
 version: "1.0.0"
 date: "2026-10-10"
 type: use-case
+epic: "EPIC-14-Subsystem_12_Compiler_Performance_CLI_Assurance"
 use_case_def: "UC_06_Baseline_Conformance_and_Diagnostic_Triage"
 subject: "CompilerAssuranceEngine"
 actors:
@@ -62,8 +63,8 @@ flowchart TD
 ## 8. Realization Matrix
 | Specification Item | Type | Link / Reference |
 | :--- | :--- | :--- |
-| **#94** | User Story | User Story 06: Verify Multi-File Baseline Parity and Governance Gates |
-| **#65** | Feature | Feature 56: [Diagnostic Error Catalog] Diagnostic Error Catalog Engine |
+| **#94** | User Story | [User Story 06: Verify Multi-File Baseline Parity and Governance Gates](../user-stories/US-06-Verify_Baseline_Parity.md) |
+| **#65** | Feature | [Feature 56: [Diagnostic Error Catalog] Diagnostic Error Catalog Engine](../features/FEAT-56-DiagnosticErrorCatalogEngine.md) |
 
 ## Source References
 Use case operational flows and lifecycle activity references:

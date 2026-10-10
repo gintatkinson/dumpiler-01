@@ -3,6 +3,7 @@ title: "User Story 03: Validate Model Semantics and Typing Constraints"
 version: "1.0.0"
 date: "2026-10-10"
 type: user-story
+epic: "EPIC-06-Subsystem_4_Complete_SysMLv2_KerML_Grammar"
 interaction: "OA_03_Validate_Model_Semantics"
 subject: "GrammarLoweringEngine"
 issue_id: 91
@@ -43,9 +44,9 @@ sequenceDiagram
 - [ ] AC-US-03-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
 
 ## Required Features
-- [ ] #11 - Feature 02: [ConOps] CI Continuous Integration Runner
-- [ ] #35 - Feature 26: [Physical Metrology Flow] Physical Metrology Flow Engine
-- [ ] #40 - Feature 31: [State Solvers] State Machine Solver Engine
+- [ ] #11 - [Feature 02: [ConOps] CI Continuous Integration Runner](../features/FEAT-02-CIContinuousIntegrationRunner.md) (automated pipeline runner for semantic validation)
+- [ ] #35 - [Feature 26: [Physical Metrology Flow] Physical Metrology Flow Engine](../features/FEAT-26-MetrologyFlowEngine.md) (metrology flow validation and dimensional checks)
+- [ ] #40 - [Feature 31: [State Solvers] State Machine Solver Engine](../features/FEAT-31-StateMachineSolverEngine.md) (state machine constraints and solver verification)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:

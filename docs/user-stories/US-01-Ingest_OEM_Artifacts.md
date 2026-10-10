@@ -3,6 +3,7 @@ title: "User Story 01: Ingest OEM Documentation and Schema Artifacts"
 version: "1.0.0"
 date: "2026-10-10"
 type: user-story
+epic: "EPIC-04-Subsystem_2_Universal_Schema_Ingestion_Engine"
 interaction: "OA_01_Ingest_OEM_Artifacts"
 subject: "UniversalIngestionEngine"
 issue_id: 89
@@ -43,9 +44,9 @@ sequenceDiagram
 - [ ] AC-US-01-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
 
 ## Required Features
-- [ ] #10 - Feature 01: [ConOps] Human Engineer Interface
-- [ ] #15 - Feature 06: [System Vision] System Vision Engine
-- [ ] #20 - Feature 11: [Universal Ingestion] Universal Ingestion Engine
+- [ ] #10 - [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md) (operator command dispatch and ingest trigger)
+- [ ] #15 - [Feature 06: [System Vision] System Vision Engine](../features/FEAT-06-SystemVisionEngine.md) (system vision schema parsing and invariant validation)
+- [ ] #20 - [Feature 11: [Universal Ingestion] Universal Ingestion Engine](../features/FEAT-11-UniversalIngestionEngine.md) (universal schema ingestion and document parsing)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:

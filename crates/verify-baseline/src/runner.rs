@@ -292,7 +292,7 @@ pub fn run(options: &BaselineOptions) -> Result<(), ()> {
         write_defect_dossier(&repo_root, "Check 15 (Reconcile backlog tooling)", &errs);
         return Err(());
     }
-    println!("Success: Check 15 verified (scripts/reconcile_backlog.py exists and is executable).");
+    println!("Success: Check 15 verified (Reconcile backlog tooling exists: target/release/reconcile-backlog, crates/reconcile-backlog, or scripts/reconcile_backlog.sh).");
 
     // Check 16: Upstream template clean landing zone gate
     if let Err(errs) = check_upstream_template_clean_landing_zones(&repo_root) {

@@ -465,6 +465,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "reconcile-backlog"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "clap",
+ "deap-core",
+ "pulldown-cmark",
+ "regex",
+ "serde",
+ "serde_json",
+ "walkdir",
+]
+
+[[package]]
 name = "regex"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

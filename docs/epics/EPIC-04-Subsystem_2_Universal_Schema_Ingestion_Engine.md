@@ -37,11 +37,11 @@ Subsystem specification for Universal Ingestion (Subsystem_2_Universal_Schema_In
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-*To be populated after Phase 3*
+- [ ] #95 - [Use Case 01: System Vision and Schema Ingestion Workflow](../use-cases/UC-01-System_Vision_and_Schema_Ingestion_Workflow.md)
 
 
 #### Associated User Stories
-*To be populated after Phase 3*
+- [ ] #89 - [User Story 01: Ingest OEM Documentation and Schema Artifacts](../user-stories/US-01-Ingest_OEM_Artifacts.md)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by UniversalIngestionEngine.

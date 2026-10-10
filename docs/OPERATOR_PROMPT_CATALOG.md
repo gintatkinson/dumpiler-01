@@ -31,14 +31,14 @@ Transform structural schemas and SysML v2 AST models into formal Agile Epics and
    - Dispatch fresh context-isolated subagents for each individual Epic and Feature with YAML frontmatter declaring `generation_mode: "subagent"`.
 
 2. Local Validation & Issue Registration:
-   - Execute the local model coverage linter: `./skills/spec-orchestrator/scripts/verify_model_coverage.py --spec-only --allow-missing-specs --only <spec_file>`.
+   - Execute the local model coverage linter: `./target/release/verify-baseline . --spec-only`.
    - Register Features first via `./skills/spec-orchestrator/scripts/create_issue.sh "<file>" "feature" "<title>"`.
    - Verify live published payload on the issue tracker (`gh issue view <ID> --json body` or `glab issue view <ID>`).
    - Inject verified Feature Issue IDs into Epic tasklists.
    - Register Epics via `./skills/spec-orchestrator/scripts/create_issue.sh "<file>" "epic" "<title>"`.
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
@@ -65,12 +65,12 @@ Extract Behavior-Driven Development (BDD) User Stories, UML Sequence Lifelines, 
 
 2. Deliverable Generation & Issue Registration:
    - Dispatch fresh context-isolated subagents per User Story (`docs/user-stories/us-*.md`) with YAML frontmatter (`generation_mode: "subagent"`).
-   - Execute local model coverage linter: `./skills/spec-orchestrator/scripts/verify_model_coverage.py --spec-only --allow-missing-specs --only <spec_file>`.
+   - Execute local model coverage linter: `./target/release/verify-baseline . --spec-only`.
    - Register User Stories via `./skills/spec-orchestrator/scripts/create_issue.sh "<file>" "user-story" "<title>"`.
    - Verify live published payload on the issue tracker (`gh issue view <ID> --json body` or `glab issue view <ID>`).
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
@@ -97,12 +97,12 @@ Derive formal UML System Use Cases directly from SysML v2 `use case def` AST blo
 
 2. Realization Matrix & Registration:
    - Construct `## Realization Matrix` resolving specific, unique tracker Issue IDs for each intersecting User Story and Feature.
-   - Execute local model coverage check: `./skills/spec-orchestrator/scripts/verify_model_coverage.py --spec-only --allow-missing-specs --only <spec_file>`.
+   - Execute local model coverage check: `./target/release/verify-baseline . --spec-only`.
    - Register Use Cases via `./skills/spec-orchestrator/scripts/create_issue.sh "<file>" "use-case" "<title>"`.
    - Verify live published payload on the issue tracker (`gh issue view <ID> --json body` or `glab issue view <ID>`).
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
@@ -124,8 +124,8 @@ Synthesize MIL-STD-881E Work Breakdown Structures (WBS), Technical Realization R
 1. WBS & Enterprise Realization Synthesis:
    - Ingest `.pipeline/schema.sysml`, `docs/conops/`, `docs/safety/`, `docs/epics/`, `docs/features/`, `docs/user-stories/`, and `docs/use-cases/`.
    - Synthesize the complete 5-tier WBS hierarchy and 7 concrete Model-Based Design (MBD) work packages per feature (`WP-xxx-SPEC`, `WP-xxx-MAT-PARAM`, `WP-xxx-SL-BLD`, `WP-xxx-PY-DOM`, `WP-xxx-PY-ENG`, `WP-xxx-TST`, `WP-xxx-REP`).
-   - Construct the authoritative 7-Column End-to-End Traceability Matrix linking SysML components, Feature specs, User Stories, MATLAB/Simulink models, Python 250 Hz engines, Pytest verification suites, and DO-178C/DO-331 simulation evidence.
-   - Run the deterministic WBS suite generator: `python3 scripts/generate_wbs_suite.py`.
+   - Construct the authoritative 7-Column End-to-End Traceability Matrix linking SysML components, Feature specs, User Stories, MATLAB/Simulink models, Python 250 Hz engines, semantic acceptance verification suites, and DO-178C/DO-331 simulation evidence.
+   - Run the deterministic WBS suite generator: `scripts/generate_wbs_suite.sh` (or `./target/release/generate-wbs`).
 
 2. Deliverable Generation & Issue Registration:
    - Generate `docs/management/WBS_DELIVERABLES_SUITE.md` with CommonMark metadata table.
@@ -135,7 +135,7 @@ Synthesize MIL-STD-881E Work Breakdown Structures (WBS), Technical Realization R
    - Verify published issue body integrity via live tracker inspection (`gh issue view <ID> --json body` or `glab issue view <ID>`).
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
@@ -162,11 +162,11 @@ Conduct a closed-world factual grounding audit across all generated specificatio
 
 2. Parity Verification Gate:
    - Run the model coverage verification linter:
-     python3 skills/spec-orchestrator/scripts/verify_model_coverage.py schema docs/features --spec-only
+     ./target/release/verify-baseline . --spec-only
    - Verify that all cross-references between Epics, Features, User Stories, and Use Cases resolve cleanly with zero broken links.
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
@@ -177,17 +177,17 @@ Execute backlog reconciliation and model parity verification across your target 
 
 #### Option A: GitLab SaaS Reconciliation
 ```bash
-./scripts/reconcile_backlog.py --provider gitlab
+./target/release/reconcile-backlog --provider gitlab
 ```
 
 #### Option B: GitLab Self-Managed / SCIF Air-Gapped Reconciliation
 ```bash
-./scripts/reconcile_backlog.py --provider gitlab --gitlab-url https://gitlab.internal.defense.gov --project uas-safety/uav-010
+./target/release/reconcile-backlog --provider gitlab --gitlab-url https://gitlab.internal.defense.gov --project uas-safety/uav-010
 ```
 
 #### Option C: GitHub Issues Reconciliation
 ```bash
-./scripts/reconcile_backlog.py --provider github
+./target/release/reconcile-backlog --provider github
 ```
 
 #### Option D: Offline Verification & 23-Gate Parity Lock
@@ -199,13 +199,13 @@ Execute backlog reconciliation and model parity verification across your target 
 ./target/release/compile-sysml --forward-sync
 
 # Offline backlog checklist and status synchronization
-./scripts/reconcile_backlog.py --offline
+./target/release/reconcile-backlog --offline
 
 # Baseline conformance verification (Checks 10-31 quality gate verifier)
 ./target/release/verify-baseline . --no-domain
 
 # 23-Gate Model Coverage and UML Compliance Lock
-./skills/spec-orchestrator/scripts/verify_model_coverage.py schema docs/features --spec-only
+./target/release/verify-baseline . --spec-only
 ```
 
 ## Section for "Pipeline 2" and "Synthesis Driver"
@@ -327,7 +327,7 @@ Execute Two-Path (Dual-Track) Model-Based Design (MBD) simulation synthesis and 
    - Formal DO-331 Verification Report: Generate comprehensive verification report `docs/reports/simulink_results/<FEATURE-ID>_simulation_results.md` detailing MC/DC coverage mapping, transition truth tables, fault-injection scenarios, and numerical parity logs.
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
@@ -366,7 +366,7 @@ docs/reports/simulink_results/
    Pure Python, license-free, headless discrete simulation engine executing identical algebraic formulations, cubic polynomial blending curves, and safety transition guards. Exposes typed state vectors and `step(dt, inputs) -> outputs` execution interface.
 
 4. **`tests/test_<feature_slug>_simulation.py` (Automated CI Verification Suite)**:
-   Pytest / Unittest test suite executing offline in CI/CD runners without MathWorks license blockers. Validates nominal control tracks, fault-injection responses, emergency safety transitions, and state invariants.
+   Automated test suite executing offline in CI/CD runners without MathWorks license blockers. Validates nominal control tracks, fault-injection responses, emergency safety transitions, and state invariants.
 
 5. **`docs/reports/simulink_results/<FEATURE-ID>_simulation_results.md` (DO-331 Verification Report)**:
    Formal DO-178C / DO-331 verification deliverable documenting mathematical equivalence, step-by-step state transition logs, fault injection test results, and numerical tolerance parity (<= 10^-6).
@@ -389,7 +389,7 @@ To implement features and verify simulations end-to-end using context-isolated s
    For features involving control laws or operating dynamics, dispatch Worker 2B to synthesize Track A (native Simulink builder `models/scripts/build_<feature_slug>_model.m` and data dictionaries) and Track B (license-free Python discrete twin engine `models/python/<feature_slug>_engine.py`). Run offline regression suite (`tests/test_<feature_slug>_simulation.py`) and verify numerical parity (<= 10^-6).
 
 5. **Cumulative Solution Walkthrough & Epic Resolution**:
-   Author the cumulative solution walkthrough at `docs/designs/feat-<Issue_Number>-solution.md`. Run backlog reconciliation (`python3 scripts/reconcile_backlog.py`). Apply `status:fixed-resolved` label to the feature issue and post verification comment with the walkthrough link. Update parent Epic checklist; when all features are resolved, update Epic issue body and mark Epic `status:fixed-resolved`.
+   Author the cumulative solution walkthrough at `docs/designs/feat-<Issue_Number>-solution.md`. Run backlog reconciliation (`./target/release/reconcile-backlog` or `scripts/reconcile_backlog.sh`). Apply `status:fixed-resolved` label to the feature issue and post verification comment with the walkthrough link. Update parent Epic checklist; when all features are resolved, update Epic issue body and mark Epic `status:fixed-resolved`.
 
 ## Section for "Pipeline 0"
 
@@ -432,7 +432,7 @@ Execute Level 0 OEM Ground Truth Ingestion and initial SysML v2 textual model sy
    - Verify Check 23 compliance (Factual Grounding & Numeric Provenance Gate): all physical parameters and component counts in `schema/model.sysml` strictly match the Level 0 OEM ground truth in `schema/extracted/`.
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
@@ -473,12 +473,12 @@ Execute front-end modular CONOPS and Tactical Mission Intent synthesis for the t
    - KaTeX / LaTeX Math Formatting Mandate: All multi-line aligned equations MUST be enclosed in `\begin{aligned} ... \end{aligned}` within `$$` delimiters on dedicated lines. Bare alignment tabs `&` outside an alignment environment (`aligned`, `matrix`, `cases`) and `\begin{align*}` environments are strictly forbidden. Markdown Table Math Prohibition Rule: Strictly ban `$ ... $` and `$$ ... $$` LaTeX math delimiters inside table headers, rows, and cells; plain text and Unicode (e.g. `Initial S`, `ΔV`, `λ`, `°C`, `≥`, `≤`, `→`, `10⁻⁶`) must be used instead, with 1:1 column count match between header and delimiter rows.
 
 4. Assembly & Verification Gates:
-   - Execute deterministic assembly: `./target/release/assemble-conops --input-dir docs/conops/units/ --output-dir docs/conops/ --verify (or python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir docs/conops/ --verify)`.
-   - Compile master specification documents: `./target/release/assemble-conops --input-dir docs/conops/units/ --output-dir docs/conops/ (or python3 scripts/assemble_conops.py --input-dir docs/conops/units/ --output-dir docs/conops/)`.
-   - Gate 26 Validation: Execute `python3 -m unittest tests.test_conops_and_mission_intent_validators`.
+   - Execute deterministic assembly: `./target/release/assemble-conops --input-dir docs/conops/units/ --output-dir docs/conops/ --verify`.
+   - Compile master specification documents: `./target/release/assemble-conops --input-dir docs/conops/units/ --output-dir docs/conops/`.
+   - Gate 26 Validation: Execute `./target/release/verify-baseline . --no-domain`.
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
@@ -568,12 +568,12 @@ Synthesize Level 1C Logical Interface Specifications and Signal Dictionaries fro
 2. Deliverable Generation & Quality Gate:
    - Generate `docs/interfaces/ICD_01_SYSTEM_INTERFACE_MATRIX.md` containing subsystem boundary graphs, N² communication matrix, and topological port bindings.
    - Generate `docs/interfaces/ICD_02_MASTER_SIGNAL_DICTIONARY.md` containing signal identifiers (`SIG-*`), data types, units, sampling frequencies, update rates, latency bounds, and fail-safe default values.
-   - Run Gate 23 ICD completeness validation: `python3 skills/spec-orchestrator/parity_auditor/src/parity_auditor/validators/icd_completeness_validator.py`.
+   - Run Gate 23 ICD completeness validation: `./target/release/verify-baseline . --no-domain`.
    - Register the ICD suite under the `icd` issue label using `./skills/spec-orchestrator/scripts/create_issue.sh "<file>" "icd" "<title>"`.
    - Verify published issue body integrity via live tracker inspection.
 
 Defect Filing Directive:
-If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `python3 scripts/file_defect.py`. Issue auto-closing keywords or issue close commands are strictly forbidden.
+If any compiler fault, schema inconsistency, or invariant violation is discovered, you are strictly forbidden from filing raw issues directly. You MUST dispatch a fresh context-isolated subagent with `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh`. Issue auto-closing keywords or issue close commands are strictly forbidden.
 
 PROCEED
 ```
