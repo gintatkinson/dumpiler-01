@@ -53,8 +53,25 @@ impl<'a> SysmlParser<'a> {
         // Check if top-level starts with package declaration
         let mut pending_doc = self.take_doc_comment();
         if self.check(&TokenKind::Package) {
-            let pkg = self.parse_package_decl(pending_doc)?;
-            return Ok(pkg);
+            let first_pkg = self.parse_package_decl(pending_doc)?;
+            self.skip_trivia();
+            if self.is_at_end() {
+                return Ok(first_pkg);
+            }
+
+            // Multiple packages or items at root level
+            let mut root = PackageDef {
+                name: default_pkg_name.to_string(),
+                packages: vec![first_pkg],
+                ..Default::default()
+            };
+
+            while !self.is_at_end() {
+                self.parse_container_item(&mut root, None)?;
+                self.skip_trivia();
+            }
+
+            return Ok(root);
         }
 
         // Flat file without top-level package block
@@ -95,6 +112,57 @@ impl<'a> SysmlParser<'a> {
 
         self.expect(&TokenKind::CloseBrace)?;
         Ok(pkg)
+    }
+
+    /// Parse an import declaration into an ImportDef AST node.
+    ///
+    /// Realises: [REQ-SYSML-PARSER-IMPORT]
+    fn parse_import_decl(&mut self, doc: Option<String>) -> Result<ImportDef, ParseError> {
+        self.expect(&TokenKind::Import)?;
+        let mut path_segments = Vec::new();
+        let mut is_wildcard = false;
+        let mut is_recursive = false;
+
+        let mut leading_colon = false;
+        if self.check(&TokenKind::DoubleColon) {
+            self.advance();
+            leading_colon = true;
+        }
+
+        let first = self.expect_ident()?;
+        path_segments.push(first);
+
+        while self.check(&TokenKind::DoubleColon) {
+            self.advance();
+            if self.check(&TokenKind::Star) {
+                self.advance();
+                if self.check(&TokenKind::Star) {
+                    self.advance();
+                    is_recursive = true;
+                    is_wildcard = true;
+                } else {
+                    is_wildcard = true;
+                }
+                break;
+            } else {
+                let seg = self.expect_ident()?;
+                path_segments.push(seg);
+            }
+        }
+
+        self.expect_semi()?;
+
+        let mut path = path_segments.join("::");
+        if leading_colon {
+            path = format!("::{}", path);
+        }
+
+        Ok(ImportDef {
+            path,
+            is_wildcard,
+            is_recursive,
+            doc,
+        })
     }
 
     fn parse_container_item(
@@ -178,8 +246,20 @@ impl<'a> SysmlParser<'a> {
                     pkg.state_defs.push(state);
                 }
             }
-            TokenKind::Connection | TokenKind::Connect => {
+            TokenKind::Import => {
+                let imp = self.parse_import_decl(doc)?;
+                pkg.imports.push(imp);
+            }
+            TokenKind::Connection => {
                 let conn = self.parse_connection_decl(doc, false)?;
+                if let Some(parent) = parent_part {
+                    parent.connections.push(conn);
+                } else {
+                    pkg.connection_defs.push(conn);
+                }
+            }
+            TokenKind::Connect => {
+                let conn = self.parse_inline_connect_decl(doc)?;
                 if let Some(parent) = parent_part {
                     parent.connections.push(conn);
                 } else {
@@ -894,6 +974,71 @@ impl<'a> SysmlParser<'a> {
             protocol,
             latency_ms,
             is_flow,
+        })
+    }
+
+    /// Parse an inline connector statement into a ConnectionDef AST node.
+    ///
+    /// Realises: [REQ-SYSML-PARSER-INLINE-CONNECTOR]
+    fn parse_inline_connect_decl(&mut self, doc: Option<String>) -> Result<ConnectionDef, ParseError> {
+        self.expect(&TokenKind::Connect)?;
+        if self.check(&TokenKind::From) {
+            self.advance();
+        }
+        let source_port = self.expect_ident_or_dotted()?;
+
+        if self.check(&TokenKind::To) {
+            self.advance();
+        } else if let TokenKind::Ident(s) = &self.peek().kind {
+            if s == "to" {
+                self.advance();
+            } else {
+                let tok = self.peek();
+                return Err(ParseError {
+                    message: format!("Expected 'to' keyword in connect statement, found '{:?}'", tok.kind),
+                    span: tok.span,
+                });
+            }
+        } else {
+            let tok = self.peek();
+            return Err(ParseError {
+                message: format!("Expected 'to' keyword in connect statement, found '{:?}'", tok.kind),
+                span: tok.span,
+            });
+        }
+
+        let target_port = self.expect_ident_or_dotted()?;
+        self.expect_semi()?;
+
+        let source_part = if source_port.contains('.') {
+            Some(source_port.split('.').next().unwrap().to_string())
+        } else {
+            None
+        };
+        let target_part = if target_port.contains('.') {
+            Some(target_port.split('.').next().unwrap().to_string())
+        } else {
+            None
+        };
+
+        let synth_name = format!(
+            "c_{}_to_{}",
+            source_port.replace('.', "_"),
+            target_port.replace('.', "_")
+        );
+
+        Ok(ConnectionDef {
+            name: synth_name,
+            source_port,
+            target_port,
+            source_part,
+            target_part,
+            doc,
+            severity: 1,
+            item_flow_ref: None,
+            protocol: None,
+            latency_ms: None,
+            is_flow: false,
         })
     }
 
@@ -1814,6 +1959,71 @@ package ReqPkg {
         assert_eq!(req.constraints[1].name, "Invariant_Beta");
         assert!(req.constraints[1].is_assertion);
         assert_eq!(req.constraints[1].expression, "x > 0");
+    }
+
+    #[test]
+    fn test_parse_import_declarations() {
+        let source = r#"
+package Subsystem_Imports {
+    import Subsystem_1::*;
+    import Subsystem_2::Engine;
+    import Subsystem_3::Core::**;
+}
+"#;
+        let pkg = SysmlParser::parse_source(source, "Default").unwrap();
+        assert_eq!(pkg.imports.len(), 3);
+        assert_eq!(pkg.imports[0].path, "Subsystem_1");
+        assert!(pkg.imports[0].is_wildcard);
+        assert!(!pkg.imports[0].is_recursive);
+
+        assert_eq!(pkg.imports[1].path, "Subsystem_2::Engine");
+        assert!(!pkg.imports[1].is_wildcard);
+        assert!(!pkg.imports[1].is_recursive);
+
+        assert_eq!(pkg.imports[2].path, "Subsystem_3::Core");
+        assert!(pkg.imports[2].is_wildcard);
+        assert!(pkg.imports[2].is_recursive);
+    }
+
+    #[test]
+    fn test_parse_inline_connector_in_part_def() {
+        let source = r#"
+part def DEAPCompilerSystem {
+    connect a.out to b.in;
+}
+"#;
+        let pkg = SysmlParser::parse_source(source, "Default").unwrap();
+        assert_eq!(pkg.part_defs.len(), 1);
+        let part = &pkg.part_defs[0];
+        assert_eq!(part.name, "DEAPCompilerSystem");
+        assert_eq!(part.connections.len(), 1);
+        let conn = &part.connections[0];
+        assert_eq!(conn.source_port, "a.out");
+        assert_eq!(conn.target_port, "b.in");
+        assert_eq!(conn.source_part.as_deref(), Some("a"));
+        assert_eq!(conn.target_part.as_deref(), Some("b"));
+        assert_eq!(conn.name, "c_a_out_to_b_in");
+    }
+
+    #[test]
+    fn test_parse_multiple_root_packages() {
+        let source = r#"
+package Subsystem_1 {
+    part def Engine;
+}
+package Subsystem_2 {
+    part def Controller;
+}
+"#;
+        let pkg = SysmlParser::parse_source(source, "RootSystem").unwrap();
+        assert_eq!(pkg.name, "RootSystem");
+        assert_eq!(pkg.packages.len(), 2);
+        assert_eq!(pkg.packages[0].name, "Subsystem_1");
+        assert_eq!(pkg.packages[0].part_defs.len(), 1);
+        assert_eq!(pkg.packages[0].part_defs[0].name, "Engine");
+        assert_eq!(pkg.packages[1].name, "Subsystem_2");
+        assert_eq!(pkg.packages[1].part_defs.len(), 1);
+        assert_eq!(pkg.packages[1].part_defs[0].name, "Controller");
     }
 }
 
