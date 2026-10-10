@@ -1393,19 +1393,31 @@ def _load_sysml_parser():
 
 
 def _discover_sysml_model_text(repo_root: Optional[str]) -> Optional[str]:
-    """Locate and read the authoritative SysML v2 model (schema/*.sysml or .pipeline/schema.sysml)."""
+    """Locate and read the authoritative SysML v2 model (schema/**/*.sysml or .pipeline/schema.sysml)."""
     if not repo_root or not os.path.isdir(repo_root):
         return None
     schema_dir = os.path.join(repo_root, "schema")
     if os.path.isdir(schema_dir):
+        paths = []
+        for root, dirs, files in os.walk(schema_dir):
+            dirs[:] = [d for d in dirs if not d.startswith(".") and not d.startswith("#")]
+            for name in files:
+                if (
+                    name.endswith(".sysml")
+                    and not name.startswith(".")
+                    and not name.startswith("#")
+                ):
+                    paths.append(os.path.join(root, name))
+        paths.sort()
         sysml_contents = []
-        for name in sorted(os.listdir(schema_dir)):
-            if name.endswith(".sysml"):
-                try:
-                    with open(os.path.join(schema_dir, name), "r", encoding="utf-8") as handle:
-                        sysml_contents.append(handle.read())
-                except OSError:
-                    continue
+        for fpath in paths:
+            try:
+                with open(fpath, "r", encoding="utf-8") as handle:
+                    content = handle.read()
+                    if content.strip():
+                        sysml_contents.append(content)
+            except OSError:
+                continue
         if sysml_contents:
             return "\n\n".join(sysml_contents)
     pipeline_model = os.path.join(repo_root, ".pipeline", "schema.sysml")
@@ -3640,7 +3652,7 @@ check_architecture_viewpoint_gate = check_architecture_viewpoint_diagrams
 def check_dual_schema_ssot_parity(repo_root=None):
     """Check 31: Dual-Schema SSOT Parity Gate (Gate 31).
 
-    If both schema/*.sysml and .pipeline/schema.sysml exist in the workspace,
+    If both schema/**/*.sysml and .pipeline/schema.sysml exist in the workspace,
     verify that they are identical in AST definitions:
       - part def
       - port def
@@ -3656,11 +3668,18 @@ def check_dual_schema_ssot_parity(repo_root=None):
 
     schema_sysml_files = []
     if os.path.isdir(schema_dir):
-        for name in sorted(os.listdir(schema_dir)):
-            if name.endswith(".sysml") and not name.startswith("."):
-                fpath = os.path.join(schema_dir, name)
-                if os.path.isfile(fpath) and os.path.getsize(fpath) > 0:
-                    schema_sysml_files.append(fpath)
+        for root, dirs, files in os.walk(schema_dir):
+            dirs[:] = [d for d in dirs if not d.startswith(".") and not d.startswith("#")]
+            for name in files:
+                if (
+                    name.endswith(".sysml")
+                    and not name.startswith(".")
+                    and not name.startswith("#")
+                ):
+                    fpath = os.path.join(root, name)
+                    if os.path.isfile(fpath) and os.path.getsize(fpath) > 0:
+                        schema_sysml_files.append(fpath)
+        schema_sysml_files.sort()
 
     has_pipeline_schema = os.path.isfile(pipeline_schema) and os.path.getsize(pipeline_schema) > 0
     has_schema_files = len(schema_sysml_files) > 0

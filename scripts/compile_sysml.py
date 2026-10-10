@@ -4298,10 +4298,32 @@ SCHEMA_REMEDIATION_MESSAGE = (
 )
 
 
+def discover_sysml_files(dir_path: Optional[str] = None) -> List[str]:
+    """Discover all .sysml files recursively under dir_path, filtering out hidden and temporary files.
+
+    Returns file paths sorted lexicographically in deterministic order.
+    """
+    import glob
+    if dir_path is None:
+        schema_files = glob.glob("schema/**/*.sysml", recursive=True)
+        if not schema_files and os.path.isdir(os.path.join(PROJECT_ROOT, "schema")):
+            schema_files = glob.glob(os.path.join(PROJECT_ROOT, "schema", "**", "*.sysml"), recursive=True)
+        return [f for f in sorted(schema_files) if not os.path.basename(f).startswith((".", "#"))]
+
+    if not os.path.isdir(dir_path):
+        return []
+
+    schema_files = glob.glob(os.path.join(dir_path, "**", "*.sysml"), recursive=True)
+    return [f for f in sorted(schema_files) if not os.path.basename(f).startswith((".", "#"))]
+
+
+_discover_schema_files = discover_sysml_files
+
+
 def enforce_pipeline0_compilation_gate(schema_path: Optional[str] = None, output_path: str = ".pipeline/schema.sysml", digest_path: str = ".pipeline/schema-digest.json") -> int:
     """
     Implements pipeline 0 compilation gate.
-    If schema_path is None, search for a .sysml file in schema/.
+    If schema_path is None, search for a .sysml file in schema/ (supporting recursive discovery).
     If schema file does not exist, fail closed (print descriptive error to stderr and return 1).
     When no .sysml file is found in schema/ (or default path), prints clear remediation guidance
     directing the user/agent to Step 0.0 Level 0 OEM Ground Truth Ingestion and returns 1.
@@ -4311,20 +4333,21 @@ def enforce_pipeline0_compilation_gate(schema_path: Optional[str] = None, output
     Compute SHA-256 hash and node counts, writing atomically to digest_path using _atomic_write_json. Format should match how reverse_sync does it (sha256, total_lines, node_counts, schema_nodes).
     Return 0 on success.
     """
-    import glob
     if schema_path is None:
-        schema_files = glob.glob("schema/*.sysml")
-        if not schema_files and os.path.isdir(os.path.join(PROJECT_ROOT, "schema")):
-            schema_files = glob.glob(os.path.join(PROJECT_ROOT, "schema", "*.sysml"))
+        schema_files = _discover_schema_files()
         if not schema_files:
             print(SCHEMA_REMEDIATION_MESSAGE, file=sys.stderr)
             return 1
-        schema_path = schema_files[0]
-        
+        schema_path = next((f for f in schema_files if os.path.basename(f) == "model.sysml"), schema_files[0])
+    elif os.path.isdir(schema_path):
+        schema_files = discover_sysml_files(schema_path)
+        if not schema_files:
+            print(f"Error: No .sysml files found in directory: {schema_path}", file=sys.stderr)
+            return 1
+        schema_path = next((f for f in schema_files if os.path.basename(f) == "model.sysml"), schema_files[0])
+
     if not os.path.exists(schema_path):
-        schema_files = glob.glob("schema/*.sysml")
-        if not schema_files and os.path.isdir(os.path.join(PROJECT_ROOT, "schema")):
-            schema_files = glob.glob(os.path.join(PROJECT_ROOT, "schema", "*.sysml"))
+        schema_files = _discover_schema_files()
         if not schema_files:
             print(SCHEMA_REMEDIATION_MESSAGE, file=sys.stderr)
         else:
@@ -4423,6 +4446,9 @@ def enforce_pipeline0_compilation_gate(schema_path: Optional[str] = None, output
     return 0
 
 
+run_compilation_gate = enforce_pipeline0_compilation_gate
+
+
 def _run_rust_compile_sysml():
     cargo_bin = shutil.which("cargo")
     if not cargo_bin:
@@ -4507,10 +4533,7 @@ def main():
                 allow_schema_overwrite=args.allow_schema_overwrite,
             )
         except FileNotFoundError as exc:
-            import glob
-            schema_files = glob.glob("schema/*.sysml")
-            if not schema_files and os.path.isdir(os.path.join(PROJECT_ROOT, "schema")):
-                schema_files = glob.glob(os.path.join(PROJECT_ROOT, "schema", "*.sysml"))
+            schema_files = _discover_schema_files()
             if not schema_files:
                 print(SCHEMA_REMEDIATION_MESSAGE, file=sys.stderr)
             else:
@@ -4525,10 +4548,7 @@ def main():
             if os.path.exists(default_ssot):
                 schema_target = default_ssot
             else:
-                import glob
-                schema_files = glob.glob("schema/*.sysml")
-                if not schema_files and os.path.isdir(os.path.join(PROJECT_ROOT, "schema")):
-                    schema_files = glob.glob(os.path.join(PROJECT_ROOT, "schema", "*.sysml"))
+                schema_files = _discover_schema_files()
                 if not schema_files:
                     print(SCHEMA_REMEDIATION_MESSAGE, file=sys.stderr)
                     sys.exit(1)
@@ -4542,10 +4562,7 @@ def main():
                 force=args.force,
             )
         except (FileNotFoundError, RuntimeError) as exc:
-            import glob
-            schema_files = glob.glob("schema/*.sysml")
-            if not schema_files and os.path.isdir(os.path.join(PROJECT_ROOT, "schema")):
-                schema_files = glob.glob(os.path.join(PROJECT_ROOT, "schema", "*.sysml"))
+            schema_files = _discover_schema_files()
             if not schema_files and isinstance(exc, FileNotFoundError):
                 print(SCHEMA_REMEDIATION_MESSAGE, file=sys.stderr)
             else:
@@ -4559,10 +4576,7 @@ def main():
         sys.exit(1)
 
     if not os.path.exists(target_file):
-        import glob
-        schema_files = glob.glob("schema/*.sysml")
-        if not schema_files and os.path.isdir(os.path.join(PROJECT_ROOT, "schema")):
-            schema_files = glob.glob(os.path.join(PROJECT_ROOT, "schema", "*.sysml"))
+        schema_files = _discover_schema_files()
         if not schema_files and (target_file.startswith("schema/") or target_file.endswith(".sysml")):
             print(SCHEMA_REMEDIATION_MESSAGE, file=sys.stderr)
         else:
@@ -5346,10 +5360,7 @@ def transpile_stpa(schema_path: str, out_dir: str, fmeca_scoring_config: Optiona
         print("Error: SysMLParser is not available for STPA transpilation.", file=sys.stderr)
         return 1
     if not os.path.exists(schema_path):
-        import glob
-        schema_files = glob.glob("schema/*.sysml")
-        if not schema_files and os.path.isdir(os.path.join(PROJECT_ROOT, "schema")):
-            schema_files = glob.glob(os.path.join(PROJECT_ROOT, "schema", "*.sysml"))
+        schema_files = _discover_schema_files()
         if not schema_files and (schema_path.startswith("schema/") or schema_path.endswith(".sysml")):
             print(SCHEMA_REMEDIATION_MESSAGE, file=sys.stderr)
         else:
