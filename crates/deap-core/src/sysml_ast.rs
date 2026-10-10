@@ -189,6 +189,10 @@ pub struct RequirementDef {
     pub verified_by: Vec<String>,
     #[serde(default)]
     pub satisfied_by: Vec<String>,
+    #[serde(default)]
+    pub derived_from: Vec<String>,
+    #[serde(default)]
+    pub derives: Vec<String>,
 }
 
 /// Represents a state transition in a SysML v2 state machine.
@@ -613,6 +617,11 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
     .unwrap();
     let id_re = Regex::new(r#"(?m)^\s*(?:id|req_id)\s*=\s*"(?P<id>[^"]+)""#).unwrap();
     let text_re = Regex::new(r#"(?m)^\s*(?:doc|text)\s*=\s*"(?P<text>[^"]+)""#).unwrap();
+    let assume_re = Regex::new(r#"(?m)^\s*assume\s+(?P<target>[^;]+);"#).unwrap();
+    let require_re = Regex::new(r#"(?m)^\s*require\s+(?P<target>[^;]+);"#).unwrap();
+    let derived_from_re = Regex::new(r#"(?m)^\s*derived\s+from\s+(?P<target>[^;]+);"#).unwrap();
+    let verify_by_re = Regex::new(r#"(?m)^\s*verify(?:\s+by)?\s+(?P<target>[^;]+);"#).unwrap();
+    let satisfy_by_re = Regex::new(r#"(?m)^\s*satisfy(?:\s+by)?\s+(?P<target>[^;]+);"#).unwrap();
 
     let mut reqs = Vec::new();
     for cap in re.captures_iter(content) {
@@ -621,6 +630,11 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
         let mut req_id = String::new();
         let mut text = String::new();
         let mut attributes = Vec::new();
+        let mut assumes = Vec::new();
+        let mut requires = Vec::new();
+        let mut derived_from = Vec::new();
+        let mut verified_by = Vec::new();
+        let mut satisfied_by = Vec::new();
 
         if let Some(body) = cap.name("body") {
             let body_str = body.as_str();
@@ -631,6 +645,22 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
                 text = txt_cap["text"].to_string();
             }
             attributes = parse_attribute_defs(body_str);
+
+            for a_cap in assume_re.captures_iter(body_str) {
+                assumes.push(a_cap["target"].trim().to_string());
+            }
+            for r_cap in require_re.captures_iter(body_str) {
+                requires.push(r_cap["target"].trim().to_string());
+            }
+            for d_cap in derived_from_re.captures_iter(body_str) {
+                derived_from.push(d_cap["target"].trim().to_string());
+            }
+            for v_cap in verify_by_re.captures_iter(body_str) {
+                verified_by.push(v_cap["target"].trim().to_string());
+            }
+            for s_cap in satisfy_by_re.captures_iter(body_str) {
+                satisfied_by.push(s_cap["target"].trim().to_string());
+            }
         }
 
         reqs.push(RequirementDef {
@@ -639,6 +669,11 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
             text,
             doc,
             attributes,
+            assumes,
+            requires,
+            derived_from,
+            verified_by,
+            satisfied_by,
             ..Default::default()
         });
     }
@@ -750,8 +785,8 @@ pub fn find_matching_brace(s: &str, open_pos: usize) -> Option<usize> {
     let mut depth = 0;
     let mut in_str = false;
     let mut in_escape = false;
-    let mut chars = s[open_pos..].char_indices();
-    while let Some((idx, ch)) = chars.next() {
+    let chars = s[open_pos..].char_indices();
+    for (idx, ch) in chars {
         if in_str {
             if in_escape {
                 in_escape = false;
@@ -1060,5 +1095,38 @@ part def VehicleSystem {
             Some("\"Class P\"")
         );
     }
+
+    #[test]
+    fn test_parse_requirement_defs_constraints_assumptions_derivations() {
+        let text = r#"
+            requirement def REQ_0032_Test {
+                id = "REQ-0032";
+                text = "Requirements shall track assumptions, constraints, and derivations.";
+                assume ValidSchemaInput;
+                require Invariant_REQ_0032_StrictTotalOrdering;
+                require Invariant_REQ_0032_Determinism;
+                derived from REQ_0031_BaseEmission;
+                derived from REQ_0019_IdentifierSanitization;
+            }
+        "#;
+        let reqs = parse_requirement_defs(text);
+        assert_eq!(reqs.len(), 1);
+        assert_eq!(reqs[0].assumes, vec!["ValidSchemaInput"]);
+        assert_eq!(
+            reqs[0].requires,
+            vec![
+                "Invariant_REQ_0032_StrictTotalOrdering",
+                "Invariant_REQ_0032_Determinism"
+            ]
+        );
+        assert_eq!(
+            reqs[0].derived_from,
+            vec![
+                "REQ_0031_BaseEmission",
+                "REQ_0019_IdentifierSanitization"
+            ]
+        );
+    }
 }
+
 

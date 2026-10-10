@@ -152,6 +152,14 @@ impl SysmlSerializable for ConstraintDef {
         } else {
             "constraint def"
         };
+        if self.expression.is_empty() && self.parameters.is_empty() {
+            let mut lines = Vec::new();
+            if !doc.is_empty() {
+                lines.push(doc.trim_end().to_string());
+            }
+            lines.push(format!("{}{} {};", pad, kw, self.name));
+            return lines.join("\n");
+        }
         let params = if self.parameters.is_empty() {
             String::new()
         } else {
@@ -194,6 +202,9 @@ impl SysmlSerializable for RequirementDef {
         }
         for r in &self.requires {
             lines.push(format!("{}    require {};", pad, r));
+        }
+        for d in &self.derived_from {
+            lines.push(format!("{}    derived from {};", pad, d));
         }
         for v in &self.verified_by {
             lines.push(format!("{}    verify by {};", pad, v));
@@ -550,5 +561,43 @@ mod tests {
         assert!(sysml.contains("    verify by AC_01_Test;"));
         assert!(sysml.contains("    satisfy by TestEngine;"));
     }
+
+    #[test]
+    fn test_serialize_requirement_def_with_assumes_requires_derived_from() {
+        let req = RequirementDef {
+            name: "REQ_0032_Test".to_string(),
+            req_id: "REQ-0032".to_string(),
+            text: "Test text".to_string(),
+            assumes: vec!["ValidInput".to_string()],
+            requires: vec!["Invariant_Alpha".to_string(), "Invariant_Beta".to_string()],
+            derived_from: vec!["REQ_0031_Parent".to_string()],
+            verified_by: vec!["AC_01".to_string()],
+            satisfied_by: vec!["SubsystemEngine".to_string()],
+            ..Default::default()
+        };
+        let sysml = req.to_sysml(0);
+        assert!(sysml.contains("    assume ValidInput;"));
+        assert!(sysml.contains("    require Invariant_Alpha;"));
+        assert!(sysml.contains("    require Invariant_Beta;"));
+        assert!(sysml.contains("    derived from REQ_0031_Parent;"));
+    }
+
+    #[test]
+    fn test_serialize_constraint_def_single_line_when_empty_body_and_params() {
+        let c1 = ConstraintDef {
+            name: "StrictTotalOrdering".to_string(),
+            is_assertion: true,
+            ..Default::default()
+        };
+        assert_eq!(c1.to_sysml(4), "    assert constraint StrictTotalOrdering;");
+
+        let c2 = ConstraintDef {
+            name: "Invariant_Alpha".to_string(),
+            is_assertion: false,
+            ..Default::default()
+        };
+        assert_eq!(c2.to_sysml(0), "constraint def Invariant_Alpha;");
+    }
 }
+
 

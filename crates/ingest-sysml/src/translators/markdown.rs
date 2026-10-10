@@ -35,6 +35,7 @@
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
 use std::path::Path;
+use std::sync::OnceLock;
 use regex::Regex;
 
 use deap_core::sysml_ast::{
@@ -512,6 +513,256 @@ fn extract_acceptance_criteria(content: &str) -> Vec<(String, String, String)> {
     ac_list
 }
 
+fn clean_invariant_title(raw: &str) -> String {
+    let mut text = raw.trim();
+    if let Some(pos) = text.find(':') {
+        text = &text[..pos];
+    }
+    // Remove markdown formatting characters
+    let text = text.replace(['*', '`', '_', '#'], " ");
+    // Remove math spans $...$
+    let math_re = Regex::new(r"\$[^$]*\$").unwrap();
+    let text = math_re.replace_all(&text, "");
+    // Remove LaTeX commands
+    let cmd_re = Regex::new(r"\\[a-zA-Z]+(?:\{[^}]*\})?").unwrap();
+    let text = cmd_re.replace_all(&text, "");
+
+    // Truncate at common connectors
+    let mut s = text.to_string();
+    for delim in &[" over ", " across ", " for ", " where ", " on ", " satisfying ", " satisfies ", " under "] {
+        if let Some(pos) = s.to_ascii_lowercase().find(delim) {
+            s = s[..pos].to_string();
+        }
+    }
+
+    let ws_re = Regex::new(r"\s+").unwrap();
+    let cleaned = ws_re.replace_all(&s, " ").trim().to_string();
+    cleaned.replace('\u{2014}', "--")
+}
+
+fn clean_math_doc(raw: &str) -> String {
+    let ws_re = Regex::new(r"\s+").unwrap();
+    let mut cleaned = ws_re.replace_all(raw, " ").trim().to_string();
+    cleaned = cleaned.replace('\u{2014}', "--");
+    cleaned = cleaned.replace("*/", "* /");
+    cleaned
+}
+
+/// Extracts formal invariant constraints from Section 2 (`## 2. Formal Invariant`).
+///
+/// /// Realises: [REQ-SYSML-INGEST-MD/extract_formal_invariants]
+pub fn extract_formal_invariants(content: &str, req_num: &str) -> Vec<ConstraintDef> {
+    let mut sec2_content = "";
+    if let Some(start_pos) = content.find("## 2. Formal Invariant")
+        .or_else(|| content.find("## 2."))
+    {
+        let after_start = &content[start_pos..];
+        if let Some(newline_pos) = after_start.find('\n') {
+            let body = &after_start[newline_pos + 1..];
+            let mut end_pos = body.len();
+            for marker in &["\n## 3.", "\n## 3", "\n---\n\n## 3", "\n---\r\n\r\n## 3", "\n---"] {
+                if let Some(p) = body.find(marker) {
+                    if p < end_pos {
+                        end_pos = p;
+                    }
+                }
+            }
+            sec2_content = &body[..end_pos];
+        }
+    }
+
+    let mut invariants = Vec::new();
+    let lines: Vec<&str> = sec2_content.lines().collect();
+    let mut i = 0;
+    let n = lines.len();
+    let mut pending_title: Option<String> = None;
+
+    while i < n {
+        let line = lines[i].trim();
+        if line.is_empty() {
+            i += 1;
+            continue;
+        }
+
+        let lower = line.to_ascii_lowercase();
+        let is_candidate_title = (lower.contains("invariant")
+            || lower.contains("contract")
+            || lower.contains("gate")
+            || lower.contains("ordering")
+            || lower.contains("zero diff churn")
+            || lower.contains("determinism")
+            || lower.contains("equivalence")
+            || lower.contains("bound")
+            || line.ends_with(':'))
+            && !lower.starts_with("let ")
+            && !lower.starts_with("where ")
+            && !lower.starts_with("for each")
+            && !lower.starts_with("each ")
+            && !line.starts_with('|')
+            && !line.starts_with("```");
+
+        if is_candidate_title {
+            let cleaned_title = clean_invariant_title(line);
+            if !cleaned_title.is_empty() {
+                pending_title = Some(cleaned_title);
+            }
+        }
+
+        if line.starts_with("```math") {
+            let mut math_lines = Vec::new();
+            i += 1;
+            while i < n && !lines[i].trim().starts_with("```") {
+                let m_line = lines[i].trim();
+                if !m_line.is_empty() {
+                    math_lines.push(m_line);
+                }
+                i += 1;
+            }
+
+            let raw_math = math_lines.join(" ");
+            let math_doc = clean_math_doc(&raw_math);
+
+            let slug = if let Some(ref t) = pending_title {
+                let s = sanitize_identifier(t, "FormalInvariant");
+                if s.is_empty() || s.to_ascii_lowercase() == "invariant" {
+                    "FormalInvariant".to_string()
+                } else {
+                    s
+                }
+            } else {
+                "FormalInvariant".to_string()
+            };
+
+            let base_name = format!("Invariant_REQ_{}_{}", req_num, slug);
+            let mut inv_name = base_name.clone();
+            let mut suffix = 2;
+            while invariants.iter().any(|inv: &ConstraintDef| inv.name == inv_name) {
+                inv_name = format!("{}_{}", base_name, suffix);
+                suffix += 1;
+            }
+
+            invariants.push(ConstraintDef {
+                name: inv_name,
+                doc: if math_doc.is_empty() {
+                    None
+                } else {
+                    Some(math_doc)
+                },
+                is_assertion: false,
+                ..Default::default()
+            });
+
+            pending_title = None;
+        }
+
+        i += 1;
+    }
+
+    if invariants.is_empty() {
+        invariants.push(ConstraintDef {
+            name: format!("Invariant_REQ_{}_FormalInvariant", req_num),
+            doc: Some(format!("Formal invariant constraint for REQ-{}.", req_num)),
+            is_assertion: false,
+            ..Default::default()
+        });
+    }
+
+    invariants
+}
+
+static REQ_TITLE_MAP: OnceLock<HashMap<String, String>> = OnceLock::new();
+
+fn get_req_canonical_title(req_id: &str) -> Option<String> {
+    let map = REQ_TITLE_MAP.get_or_init(|| {
+        let mut m = HashMap::new();
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+        let schema_candidates = [
+            Path::new("schema").to_path_buf(),
+            Path::new(&manifest_dir).join("../../schema"),
+            Path::new(&manifest_dir).join("schema"),
+        ];
+        for schema_dir in &schema_candidates {
+            if schema_dir.exists() && schema_dir.is_dir() {
+                if let Ok(entries) = fs::read_dir(schema_dir) {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if path.extension().and_then(|s| s.to_str()) == Some("md") {
+                            let fname = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+                            if fname.starts_with("REQ-") {
+                                if let Ok(content) = fs::read_to_string(&path) {
+                                    let (fm, _) = MarkdownTranslator::parse_frontmatter(&content);
+                                    if let (Some(id), Some(title)) = (fm.id, fm.title) {
+                                        m.insert(id, title);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if !m.is_empty() {
+                    break;
+                }
+            }
+        }
+        m
+    });
+    map.get(req_id).cloned()
+}
+
+/// Resolves a requirement reference into a canonical SysML v2 identifier.
+///
+/// /// Realises: [REQ-SYSML-INGEST-MD/resolve_requirement_reference]
+pub fn resolve_requirement_reference(req_id: &str) -> String {
+    let num_str: String = req_id.chars().filter(|c| c.is_ascii_digit()).collect();
+    let norm_id = format!("REQ-{}", num_str);
+    if let Some(title) = get_req_canonical_title(&norm_id) {
+        let primary = title
+            .split('&')
+            .next()
+            .unwrap_or(&title)
+            .split(':')
+            .next()
+            .unwrap_or(&title)
+            .trim();
+        let title_clean = sanitize_identifier(primary, "Requirement");
+        format!("REQ_{}_{}", num_str, title_clean)
+    } else {
+        format!("REQ_{}", num_str)
+    }
+}
+
+/// Extracts cross-referenced requirement identifiers (`REQ-XXXX`) from Section 1 and Section 2.
+///
+/// /// Realises: [REQ-SYSML-INGEST-MD/extract_requirement_cross_references]
+pub fn extract_requirement_cross_references(content: &str, current_req_id: &str) -> Vec<String> {
+    let mut relevant_text = content;
+    if let Some(pos) = content.find("## 1.") {
+        let after_sec1 = &content[pos..];
+        if let Some(end_pos) = after_sec1.find("## 3.") {
+            relevant_text = &after_sec1[..end_pos];
+        } else {
+            relevant_text = after_sec1;
+        }
+    }
+
+    let req_re = Regex::new(r"REQ-[0-9]{4}").unwrap();
+    let current_digits: String = current_req_id.chars().filter(|c| c.is_ascii_digit()).collect();
+    let mut refs = Vec::new();
+
+    for cap in req_re.find_iter(relevant_text) {
+        let r_str = cap.as_str();
+        let r_digits: String = r_str.chars().filter(|c| c.is_ascii_digit()).collect();
+        if r_digits != current_digits {
+            let canonical = resolve_requirement_reference(r_str);
+            if !refs.contains(&canonical) {
+                refs.push(canonical);
+            }
+        }
+    }
+
+    refs
+}
+
 /// Represents an intermediate parsed Markdown section between structural headings.
 ///
 /// Contains the heading text, optional component target, collected prose documentation lines,
@@ -797,12 +1048,29 @@ impl MarkdownTranslator {
                     verified_by.push(format!("AC_{}_{}", ac_num_str, clean_ac_slug));
                 }
 
+                // Formal invariant constraints
+                let formal_invariants = extract_formal_invariants(content, &num_str);
+                let mut requires = Vec::new();
+                for inv in &formal_invariants {
+                    if !requires.contains(&inv.name) {
+                        requires.push(inv.name.clone());
+                    }
+                    if !pkg.constraint_defs.iter().any(|c| c.name == inv.name) {
+                        pkg.constraint_defs.push(inv.clone());
+                    }
+                }
+
+                // Requirement cross-reference derivations
+                let derived_from = extract_requirement_cross_references(content, req_id);
+
                 let req_def = RequirementDef {
                     name: req_name,
                     req_id: req_id.clone(),
                     text: normative_text,
                     doc: Some(doc_str),
                     attributes: req_attributes,
+                    requires,
+                    derived_from,
                     verified_by,
                     satisfied_by: vec![sub_meta.engine_name],
                     ..Default::default()
@@ -852,13 +1120,15 @@ impl MarkdownTranslator {
         let has_requirements = sub_packages.iter().any(|p| !p.requirement_defs.is_empty());
 
         if has_requirements {
-            // Group requirement definitions and parts into the 12 canonical subsystems
+            // Group requirement definitions, constraints, and parts into the 12 canonical subsystems
             let mut subsystem_reqs: BTreeMap<usize, Vec<RequirementDef>> = BTreeMap::new();
             let mut subsystem_parts: BTreeMap<usize, BTreeMap<String, PartDef>> = BTreeMap::new();
+            let mut subsystem_constraints: BTreeMap<usize, Vec<ConstraintDef>> = BTreeMap::new();
 
             for idx in 1..=12 {
                 subsystem_reqs.insert(idx, Vec::new());
                 subsystem_parts.insert(idx, BTreeMap::new());
+                subsystem_constraints.insert(idx, Vec::new());
             }
 
             for sub_pkg in sub_packages {
@@ -873,6 +1143,15 @@ impl MarkdownTranslator {
                     for req in sub_pkg.requirement_defs {
                         if !req_list.iter().any(|r| r.req_id == req.req_id) {
                             req_list.push(req);
+                        }
+                    }
+                }
+
+                // Add constituent constraint definitions
+                if let Some(con_list) = subsystem_constraints.get_mut(&sub_idx) {
+                    for con in sub_pkg.constraint_defs {
+                        if !con_list.iter().any(|c| c.name == con.name) {
+                            con_list.push(con);
                         }
                     }
                 }
@@ -898,12 +1177,25 @@ impl MarkdownTranslator {
                 let mut reqs = subsystem_reqs.remove(&idx).unwrap_or_default();
                 reqs.sort_by(|a, b| a.req_id.cmp(&b.req_id));
 
-                // Create primary subsystem engine PartDef with ports
+                let constraints = subsystem_constraints.remove(&idx).unwrap_or_default();
+
+                // Create primary subsystem engine PartDef with ports and asserted invariant constraints
+                let mut engine_constraints = Vec::new();
+                for inv in &constraints {
+                    engine_constraints.push(ConstraintDef {
+                        name: inv.name.clone(),
+                        is_assertion: true,
+                        doc: None,
+                        ..Default::default()
+                    });
+                }
+
                 let engine_part = PartDef {
                     name: meta.engine_name.clone(),
                     doc: Some(format!("Primary execution engine for {}", meta.pkg_doc)),
                     is_def: true,
                     ports: meta.ports.clone(),
+                    constraints: engine_constraints,
                     ..Default::default()
                 };
 
@@ -924,6 +1216,7 @@ impl MarkdownTranslator {
                     doc: Some(meta.pkg_doc.clone()),
                     parent_package: Some("DEAP_Compiler_System".to_string()),
                     requirement_defs: reqs,
+                    constraint_defs: constraints,
                     part_defs: parts,
                     ..Default::default()
                 });
@@ -2263,5 +2556,97 @@ Prose
         assert_eq!(p.direction, "out");
         assert_eq!(p.port_category, "");
     }
+
+    #[test]
+    fn test_extract_formal_invariants_and_cross_references() {
+        let content = r#"---
+id: REQ-0032
+title: "Deterministic Qualified-Name Symbol Sorting for Canonical Model Emission"
+subsystem: "Subsystem 2: Universal Schema Ingestion Engine"
+uuidv5: 2f859e57-faf5-5088-8de9-da3a720d19be
+---
+
+# [REQ-0032] Deterministic Qualified-Name Symbol Sorting
+
+## 1. Normative Statement
+The textual emission engine shall sort symbols prior to canonical model emission (schema/model.sysml, REQ-0031) and serialized artifact generation (REQ-0044, REQ-0019).
+
+## 2. Formal Invariant
+Strict Total Ordering Invariant over collision-free declarations:
+
+```math
+\forall d_1 \ne d_2 \in \mathcal{D}_{\text{valid}}, \quad (d_1 \prec_{\text{sym}} d_2) \oplus (d_2 \prec_{\text{sym}} d_1)
+```
+
+Zero Diff Churn & Determinism across permutations:
+
+```math
+\forall \mathcal{A}_1, \mathcal{A}_2, \quad \mathcal{E}(\mathcal{A}_1) = \mathcal{E}(\mathcal{A}_2)
+```
+
+Diagnostic Code Binding Invariants:
+
+```math
+\text{Diagnostic Code Binding Equation}
+```
+
+---
+
+## 3. Computational Complexity & Algorithmic Bounds
+Complexity Class P.
+"#;
+        let invariants = extract_formal_invariants(content, "0032");
+        assert_eq!(invariants.len(), 3);
+        assert_eq!(invariants[0].name, "Invariant_REQ_0032_Strict_Total_Ordering_Invariant");
+        assert!(!invariants[0].is_assertion);
+        assert!(invariants[0].doc.as_ref().unwrap().contains(r"\forall d_1 \ne d_2"));
+
+        assert_eq!(invariants[1].name, "Invariant_REQ_0032_Zero_Diff_Churn_Determinism");
+        assert_eq!(invariants[2].name, "Invariant_REQ_0032_Diagnostic_Code_Binding_Invariants");
+
+        let refs = extract_requirement_cross_references(content, "REQ-0032");
+        assert!(refs.iter().any(|r| r.contains("0031")));
+        assert!(refs.iter().any(|r| r.contains("0019")));
+        assert!(refs.iter().any(|r| r.contains("0044")));
+        assert!(!refs.iter().any(|r| r.contains("0032")));
+    }
+
+    #[test]
+    fn test_translate_wires_requires_derived_from_and_constraints() {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let path = format!("{}/../../schema/REQ-0032.md", manifest_dir);
+        let content = std::fs::read_to_string(&path).expect("Failed to read REQ-0032.md");
+        let translator = MarkdownTranslator::new();
+        let pkg = translator.translate(&content, "REQ_0032").expect("Failed to translate REQ-0032");
+
+        assert_eq!(pkg.requirement_defs.len(), 1);
+        let req = &pkg.requirement_defs[0];
+        assert!(!req.requires.is_empty(), "Requirement requires must not be empty");
+        assert!(req.requires.iter().any(|r| r.contains("Strict_Total_Ordering")));
+        assert!(!req.derived_from.is_empty(), "Requirement derived_from must not be empty");
+        assert!(req.derived_from.iter().any(|d| d.contains("0031")));
+
+        assert!(!pkg.constraint_defs.is_empty(), "Package constraint_defs must contain lowered invariants");
+        assert!(pkg.constraint_defs.iter().any(|c| c.name.contains("Strict_Total_Ordering")));
+    }
+
+    #[test]
+    fn test_translate_files_subsystem_constraints_and_engine_assertions() {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let files = vec![
+            format!("{}/../../schema/REQ-0031.md", manifest_dir),
+            format!("{}/../../schema/REQ-0032.md", manifest_dir),
+        ];
+        let translator = MarkdownTranslator::new();
+        let combined = translator.translate_files(&files, "schema").expect("Failed translate_files");
+
+        let sub2 = combined.packages.iter().find(|p| p.name.contains("Subsystem_2")).expect("Subsystem 2 missing");
+        assert!(!sub2.constraint_defs.is_empty(), "Subsystem 2 must contain constraint definitions");
+        let engine = sub2.part_defs.iter().find(|p| p.name == "UniversalIngestionEngine").expect("UniversalIngestionEngine missing");
+        assert!(!engine.constraints.is_empty(), "UniversalIngestionEngine must assert constraints");
+        assert!(engine.constraints.iter().all(|c| c.is_assertion));
+        assert!(engine.constraints.iter().any(|c| c.name.contains("Strict_Total_Ordering")));
+    }
 }
+
 

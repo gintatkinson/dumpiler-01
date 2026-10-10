@@ -582,7 +582,12 @@ impl<'a> SysmlParser<'a> {
             false
         };
 
-        self.expect(&TokenKind::Constraint)?;
+        if self.check(&TokenKind::Constraint) {
+            self.advance();
+        } else if !is_assertion {
+            self.expect(&TokenKind::Constraint)?;
+        }
+
         if self.check(&TokenKind::Def) {
             self.advance();
         }
@@ -660,6 +665,7 @@ impl<'a> SysmlParser<'a> {
         let mut text = String::new();
         let mut assumes = Vec::new();
         let mut requires = Vec::new();
+        let mut derived_from = Vec::new();
         let mut verified_by = Vec::new();
         let mut satisfied_by = Vec::new();
         let mut attributes = Vec::new();
@@ -694,6 +700,18 @@ impl<'a> SysmlParser<'a> {
                 } else if self.check(&TokenKind::Require) {
                     self.advance();
                     requires.push(self.read_until_semi());
+                } else if match self.peek_kind() {
+                    TokenKind::Ident(s) => s == "derived" || s == "derive",
+                    _ => false,
+                } {
+                    self.advance();
+                    if self.check(&TokenKind::Requirement) {
+                        self.advance();
+                    }
+                    if self.check(&TokenKind::From) {
+                        self.advance();
+                    }
+                    derived_from.push(self.read_until_semi());
                 } else if self.check(&TokenKind::Verify) {
                     self.advance();
                     if self.check(&TokenKind::By) {
@@ -725,6 +743,8 @@ impl<'a> SysmlParser<'a> {
             requires,
             verified_by,
             satisfied_by,
+            derived_from,
+            derives: Vec::new(),
         })
     }
 
@@ -1714,5 +1734,51 @@ package ReqPkg {
         assert_eq!(req.verified_by, vec!["AC_01_Demo"]);
         assert_eq!(req.satisfied_by, vec!["DemoEngine"]);
     }
+
+    #[test]
+    fn test_parse_requirement_with_assumptions_constraints_derivations() {
+        let source = r#"
+package ReqPkg {
+    requirement def REQ_0032_Test {
+        id = "REQ-0032";
+        text = "Req with constraints and derivations.";
+        assume ValidSchema;
+        require Invariant_Alpha;
+        require Invariant_Beta;
+        derived from REQ_0031_Parent;
+        derived from REQ_0019_Sanitization;
+        verify by AC_01;
+        satisfy by Engine;
+    }
 }
+"#;
+        let pkg = SysmlParser::parse_source(source, "Default").unwrap();
+        assert_eq!(pkg.requirement_defs.len(), 1);
+        let req = &pkg.requirement_defs[0];
+        assert_eq!(req.assumes, vec!["ValidSchema"]);
+        assert_eq!(req.requires, vec!["Invariant_Alpha", "Invariant_Beta"]);
+        assert_eq!(req.derived_from, vec!["REQ_0031_Parent", "REQ_0019_Sanitization"]);
+    }
+
+    #[test]
+    fn test_parse_part_with_assert_constraint() {
+        let source = r#"
+package SubsystemPkg {
+    part def Engine {
+        assert constraint Invariant_Alpha;
+        assert constraint Invariant_Beta;
+    }
+}
+"#;
+        let pkg = SysmlParser::parse_source(source, "Default").unwrap();
+        assert_eq!(pkg.part_defs.len(), 1);
+        let engine = &pkg.part_defs[0];
+        assert_eq!(engine.constraints.len(), 2);
+        assert_eq!(engine.constraints[0].name, "Invariant_Alpha");
+        assert!(engine.constraints[0].is_assertion);
+        assert_eq!(engine.constraints[1].name, "Invariant_Beta");
+        assert!(engine.constraints[1].is_assertion);
+    }
+}
+
 

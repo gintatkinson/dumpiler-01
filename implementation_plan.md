@@ -91,8 +91,162 @@ All code and model modifications will be executed by context-isolated subagents 
 
 ---
 
+## 4. Feature 1 Status: Completed & Resolved
+- **Commit**: `69968a6` (`feat(schema): encapsulate acceptance criteria and metadata attributes directly inside requirement definitions (refs #1, refs #425)`)
+- **Remote Issues**: Downstream [#1](https://github.com/gintatkinson/dumpiler-01/issues/1) and Upstream [#425](https://github.com/gintatkinson/DEAP01-spec-core/issues/425) labeled `status:fixed-resolved` with verification evidence.
+- **Verification**: `cargo test --workspace` passed 100%, model compiled cleanly, baseline verified 31/31 checks.
+
+---
+
+# Feature 2 Implementation Plan: Formal Invariant Constraints Lowering, Requirement Derivations, and Subsystem Assertions
+
+## 1. Problem Statement & User Findings
+An architectural analysis of the requirements model in `schema/model.sysml` and `crates/ingest-sysml` revealed that the requirements model does not use, specify, or derive constraints:
+1. **Zero Constraint Definitions & Assertions**: `schema/model.sysml` contains 0 `constraint def`, 0 `assert constraint`, 0 `require <constraint>`, and 0 `assume <constraint>` statements.
+2. **Ingestion Drop of Formal Invariants**: In the 199 Markdown source files under `schema/REQ-*.md`, every requirement contains `## 2. Formal Invariant` with mathematical definitions (strict total ordering relations, determinism invariants, complexity bounds, diagnostic implications). However, `ingest-sysml` completely skips Section 2 and Section 3 during translation.
+3. **Missing Requirement Derivation Tracking**: Requirements frequently cross-reference parent, child, or peer requirements (e.g. `REQ-0032` referencing `REQ-0031`, `REQ-0019`, `REQ-0044`), but `RequirementDef` lacks derivation fields (`derived_from`, `derives`), and `ingest-sysml` does not parse or emit SysML v2 `derive requirement ... from ...;` / `derived from` relationships.
+4. **Subsystem Package Assembly Gap**: In `translate_files()`, `PackageDef.constraint_defs` is explicitly omitted (`..Default::default()`), dropping any parsed constraints from the 12 subsystem packages. Furthermore, primary execution engines (`part def UniversalIngestionEngine`, etc.) do not assert the invariants of their constituent requirements.
+
+---
+
+## 2. Proposed Target SysML v2 Architecture
+Every subsystem package will contain formal `constraint def`s lowered from the Markdown formal invariants, requirements will explicitly specify constraints (`require`, `assume`) and derivations (`derived from`), and subsystem engines will assert them:
+
+```sysml
+package Subsystem_2_Universal_Schema_Ingestion_Engine {
+    doc /* Universal Schema Ingestion Engine */
+
+    // 1. Formal Constraint Definitions Lowered from Section 2 (Formal Invariants)
+    constraint def Invariant_REQ_0032_StrictTotalOrdering {
+        doc /* \forall d1 != d2 in D_valid, (d1 <_sym d2) ^ (d2 <_sym d1) */
+    }
+
+    constraint def Invariant_REQ_0032_DeterminismAndZeroDiffChurn {
+        doc /* SHA256(E(A1; s1)) == SHA256(E(A2; s2)) */
+    }
+
+    // 2. Requirement Specifying & Deriving Constraints
+    requirement def REQ_0032_Deterministic_Qualified_Name_Symbol_Sorting_for_Canonical_Model_Emission {
+        id = "REQ-0032";
+        text = "The textual emission and model serialization engine shall sort all model declarations...";
+        
+        // Metadata Attributes
+        attribute uuidv5 : String = "2f859e57-faf5-5088-8de9-da3a720d19be";
+        attribute complexity_class : String = "Class P (O(L))";
+        attribute governing_standard : String = "IEEE 29148-2018 / RFC 2119 / OMG SysML v2";
+        attribute diagnostic_codes : String = "E0100, E0102, E0199";
+
+        // Acceptance Criteria
+        attribute ac_01_permutation_invariance_and_zero_diff_churn : String = "...";
+        ...
+
+        // Specifying Constraints
+        require Invariant_REQ_0032_StrictTotalOrdering;
+        require Invariant_REQ_0032_DeterminismAndZeroDiffChurn;
+
+        // Deriving Requirements
+        derived from REQ_0031_Canonical_SysML_v2_Textual_Model_Emission;
+        derived from REQ_0019_Identifier_Sanitization_and_Keyword_Escaping;
+
+        // Verification & Satisfaction
+        verify by AC_01_Permutation_Invariance_and_Zero_Diff_Churn;
+        satisfy by UniversalIngestionEngine;
+    }
+
+    // 3. Subsystem Execution Engine Asserting Constraints
+    part def UniversalIngestionEngine {
+        port in schema_in : RawSchemaStreamPort;
+        port out token_out : TokenStreamPort;
+
+        assert constraint Invariant_REQ_0032_StrictTotalOrdering;
+        assert constraint Invariant_REQ_0032_DeterminismAndZeroDiffChurn;
+    }
+}
+```
+
+---
+
+## 3. Work Packages & Subagent Decomposition
+
+### Phase 1: Adversarial Audit & Defect/Feature Dossier Creation & Filing
+- **Subagent**: Adversarial Code Auditor (`skills/adversarial-code-auditor/SKILL.md`)
+- **Pillar**: Semantic Traceability
+- **Tasks**:
+  1. Deeply inspect `crates/ingest-sysml/src/translators/markdown.rs`, `crates/deap-core/src/sysml_ast.rs`, and `schema/model.sysml`.
+  2. Author 7-section defect dossier at `.pipeline/defects/dossier_invariant_constraints_and_derivations.md`.
+  3. Validate dossier schema using `python3 scripts/file_defect.py --dry-run`.
+  4. Post feature issue to downstream tracker (`gintatkinson/dumpiler-01`) with label `feature`.
+  5. Post feature issue to upstream compiler core (`gintatkinson/DEAP01-spec-core`) with label `feature`.
+  6. Return created issue numbers (`#<downstream_id>`, `#<upstream_id>`).
+
+### Phase 2: Feature-Driven Implementation (`skills/feature-driven-implementation/SKILL.md`)
+
+#### Work Package 2.1: AST, Parser & Serializer Extensions
+- **Subagent**: Rust Systems Engineer
+- **Target Files**:
+  - `crates/deap-core/src/sysml_ast.rs`
+  - `crates/compile-sysml/src/semantic/serializer.rs`
+  - `crates/compile-sysml/src/parser/grammar.rs`
+- **Deliverables**:
+  1. Add `pub derived_from: Vec<String>` to `RequirementDef`.
+  2. Add `pub derives: Vec<String>` to `RequirementDef`.
+  3. Update `parse_requirement_defs()` in `sysml_ast.rs` to parse `require`, `assume`, and `derived from`.
+  4. Update `SysmlSerializable for RequirementDef` in `serializer.rs` to serialize:
+     - `require <name>;` for each item in `requires`
+     - `assume <name>;` for each item in `assumes`
+     - `derived from <name>;` for each item in `derived_from`
+  5. Update `parse_requirement_decl()` in `grammar.rs` to parse `derived from` and populated fields.
+  6. Update `PartDef` serialization / AST if needed to support `assert constraint <name>;`.
+  7. Add driving unit tests in `deap-core` and `compile-sysml`.
+
+#### Work Package 2.2: Markdown Ingestion of Invariants & Requirement Cross-References
+- **Subagent**: Rust Systems Engineer
+- **Target Files**:
+  - `crates/ingest-sysml/src/translators/markdown.rs`
+- **Deliverables**:
+  1. Implement `extract_formal_invariants(content: &str, req_num: &str) -> Vec<ConstraintDef>`:
+     - Parses `## 2. Formal Invariant` blocks.
+     - Extracts named propositions, invariant formulas, and bounds.
+     - Constructs clean `ConstraintDef` entities with sanitized names (`Invariant_REQ_XXXX_<Slug>`).
+  2. Implement `extract_requirement_cross_references(content: &str, current_req_id: &str) -> Vec<String>`:
+     - Extracts all `REQ-XXXX` citations appearing in Section 1 and Section 2.
+     - Resolves canonical requirement symbol names (`REQ_XXXX_<Title>`).
+     - Populates `RequirementDef.derived_from`.
+  3. Update `translate()`:
+     - Attaches invariant names to `RequirementDef.requires`.
+     - Populates `pkg.constraint_defs`.
+  4. Update `translate_files()`:
+     - Collects `constraint_defs` by subsystem index.
+     - Populates each subsystem `PackageDef.constraint_defs`.
+     - Adds `assert constraint` references to the subsystem engine part.
+  5. Add driving unit tests in `ingest-sysml` verifying constraint extraction and derivation mapping.
+
+#### Work Package 2.3: Re-synthesis, Full Compilation & Verification
+- **Deliverables**:
+  1. Run `cargo test --workspace` (assert 100% green).
+  2. Re-synthesize model: `./target/release/ingest-sysml --schema schema/ --format markdown --out schema/model.sysml`.
+  3. Compile model: `./target/release/compile-sysml --compile --schema schema/model.sysml`.
+  4. Verify that `schema/model.sysml` contains > 0 `constraint def`, `require`, and `derived from` statements.
+  5. Run baseline verifiers:
+     - `./target/release/verify-baseline . --no-domain`
+     - `python3 scripts/verify_downstream_baseline.py --no-domain`
+  6. Check for zero Unicode em dashes (`\u2014`).
+
+### Phase 3: Remote Synchronization, Issue Transition & Walkthrough
+- Stage and commit with neutral non-auto-closing message:
+  `git commit -m "feat(schema): formalize invariant constraints, requirement derivations, and subsystem assertions (refs #<downstream_id>, refs #<upstream_id>)"`
+- Push to remote: `git push origin main`.
+- Verify `git diff origin/main` is empty.
+- Transition downstream and upstream issues to `status:fixed-resolved` with verification evidence comments.
+- Inspect published live issue payloads (`gh issue view`).
+- Present final report to user.
+
+---
+
 ## 4. Strict Governance Invariants
 - **Zero Em Dashes**: Strict prohibition of `\u2014`.
-- **Pure Schema-Driven**: All attributes and ACs derived directly from `schema/REQ-*.md`.
-- **Coordinator Direct Writing Lock**: Source code edits delegated exclusively to subagents.
-- **Remote Synchronization**: Task is complete only when pushed to `origin/main`.
+- **Pure Schema-Driven**: Invariants and derivations derived strictly from `schema/REQ-*.md`.
+- **Coordinator Direct Writing Lock**: All code/spec modifications executed exclusively by subagents.
+- **Commit Message Non-Closure Invariant**: Neutral citations `(refs #<id>)` only.
+- **Remote Synchronization**: Verified push to `origin/main` before declaring completion.
+
