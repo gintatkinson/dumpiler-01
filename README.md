@@ -65,21 +65,18 @@ cargo build --release
 To verify that all repository issue tracker labels, baseline contracts, and safety fixtures pass downstream conformance gates, run:
 
 ```bash
-# Run baseline conformance verification (native Rust binary with Python fallback)
+# Run baseline conformance verification (native Rust binary)
 ./target/release/verify-baseline . --no-domain
-# (or python3 scripts/verify_downstream_baseline.py --no-domain)
 ```
 
 For customer projects starting with unstructured OEM technical documentation, PDF flight manuals, or Bill of Materials (BOM) specifications, execute Level 0 OEM Ground Truth Ingestion (Step 0.0):
 
 ```bash
-# Run Level 0 OEM Ground Truth ingestion (native Rust binary with Python fallback)
+# Run Level 0 OEM Ground Truth ingestion (native Rust binary)
 ./target/release/ingest-sysml --schema "schema/extracted/" --format markdown --out "schema/model.sysml"
-# (or python3 skills/spec-orchestrator/scripts/sysmlv2_ingest.py --schema "schema/extracted/" --format markdown --out "schema/model.sysml")
 
-# Verify model compilation gate (native Rust binary with Python fallback)
+# Verify model compilation gate (native Rust binary)
 ./target/release/compile-sysml --compile
-# (or python3 scripts/compile_sysml.py --compile)
 ```
 
 ### 3.2 In-Place Pipeline Tooling Update
@@ -101,7 +98,7 @@ Immediately following installation, any AI agent (Antigravity, Claude Code, Curs
 2. **Load Project Skills**: Execute `view_file` on `skills/feature-driven-implementation/SKILL.md` (and any active skills under `skills/` or `.agents/skills/`) to initialize feature-driven implementation protocols and review gates.
 3. **Load Governance Rules**: Execute `view_file` on `.pipeline/ACTIVE_RULES_BUNDLE.md` to ingest the complete, consolidated suite of active governance rules in a single read (covering dual-track MBD, SysML SSOT completeness, role boundary locks, and TDD mandates).
 4. **Load Platform Profile**: Read the target platform execution profile (`.pipeline/profiles/flutter.md`, `.pipeline/profiles/react.md`, `.pipeline/profiles/ros2_cpp.md`, or `.pipeline/profiles/px4_module.md`) to establish platform-specific build, test, and lifecycle constraints.
-5. **Bootstrap Tracker Labels & Verify Baseline**: Verify that repository issue tracker labels and baseline conformance pass by running `./target/release/verify-baseline . --no-domain` (or `python3 scripts/verify_downstream_baseline.py --no-domain`).
+5. **Bootstrap Tracker Labels & Verify Baseline**: Verify that repository issue tracker labels and baseline conformance pass by running `./target/release/verify-baseline . --no-domain`.
 
 ---
 ## 4. Multi-Pipeline Operator Prompt Catalog & Autonomous Execution Workflows
@@ -148,7 +145,7 @@ Execute the following prompts in sequence using context-isolated subagents to tr
 #### 4.2.0 Worker 00: OEM Prose / BOM Ingestion & Model Synthesis Prompt (Step 0.0)
 
 **Step 0.0 Entrypoint for Unstructured / Prose Customer Documentation:**
-For customer projects starting with unstructured OEM prose manuals, PDF documentation, markdown tables, or Bill of Materials (BOM) specifications, Worker 00 provides the sanctioned, deterministic entrypoint. Extracting OEM Bill of Materials (BOM) and physical parameters into `schema/extracted/` and synthesizing canonical SysML v2 textual models in `schema/model.sysml` (or `.pipeline/schema.sysml`) is fully authorized under Check 23 (Factual Grounding & Numeric Provenance Gate) and serves as the mandatory precursor to executing the Step 0 compilation gate (`./target/release/compile-sysml --compile` or `python3 scripts/compile_sysml.py --compile`).
+For customer projects starting with unstructured OEM prose manuals, PDF documentation, markdown tables, or Bill of Materials (BOM) specifications, Worker 00 provides the sanctioned, deterministic entrypoint. Extracting OEM Bill of Materials (BOM) and physical parameters into `schema/extracted/` and synthesizing canonical SysML v2 textual models in `schema/model.sysml` (or `.pipeline/schema.sysml`) is fully authorized under Check 23 (Factual Grounding & Numeric Provenance Gate) and serves as the mandatory precursor to executing the Step 0 compilation gate (`./target/release/compile-sysml --compile`).
 
 ```text
 Execute `view_file` on `skills/spec-orchestrator/SKILL.md` as your very first step before taking any action.
@@ -169,7 +166,7 @@ Execute Level 0 OEM Ground Truth Ingestion and initial SysML v2 textual model sy
 
 2. Canonical SysML v2 Model Synthesis:
    - Execute the Level 0 ingestion translator:
-     ./target/release/ingest-sysml --schema "schema/extracted/" --format markdown --out "schema/model.sysml" (or python3 skills/spec-orchestrator/scripts/sysmlv2_ingest.py --schema "schema/extracted/" --format markdown --out "schema/model.sysml")
+     ./target/release/ingest-sysml --schema "schema/extracted/" --format markdown --out "schema/model.sysml"
    - Alternatively, synthesize a formal SysML v2 textual model `schema/model.sysml` directly, defining:
      * Root `package` matching the target cyber-physical system.
      * All component definitions as canonical `part def` elements with typed attributes (mass, power, dimensions, channel count, part numbers).
@@ -179,7 +176,7 @@ Execute Level 0 OEM Ground Truth Ingestion and initial SysML v2 textual model sy
 
 3. Compilation Gate Precursor Verification:
    - Verify that the generated `schema/model.sysml` passes the Step 0 SysML Compilation Gate:
-     ./target/release/compile-sysml --compile (or python3 scripts/compile_sysml.py --compile)
+     ./target/release/compile-sysml --compile
    - Ensure `.pipeline/schema.sysml` and `.pipeline/schema-digest.json` are successfully generated without compilation errors.
    - Verify Check 23 compliance (Factual Grounding & Numeric Provenance Gate): all physical parameters and component counts in `schema/model.sysml` strictly match the Level 0 OEM ground truth in `schema/extracted/`.
 
@@ -493,20 +490,17 @@ Execute backlog reconciliation and model parity verification across your target 
 
 #### 4.4.4 Option D: Offline Verification & 23-Gate Parity Lock
 ```bash
-# Closed-loop reverse SysML v2 AST synchronization (Rust native or Python fallback)
+# Closed-loop reverse SysML v2 AST synchronization (Rust native)
 ./target/release/compile-sysml --reverse-sync
-# (or python3 scripts/compile_sysml.py --reverse-sync)
 
-# Forward SysML v2 AST synchronization (Rust native or Python fallback)
+# Forward SysML v2 AST synchronization (Rust native)
 ./target/release/compile-sysml --forward-sync
-# (or python3 scripts/compile_sysml.py --forward-sync)
 
 # Offline backlog checklist and status synchronization
 ./scripts/reconcile_backlog.py --offline
 
 # Baseline conformance verification (Checks 10-31 quality gate verifier)
 ./target/release/verify-baseline . --no-domain
-# (or python3 scripts/verify_downstream_baseline.py --no-domain)
 
 # 23-Gate Model Coverage & UML Compliance Lock
 ./skills/spec-orchestrator/scripts/verify_model_coverage.py schema docs/features --spec-only
@@ -684,7 +678,6 @@ docs/reports/simulink_results/
 Execute baseline and safety governance verification:
 
 ```bash
-# Run downstream conformance gate (native Rust binary with Python fallback)
+# Run downstream conformance gate (native Rust binary)
 ./target/release/verify-baseline . --no-domain
-# (or python3 scripts/verify_downstream_baseline.py --no-domain)
 ```

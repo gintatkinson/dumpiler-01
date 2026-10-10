@@ -24,7 +24,7 @@ Immediately following installation and on EVERY new session startup, before acce
 2. **Load Project Skills**: Execute `view_file` on `skills/feature-driven-implementation/SKILL.md` (and active skills under `skills/`) to initialize feature-driven implementation protocols and review gates.
 3. **Load Governance Rules**: Execute `view_file` on `.pipeline/ACTIVE_RULES_BUNDLE.md` to ingest the complete, consolidated suite of active governance rules in a single read.
 4. **Load Platform Profile**: Read the target platform execution profile (e.g., `.pipeline/profiles/flutter.md`, `.pipeline/profiles/react.md`, `.pipeline/profiles/ros2_cpp.md`, or `.pipeline/profiles/px4_module.md`) to establish platform-specific constraints.
-5. **Bootstrap Tracker Labels & Verify Baseline**: Verify that repository issue tracker labels and baseline conformance pass by running `./target/release/verify-baseline . --no-domain` (or `python3 scripts/verify_downstream_baseline.py --no-domain`).
+5. **Bootstrap Tracker Labels & Verify Baseline**: Verify that repository issue tracker labels and baseline conformance pass by running `./target/release/verify-baseline . --no-domain`.
 
 ## Strict Planning Gate (No Execution Without Approved Plan)
 - You are strictly forbidden from creating, modifying, or deleting files in the workspace or dispatching any subagents unless that action is documented in an approved implementation plan.
@@ -44,7 +44,7 @@ Immediately following installation and on EVERY new session startup, before acce
 
 ## Strict Prohibition of Unit Tests & Exclusive Semantic Acceptance Testing Mandate
 - **Unit Tests Strictly Forbidden**: Creating, maintaining, or executing unit test suites (`tests/`, `test_*.py`, `pytest`) is strictly forbidden across this repository. Coordinators and subagents must never create unit test files or invoke `pytest`.
-- **Exclusive Semantic Acceptance Testing**: All verification across the pipeline must be performed exclusively via end-to-end semantic acceptance testing against real schemas and domain specifications (`crates/ingest-sysml`, `crates/compile-sysml`, `crates/verify-baseline`, or Python wrappers `sysmlv2_ingest.py`, `scripts/verify_downstream_baseline.py`, and `scripts/e2e_acceptance_harness.py`).
+- **Exclusive Semantic Acceptance Testing**: All verification across the pipeline must be performed exclusively via end-to-end semantic acceptance testing against real schemas and domain specifications (`crates/ingest-sysml`, `crates/compile-sysml`, `crates/verify-baseline`, or Python wrapper `scripts/e2e_acceptance_harness.py`).
 - **Forbidden Test Workspace Creation**: Creating mock test projects, mock repository directories, or test-runner scripts (such as `test_project/` or `run_tests.py`) directly inside the workspace is strictly forbidden.
 
 ## Mandatory Workspace-Relative Paths Invariant

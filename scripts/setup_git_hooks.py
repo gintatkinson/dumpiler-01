@@ -96,8 +96,10 @@ def setup_git_hooks():
         "if [ -f scripts/verify_subagent_output.py ]; then\n"
         "  python3 scripts/verify_subagent_output.py --dir docs\n"
         "fi\n"
-        "if [ -f scripts/verify_downstream_baseline.py ]; then\n"
-        "  python3 scripts/verify_downstream_baseline.py\n"
+        "if [ -f ./target/release/verify-baseline ]; then\n"
+        "  ./target/release/verify-baseline . --no-domain\n"
+        "elif [ -f ./target/debug/verify-baseline ]; then\n"
+        "  ./target/debug/verify-baseline . --no-domain\n"
         "fi\n"
     )
     try:

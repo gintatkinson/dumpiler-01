@@ -4650,11 +4650,35 @@ def assert_no_mock_cli(workspace_dir=None):
                 print(f"[FATAL] Zero-mocking policy violation: Forbidden mock CLI binary detected at {resolved_abs}", file=sys.stderr)
                 sys.exit(1)
 
+def _sync_with_schema(workspace_dir: str) -> None:
+    """Pre-reconciliation closed-loop SysML v2 reverse-synchronization."""
+    docs_dir = os.path.join(workspace_dir, "docs")
+    upstream_marker = os.path.join(workspace_dir, ".pipeline", "upstream")
+    if os.path.isdir(docs_dir) and not os.path.isdir(upstream_marker):
+        compile_bin = os.path.join(workspace_dir, "target", "release", "compile-sysml")
+        if not os.path.isfile(compile_bin):
+            compile_bin = os.path.join(workspace_dir, "target", "debug", "compile-sysml")
+        if os.path.isfile(compile_bin):
+            print("Running pre-reconciliation SysML v2 reverse-synchronization...")
+            cmd = [compile_bin, "--reverse-sync", "--docs", "docs"]
+            try:
+                res = subprocess.run(cmd, cwd=workspace_dir, capture_output=True, text=True, timeout=60)
+                if res.returncode != 0:
+                    print(f"[Warning] Pre-reconciliation SysML v2 reverse-sync failed:\n{res.stderr or res.stdout}", file=sys.stderr)
+                else:
+                    print("Pre-reconciliation SysML v2 reverse-synchronization completed successfully.")
+            except Exception as e:
+                print(f"[Warning] Pre-reconciliation SysML v2 reverse-sync encountered error: {e}", file=sys.stderr)
+
 def main():
     import subprocess
-    verify_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "verify_downstream_baseline.py")
-    if os.path.isfile(verify_script):
-        res = subprocess.run([sys.executable, verify_script])
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    workspace_dir = find_workspace_dir(script_dir)
+    verify_bin = os.path.join(workspace_dir, "target", "release", "verify-baseline")
+    if not os.path.isfile(verify_bin):
+        verify_bin = os.path.join(workspace_dir, "target", "debug", "verify-baseline")
+    if os.path.isfile(verify_bin):
+        res = subprocess.run([verify_bin, ".", "--no-domain"], cwd=workspace_dir)
         if res.returncode != 0:
             sys.stderr.write("[ERROR] Pre-flight baseline verification failed. Reconciliation aborted to prevent broken state sync.\n")
             sys.exit(res.returncode)
@@ -4740,31 +4764,7 @@ def main():
     assert_no_mock_cli(workspace_dir)
 
     # Automated hook: Closed-loop SysML v2 reverse-synchronization before tracker sync
-    docs_dir = os.path.join(workspace_dir, "docs")
-    upstream_marker = os.path.join(workspace_dir, ".pipeline", "upstream")
-    if os.path.isdir(docs_dir) and not os.path.isdir(upstream_marker):
-        compile_script = os.path.join(workspace_dir, "scripts", "compile_sysml.py")
-        if not os.path.isfile(compile_script):
-            compile_script = os.path.join(script_dir, "compile_sysml.py")
-        if os.path.isfile(compile_script):
-            print("Running pre-reconciliation SysML v2 reverse-synchronization...")
-            cmd = [sys.executable, compile_script, "--reverse-sync", "--docs", "docs"]
-            for cand_schema in (
-                os.path.join(workspace_dir, "schema", "platform.sysml"),
-                os.path.join(workspace_dir, "schema", "DEAP_MODEL.sysml"),
-                os.path.join(workspace_dir, ".pipeline", "schema.sysml"),
-            ):
-                if os.path.isfile(cand_schema):
-                    cmd.extend(["--schema", cand_schema])
-                    break
-            try:
-                res = subprocess.run(cmd, cwd=workspace_dir, capture_output=True, text=True, timeout=60)
-                if res.returncode != 0:
-                    print(f"[Warning] Pre-reconciliation SysML v2 reverse-sync failed:\n{res.stderr or res.stdout}", file=sys.stderr)
-                else:
-                    print("Pre-reconciliation SysML v2 reverse-synchronization completed successfully.")
-            except Exception as e:
-                print(f"[Warning] Pre-reconciliation SysML v2 reverse-sync encountered error: {e}", file=sys.stderr)
+    _sync_with_schema(workspace_dir)
 
     # Programmatic gate: Run linter before proceeding with reconciliation
     blocked_specs = set()

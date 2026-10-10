@@ -192,20 +192,17 @@ Execute backlog reconciliation and model parity verification across your target 
 
 #### Option D: Offline Verification & 23-Gate Parity Lock
 ```bash
-# Closed-loop reverse SysML v2 AST synchronization (Rust native or Python fallback)
+# Closed-loop reverse SysML v2 AST synchronization (Rust native)
 ./target/release/compile-sysml --reverse-sync
-# (or python3 scripts/compile_sysml.py --reverse-sync)
 
-# Forward SysML v2 AST synchronization (Rust native or Python fallback)
+# Forward SysML v2 AST synchronization (Rust native)
 ./target/release/compile-sysml --forward-sync
-# (or python3 scripts/compile_sysml.py --forward-sync)
 
 # Offline backlog checklist and status synchronization
 ./scripts/reconcile_backlog.py --offline
 
 # Baseline conformance verification (Checks 10-31 quality gate verifier)
 ./target/release/verify-baseline . --no-domain
-# (or python3 scripts/verify_downstream_baseline.py --no-domain)
 
 # 23-Gate Model Coverage and UML Compliance Lock
 ./skills/spec-orchestrator/scripts/verify_model_coverage.py schema docs/features --spec-only
@@ -399,7 +396,7 @@ To implement features and verify simulations end-to-end using context-isolated s
 ### Worker 00: OEM Prose / BOM Ingestion & Model Synthesizer (Step 0.0)
 
 **Step 0.0 Entrypoint for Unstructured / Prose Customer Documentation:**
-For customer projects starting with unstructured OEM prose manuals, PDF documentation, markdown tables, or Bill of Materials (BOM) specifications, Worker 00 provides the sanctioned, deterministic entrypoint. Extracting OEM Bill of Materials (BOM) and physical parameters into `schema/extracted/` and synthesizing canonical SysML v2 textual models (such as `model.sysml` in `schema/` or `.pipeline/schema.sysml`) is fully authorized under Check 23 (Factual Grounding & Numeric Provenance Gate) and serves as the mandatory precursor to executing the Step 0 compilation gate (`./target/release/compile-sysml --compile` or `python3 scripts/compile_sysml.py --compile`).
+For customer projects starting with unstructured OEM prose manuals, PDF documentation, markdown tables, or Bill of Materials (BOM) specifications, Worker 00 provides the sanctioned, deterministic entrypoint. Extracting OEM Bill of Materials (BOM) and physical parameters into `schema/extracted/` and synthesizing canonical SysML v2 textual models (such as `model.sysml` in `schema/` or `.pipeline/schema.sysml`) is fully authorized under Check 23 (Factual Grounding & Numeric Provenance Gate) and serves as the mandatory precursor to executing the Step 0 compilation gate (`./target/release/compile-sysml --compile`).
 
 ```text
 Execute `view_file` on `skills/spec-orchestrator/SKILL.md` as your very first step before taking any action.
@@ -420,7 +417,7 @@ Execute Level 0 OEM Ground Truth Ingestion and initial SysML v2 textual model sy
 
 2. Canonical SysML v2 Model Synthesis:
    - Execute the Level 0 ingestion translator:
-     ./target/release/ingest-sysml --schema "schema/extracted/" --format markdown --out "schema/model.sysml" (or python3 skills/spec-orchestrator/scripts/sysmlv2_ingest.py --schema "schema/extracted/" --format markdown --out "schema/model.sysml")
+     ./target/release/ingest-sysml --schema "schema/extracted/" --format markdown --out "schema/model.sysml"
    - Alternatively, synthesize a formal SysML v2 textual model `schema/model.sysml` directly, defining:
      * Root `package` matching the target cyber-physical system.
      * All component definitions as canonical `part def` elements with typed attributes (mass, power, dimensions, channel count, part numbers).
@@ -430,7 +427,7 @@ Execute Level 0 OEM Ground Truth Ingestion and initial SysML v2 textual model sy
 
 3. Compilation Gate Precursor Verification:
    - Verify that the generated `schema/model.sysml` passes the Step 0 SysML Compilation Gate:
-     ./target/release/compile-sysml --compile (or python3 scripts/compile_sysml.py --compile)
+     ./target/release/compile-sysml --compile
    - Ensure `.pipeline/schema.sysml` and `.pipeline/schema-digest.json` are successfully generated without compilation errors.
    - Verify Check 23 compliance (Factual Grounding & Numeric Provenance Gate): all physical parameters and component counts in `schema/model.sysml` strictly match the Level 0 OEM ground truth in `schema/extracted/`.
 
