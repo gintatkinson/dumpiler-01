@@ -1,5 +1,5 @@
 {
-  "sha256": "a0e95d19b364001307662b19d7ef1df7a32d075f6392bab17c3463c825081893",
+  "sha256": "36a8774de0c367117e72989b10248754a47255f9c959d7cb45e47c79c691f30f",
   "total_lines": 5600,
   "node_counts": {
     "action_defs": 6,
@@ -376,10 +376,10 @@
     },
     {
       "path": "schema/model.sysml",
-      "sha256": "b2f5942bdf3a0ade2d8426462d67a91481c5d05e3952356f9f2a0a93073da17b",
-      "bytes": 178579,
-      "lines": 1000,
-      "entities": 69
+      "sha256": "e396e80d5c4d557ee95d0c54f1e75c6e953c096e7c70f77b1009c0dcfdf6c8a9",
+      "bytes": 1770,
+      "lines": 35,
+      "entities": 8
     },
     {
       "path": "schema/subsystems/subsystem_01_system_vision/architecture.sysml",
@@ -548,6 +548,90 @@
       "bytes": 51630,
       "lines": 297,
       "entities": 14
+    },
+    {
+      "path": "schema/subsystems/subsystem_09_downstream_specification_projections/architecture.sysml",
+      "sha256": "d62cadc0b7204e5978cc15be5fc39fb155fb8af81412c0a789caa60ce7d62c4b",
+      "bytes": 4632,
+      "lines": 23,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_09_downstream_specification_projections/behavior.sysml",
+      "sha256": "4f427dfaab4a495b623f3bef41be8b87dd1f499d90630764ef892425c73ded54",
+      "bytes": 162,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_09_downstream_specification_projections/requirements.sysml",
+      "sha256": "f83b7b7c3b388451602c1e2407f1c1d2180cd7e7ad7d9eb34e0fed850178b9bf",
+      "bytes": 61280,
+      "lines": 345,
+      "entities": 16
+    },
+    {
+      "path": "schema/subsystems/subsystem_10_multi_target_codegen_simulation_bindings/architecture.sysml",
+      "sha256": "b0dc8829e97f358ddac398d980e147227c84f3978e370cc84133a965da671959",
+      "bytes": 3303,
+      "lines": 23,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_10_multi_target_codegen_simulation_bindings/behavior.sysml",
+      "sha256": "6a3c5db287b74d22c6b78fe3803db22f20961de988dc6156b143efe9d4f85afd",
+      "bytes": 172,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_10_multi_target_codegen_simulation_bindings/requirements.sysml",
+      "sha256": "1784119d6ff96eb2aa74e497df3f036a39732d6c471577b6854b37f9d306f32d",
+      "bytes": 56562,
+      "lines": 318,
+      "entities": 15
+    },
+    {
+      "path": "schema/subsystems/subsystem_11_standardized_diagnostic_error_catalog/architecture.sysml",
+      "sha256": "d8c672e2e630d0dff22dc04c720061492cf61ee186deb3ce03d433f99759e62d",
+      "bytes": 3250,
+      "lines": 25,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_11_standardized_diagnostic_error_catalog/behavior.sysml",
+      "sha256": "5a88671186de7cd1f33e2d1d8811887f751e745ecc97aecc0a454b64ddfdfd17",
+      "bytes": 166,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_11_standardized_diagnostic_error_catalog/requirements.sysml",
+      "sha256": "bb9cb40ebfd5ab06bd4b93e5402df91855619829b89e690fc2d42b3df9c73f27",
+      "bytes": 21107,
+      "lines": 108,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_12_compiler_performance_cli_assurance/architecture.sysml",
+      "sha256": "585225ea339a44d8c67ba9aae9ac9e02b1622d3ba2432dd8cbe57cddfc0b4d59",
+      "bytes": 3092,
+      "lines": 25,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_12_compiler_performance_cli_assurance/behavior.sysml",
+      "sha256": "58e9d7911b4e8433742ec6e11afe84c0564acb0e9d336c89e48a446541068ca6",
+      "bytes": 160,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_12_compiler_performance_cli_assurance/requirements.sysml",
+      "sha256": "fe6d75cd470174052bb58f2b683fb465c5c73dc7eb85c114fb02e7a35e57c47e",
+      "bytes": 20327,
+      "lines": 110,
+      "entities": 5
     }
   ]
 }

@@ -1,0 +1,23 @@
+doc /* Structural Architecture for Subsystem 9 Downstream Specification Projections */
+package Subsystem_9_Downstream_Specification_Projections {
+    doc /* Primary execution engine for Downstream Specification Projections */
+    part def AgileProjectionEngine {
+        port in icd_in : ICDPort;
+        port out specs_out : BacklogPort;
+    }
+    doc /* The projection engine `UUIDv5_Engine_0` of Subsystem 9 SHALL inject deterministic RFC 4122 UUIDv5 anchors into frontmatter headers of emitted specification artifacts (`Artifact_Alpha`). The pipeline MUST enforce: 1. **Canonical Topological Path**: For node $v$ (`Node_0`), the engine SHALL construct canonical path $``\mathcal{N}_{\text{topological}}(v) = p_0 \mathbin{::} \dots \mathbin{::} \text{Name}(v)``$ in `Package_0`. Paths MUST be environmental-invariant, omitting host paths and timestamps. Malformed paths emit `E0300`, bind sentinel $``\bot_{\text{anchor}}``$, and halt. 2. **RFC 4122 Hashing and Masking**: The engine SHALL compute SHA-1 over namespace `Namespace_1` ($``\text{NS}_{\text{DEAP}}``$) and UTF-8 path bytes, masking digest bytes to enforce Version 5 ($``u_6 \operatorname{AND} 0\text{x0F} \mathbin{|} 0\text{x50}``$) and Variant ($``u_8 \operatorname{AND} 0\text{x3F} \mathbin{|} 0\text{x80}``$). 3. **Frontmatter Schema**: Artifacts SHALL declare fields `id` (36-character hyphenated UUIDv5), `fqn`, `artifact_type`, `ast_handle`, and `digest`. Time-based (v1/v6/v7) and pseudo-random (v4) UUIDs are strictly prohibited; non-deterministic UUIDs emit `E0301`. 4. **Bijective Invariance**: Canonical path to UUIDv5 mapping MUST be bijective, ensuring 0-byte diff churn across regenerations. 5. **Directives**: UUIDv5 anchors (Directive 1); work-stealing ceiling $``N_{\text{max\_workers}}``$ (Directive 2); symbol interning for tokens and frontmatter keys (`id`, `fqn`, `digest`) (Directive 3); recovery on `;` and `|` halting at $``C_{\text{max\_errors}}``$ with `E0199` (Directive 4); Release budget ($< 25\text{ ms}$ for $10^4$ artifacts, $< 100\text{ MB}$) (Directive 5). Placeholders (`Package_0`, `Classifier_Alpha`, `UUIDv5_Engine_0`, `Namespace_1`, `Artifact_Alpha`, `Node_0`, `param_x : Real`) used. --- */
+    part def _1_Normative_Statement {
+    }
+    doc /* The canonical path structure, SHA-1 digest masking, and diagnostic triggers satisfy: \begin{aligned} \mathcal{N}_{\text{topological}}(v)&=p_0\mathbin{::}p_1\mathbin{::}\dots\mathbin{::}\text{Name}(v) \\ H(v)&=\text{SHA1}(\text{NS}_{\text{DEAP}}\mathbin{\Vert}\text{Bytes}(\mathcal{N}_{\text{topological}}(v)))=(h_0,\dots,h_{19}) \\ u_i&=h_i\;(\forall i\notin\{6,8\}),\quad u_6=(h_6\operatorname{AND}0\text{x0F})\mathbin{|}0\text{x50},\quad u_8=(h_8\operatorname{AND}0\text{x3F})\mathbin{|}0\text{x80} \\ U(v)&=(u_0,\dots,u_{15})\in(\mathbb{Z}_{256})^{16},\quad\text{Version}(U(v))=5,\quad\text{Variant}(U(v))=2 \\ \mathcal{N}_{\text{topological}}(v_1)=\mathcal{N}_{\text{topological}}(v_2)&\iff U(v_1)=U(v_2) \\ \neg\text{IsValidPath}(\mathcal{N}_{\text{topological}}(v))&\implies\text{Diagnostic}(v,\text{E0300})\in\mathcal{D}_{\text{sink}}\land\text{Anchor}(v)\gets\bot_{\text{anchor}} \\ (\text{Version}(U(v))\ne 5\lor\text{IsNonDeterministic}(U(v)))&\implies\text{Diagnostic}(v,\text{E0301})\in\mathcal{D}_{\text{sink}}\land\text{Anchor}(v)\gets\bot_{\text{anchor}} \\ |\mathcal{D}_{\text{sink}}| \ge C_{\text{max\_errors}}&\implies\text{Diagnostic}(\text{E0199})\in\mathcal{D}_{\text{sink}} \end{aligned} --- */
+    part def _2_Formal_Invariant {
+        attribute mathcal : String = "Canonical topological path string of AST node $v$";
+        attribute text_H : String = "Namespace UUID constant and 160-bit SHA-1 digest";
+        attribute U_text_text : String = "128-bit UUIDv5 octets, Version 5, and Variant 2 fields";
+        attribute bot_mathcal_C : String = "Anchor sentinel, diagnostic sink, and error limit";
+    }
+    doc /* - **Complexity Class:** Class $\mathbf{P}$ (Deterministic Polynomial Time). - **Asymptotic Bound:** $O(|V|)$ SHA-1 UUIDv5 generation over AST nodes $V$. Single-artifact hashing evaluates in $O(L)$ time for path length $L$. Work-stealing across $``N_{\text{max\_workers}}``$ threads scales as $``O((|V| + L_{\text{total}}) / N_{\text{max\_workers}} + \log N_{\text{max\_workers}})``$. Arena memory is $O(|V|)$. - **Tractable Subclass & Frontier:** N/A (Deterministic P). Closed-form UUIDv5 hashing bypasses NP-1 temporal networks (REQ-0117), NP-2 bin packing (REQ-0147), and NP-8 SMT solving (REQ-0197). --- */
+    part def _3_Computational_Complexity_Algorithmic_Bounds {
+    }
+    part def _4_Verification_Conformance_Criteria {
+    }
+}
