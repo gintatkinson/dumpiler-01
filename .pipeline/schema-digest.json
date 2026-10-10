@@ -1,5 +1,5 @@
 {
-  "sha256": "13873313cf91ddd6441acb1169b9eac3255c2d43b6b420ad135986e34c8eb792",
+  "sha256": "9db97a80c1ac55c75b26ff1a3e803e723fccc67bf3e9b3f504c4e0f7d994255f",
   "total_lines": 5600,
   "node_counts": {
     "action_defs": 6,
@@ -376,10 +376,94 @@
     },
     {
       "path": "schema/model.sysml",
-      "sha256": "a0e3eac986d32850794126f6427372147737fd6dedf56f84e04f32bdf8e0c63f",
-      "bytes": 977541,
-      "lines": 5556,
-      "entities": 267
+      "sha256": "9fd9ac9c2f72536e78c6b15ff14adc0f9f445e5c4e3ec5e75429d7733104f236",
+      "bytes": 436660,
+      "lines": 2382,
+      "entities": 150
+    },
+    {
+      "path": "schema/subsystems/subsystem_01_system_vision/architecture.sysml",
+      "sha256": "779aec769fc68cb702521d33dbea79ee6ada5b43ad34ea0babb6ea45ab0f3d20",
+      "bytes": 4955,
+      "lines": 18,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_01_system_vision/behavior.sysml",
+      "sha256": "5e370d61741b18a9f652b82e2c745fe3b3a2840dc8b761bf8ff9f022568ef681",
+      "bytes": 116,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_01_system_vision/requirements.sysml",
+      "sha256": "eaa92c3f7406b5e9ff1cc10ef39d6980f939f3c75fb3849c8668b759c41381d4",
+      "bytes": 69362,
+      "lines": 451,
+      "entities": 13
+    },
+    {
+      "path": "schema/subsystems/subsystem_02_universal_schema_ingestion_engine/architecture.sysml",
+      "sha256": "6474752bbc2d5144d9a4b570bdce675d66cc424e6be8ac8406c7e5976ceafc77",
+      "bytes": 4892,
+      "lines": 19,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_02_universal_schema_ingestion_engine/behavior.sysml",
+      "sha256": "5fca1b29ee8279c9d90c6e670ec316fa322d8c3435a8ff62862c6c1478a2dc0f",
+      "bytes": 156,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_02_universal_schema_ingestion_engine/requirements.sysml",
+      "sha256": "1e762d413a39e13032f7b0cf82ab37b66315ffe520287431b3df98197ed5e623",
+      "bytes": 122358,
+      "lines": 758,
+      "entities": 20
+    },
+    {
+      "path": "schema/subsystems/subsystem_03_core_metamodel_node_arena/architecture.sysml",
+      "sha256": "60adbf5b2ec0925ab2c8bb7f5d27ad848c21a8981bcd9245ccc1ff6d9b268d4f",
+      "bytes": 4499,
+      "lines": 19,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_03_core_metamodel_node_arena/behavior.sysml",
+      "sha256": "46e4db75bfc9f82a8f5695da621f86f4edf89954c6fe4eaebc9a956bffd5126a",
+      "bytes": 140,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_03_core_metamodel_node_arena/requirements.sysml",
+      "sha256": "0269c2db32a41b4e76d51ba9a8ee723f78ad7b49360e9d0bb320a4471634c37f",
+      "bytes": 115529,
+      "lines": 735,
+      "entities": 20
+    },
+    {
+      "path": "schema/subsystems/subsystem_04_complete_sysmlv2_kerml_grammar/architecture.sysml",
+      "sha256": "2698aa873bf0a7ba4b644ea22fedc3a7c6c87ff8a365ab7a76c3c2dbb72cdb1d",
+      "bytes": 6013,
+      "lines": 19,
+      "entities": 5
+    },
+    {
+      "path": "schema/subsystems/subsystem_04_complete_sysmlv2_kerml_grammar/behavior.sysml",
+      "sha256": "06109a74a03752ef8d5c8084474af17bc96c23a88e7c66b4fe96c3e5c67154a5",
+      "bytes": 150,
+      "lines": 3,
+      "entities": 0
+    },
+    {
+      "path": "schema/subsystems/subsystem_04_complete_sysmlv2_kerml_grammar/requirements.sysml",
+      "sha256": "3dd7ab169866eeacfcae2542c0f84f623954ae91ad94ef46136ec4e51ec91da0",
+      "bytes": 201083,
+      "lines": 1167,
+      "entities": 44
     }
   ]
 }

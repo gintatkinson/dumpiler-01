@@ -833,18 +833,47 @@ pub fn find_matching_brace(s: &str, open_pos: usize) -> Option<usize> {
     None
 }
 
+/// Helper to mask string literals in source code with spaces, preserving exact byte offsets.
+pub fn mask_string_literals(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut out = bytes.to_vec();
+    let mut in_str = false;
+    let mut in_escape = false;
+    for b in out.iter_mut() {
+        if in_str {
+            if in_escape {
+                in_escape = false;
+                *b = b' ';
+            } else if *b == b'\\' {
+                in_escape = true;
+                *b = b' ';
+            } else if *b == b'"' {
+                in_str = false;
+            } else if *b == b'\n' {
+                // keep newline
+            } else {
+                *b = b' ';
+            }
+        } else if *b == b'"' {
+            in_str = true;
+        }
+    }
+    String::from_utf8(out).unwrap_or_else(|_| s.to_string())
+}
+
 /// Parse part definitions from SysML v2 source text.
 pub fn parse_part_defs(content: &str) -> Vec<PartDef> {
+    let masked = mask_string_literals(content);
     let head_re = Regex::new(
-        r#"(?s)(?:doc\s*/\*(?P<doc>.*?)\*/\s*)?part\s+def\s+(?P<name>[A-Za-z0-9_]+)\s*(?P<term>\{|;)"#,
+        r#"(?s)(?:doc\s*/\*(?P<doc>(?:[^*]|\*+[^*/])*)\*+/\s*)?part\s+def\s+(?P<name>[A-Za-z0-9_]+)\s*(?P<term>\{|;)"#,
     )
     .unwrap();
 
     let mut parts = Vec::new();
-    for cap in head_re.captures_iter(content) {
+    for cap in head_re.captures_iter(&masked) {
         let full_match = cap.get(0).unwrap();
         let name = cap["name"].to_string();
-        let doc = cap.name("doc").map(|d| d.as_str().trim().to_string());
+        let doc = cap.name("doc").map(|d| content[d.start()..d.end()].trim().to_string());
         let term = &cap["term"];
 
         let body = if term == "{" {
