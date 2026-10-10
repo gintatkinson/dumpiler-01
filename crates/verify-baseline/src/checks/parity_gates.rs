@@ -21,23 +21,33 @@ pub enum ParityOutcome {
     DualSchemaIdentical,
 }
 
-/// Locate and read authoritative SysML v2 model content (schema/*.sysml or .pipeline/schema.sysml).
+/// Locate and read authoritative SysML v2 model content (schema/**/*.sysml or .pipeline/schema.sysml).
 pub fn discover_sysml_model_text(repo_root: &Path) -> Option<String> {
     let schema_dir = repo_root.join("schema");
     if schema_dir.is_dir() {
+        let mut paths: Vec<_> = WalkDir::new(&schema_dir)
+            .into_iter()
+            .filter_entry(|e| {
+                let name = e.file_name().to_string_lossy();
+                !name.starts_with('.') && !name.starts_with('#')
+            })
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_type().is_file())
+            .map(|e| e.into_path())
+            .filter(|p| {
+                let fname = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                !fname.starts_with('.')
+                    && !fname.starts_with('#')
+                    && p.extension().map(|ext| ext == "sysml").unwrap_or(false)
+            })
+            .collect();
+        paths.sort();
+
         let mut sysml_contents = Vec::new();
-        if let Ok(entries) = fs::read_dir(&schema_dir) {
-            let mut paths: Vec<_> = entries
-                .filter_map(|e| e.ok())
-                .map(|e| e.path())
-                .filter(|p| p.extension().map(|ext| ext == "sysml").unwrap_or(false))
-                .collect();
-            paths.sort();
-            for p in paths {
-                if let Ok(content) = fs::read_to_string(&p) {
-                    if !content.trim().is_empty() {
-                        sysml_contents.push(content);
-                    }
+        for p in paths {
+            if let Ok(content) = fs::read_to_string(&p) {
+                if !content.trim().is_empty() {
+                    sysml_contents.push(content);
                 }
             }
         }
@@ -350,24 +360,32 @@ pub fn check_architecture_viewpoint_diagrams(
 
 /// Check 31: Dual-Schema SSOT Parity Gate (Gate 31).
 ///
-/// If both schema/*.sysml and .pipeline/schema.sysml exist, verifies they are identical in AST definitions.
+/// If both schema/**/*.sysml and .pipeline/schema.sysml exist, verifies they are identical in AST definitions.
 pub fn check_dual_schema_ssot_parity(repo_root: &Path) -> Result<ParityOutcome, Vec<String>> {
     let schema_dir = repo_root.join("schema");
     let pipeline_schema = repo_root.join(".pipeline").join("schema.sysml");
 
     let mut schema_sysml_files = Vec::new();
     if schema_dir.is_dir() {
-        if let Ok(entries) = fs::read_dir(&schema_dir) {
-            for entry in entries.filter_map(|e| e.ok()) {
-                let name = entry.file_name().to_string_lossy().to_string();
-                if name.ends_with(".sysml") && !name.starts_with('.') {
-                    let path = entry.path();
-                    if path.is_file() && fs::metadata(&path).map(|m| m.len() > 0).unwrap_or(false) {
-                        schema_sysml_files.push(path);
-                    }
-                }
-            }
-        }
+        let mut paths: Vec<_> = WalkDir::new(&schema_dir)
+            .into_iter()
+            .filter_entry(|e| {
+                let name = e.file_name().to_string_lossy();
+                !name.starts_with('.') && !name.starts_with('#')
+            })
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_type().is_file())
+            .map(|e| e.into_path())
+            .filter(|p| {
+                let fname = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                !fname.starts_with('.')
+                    && !fname.starts_with('#')
+                    && p.extension().map(|ext| ext == "sysml").unwrap_or(false)
+                    && fs::metadata(p).map(|m| m.len() > 0).unwrap_or(false)
+            })
+            .collect();
+        paths.sort();
+        schema_sysml_files = paths;
     }
 
     let has_pipeline_schema = pipeline_schema.is_file()
@@ -518,4 +536,42 @@ mod tests {
         let res = check_dual_schema_ssot_parity(&tmp.path);
         assert!(res.is_err());
     }
+
+    #[test]
+    fn test_dual_schema_parity_multi_file_passes() {
+        let tmp = TempDir::new("multi_file");
+        let sub1 = tmp.path.join("schema").join("sub1");
+        let sub2 = tmp.path.join("schema").join("sub2");
+        let pipe_dir = tmp.path.join(".pipeline");
+        fs::create_dir_all(&sub1).unwrap();
+        fs::create_dir_all(&sub2).unwrap();
+        fs::create_dir_all(&pipe_dir).unwrap();
+
+        let sysml_a = "package Sub1 {\n  part def SensorA;\n  port def PortA;\n  action def ActionA;\n}\n";
+        let sysml_b = "package Sub2 {\n  part def SensorB;\n  port def PortB;\n  action def ActionB;\n}\n";
+        let combined = format!("{}\n{}", sysml_a, sysml_b);
+
+        let mut fa = File::create(sub1.join("a.sysml")).unwrap();
+        write!(fa, "{}", sysml_a).unwrap();
+
+        let mut fb = File::create(sub2.join("b.sysml")).unwrap();
+        write!(fb, "{}", sysml_b).unwrap();
+
+        // Without .pipeline/schema.sysml, discover_sysml_model_text should find schema/sub1/a.sysml and schema/sub2/b.sysml
+        let discovered_before_pipeline = discover_sysml_model_text(&tmp.path);
+        assert!(discovered_before_pipeline.is_some(), "discover_sysml_model_text must discover multi-file schema across nested directories");
+        let disc_text = discovered_before_pipeline.unwrap();
+        assert!(disc_text.contains("SensorA"));
+        assert!(disc_text.contains("SensorB"));
+
+        let mut fp = File::create(pipe_dir.join("schema.sysml")).unwrap();
+        write!(fp, "{}", combined).unwrap();
+
+        // Check dual schema parity passes across nested directories
+        assert_eq!(
+            check_dual_schema_ssot_parity(&tmp.path),
+            Ok(ParityOutcome::DualSchemaIdentical)
+        );
+    }
 }
+
