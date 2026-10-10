@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | RemoteArtifactRegistry |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class RemoteArtifactRegistry {
         +void execute_remoteartifactregistry()
     }
+    DEAPCompilerSystem --> RemoteArtifactRegistry : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_remoteartifactregistry() : void` - Executes operations for RemoteArtifactRegistry
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for RemoteArtifactRegistry.
+### 1. Test Data Shape
+```json
+{
+  "part": "RemoteArtifactRegistry",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by RemoteArtifactRegistry.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for RemoteArtifactRegistry.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for RemoteArtifactRegistry.

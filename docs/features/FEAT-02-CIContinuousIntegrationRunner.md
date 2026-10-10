@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | CIContinuousIntegrationRunner |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class CIContinuousIntegrationRunner {
         +void execute_cicontinuousintegrationrunner()
     }
+    DEAPCompilerSystem --> CIContinuousIntegrationRunner : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_cicontinuousintegrationrunner() : void` - Executes operations for CIContinuousIntegrationRunner
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for CIContinuousIntegrationRunner.
+### 1. Test Data Shape
+```json
+{
+  "part": "CIContinuousIntegrationRunner",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by CIContinuousIntegrationRunner.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for CIContinuousIntegrationRunner.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for CIContinuousIntegrationRunner.

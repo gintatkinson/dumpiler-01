@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | CodeGenEngine |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class CodeGenEngine {
         +void execute_codegenengine()
     }
+    DEAPCompilerSystem --> CodeGenEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_codegenengine() : void` - Executes operations for CodeGenEngine
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for CodeGenEngine.
+### 1. Test Data Shape
+```json
+{
+  "part": "CodeGenEngine",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by CodeGenEngine.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for CodeGenEngine.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for CodeGenEngine.

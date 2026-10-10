@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | SystemVisionEngine |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class SystemVisionEngine {
         +void execute_systemvisionengine()
     }
+    DEAPCompilerSystem --> SystemVisionEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_systemvisionengine() : void` - Executes operations for SystemVisionEngine
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for SystemVisionEngine.
+### 1. Test Data Shape
+```json
+{
+  "part": "SystemVisionEngine",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by SystemVisionEngine.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for SystemVisionEngine.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for SystemVisionEngine.

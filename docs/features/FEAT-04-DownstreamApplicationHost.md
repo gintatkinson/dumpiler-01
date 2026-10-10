@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | DownstreamApplicationHost |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class DownstreamApplicationHost {
         +void execute_downstreamapplicationhost()
     }
+    DEAPCompilerSystem --> DownstreamApplicationHost : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_downstreamapplicationhost() : void` - Executes operations for DownstreamApplicationHost
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for DownstreamApplicationHost.
+### 1. Test Data Shape
+```json
+{
+  "part": "DownstreamApplicationHost",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by DownstreamApplicationHost.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for DownstreamApplicationHost.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for DownstreamApplicationHost.

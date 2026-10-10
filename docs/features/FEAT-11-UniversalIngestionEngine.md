@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | UniversalIngestionEngine |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class UniversalIngestionEngine {
         +void execute_universalingestionengine()
     }
+    DEAPCompilerSystem --> UniversalIngestionEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_universalingestionengine() : void` - Executes operations for UniversalIngestionEngine
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for UniversalIngestionEngine.
+### 1. Test Data Shape
+```json
+{
+  "part": "UniversalIngestionEngine",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by UniversalIngestionEngine.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for UniversalIngestionEngine.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for UniversalIngestionEngine.

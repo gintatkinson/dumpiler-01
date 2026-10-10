@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | MetrologyFlowEngine |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class MetrologyFlowEngine {
         +void execute_metrologyflowengine()
     }
+    DEAPCompilerSystem --> MetrologyFlowEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_metrologyflowengine() : void` - Executes operations for MetrologyFlowEngine
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for MetrologyFlowEngine.
+### 1. Test Data Shape
+```json
+{
+  "part": "MetrologyFlowEngine",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by MetrologyFlowEngine.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for MetrologyFlowEngine.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for MetrologyFlowEngine.

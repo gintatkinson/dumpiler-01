@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | HumanEngineer |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class HumanEngineer {
         +void execute_humanengineer()
     }
+    DEAPCompilerSystem --> HumanEngineer : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_humanengineer() : void` - Executes operations for HumanEngineer
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for HumanEngineer.
+### 1. Test Data Shape
+```json
+{
+  "part": "HumanEngineer",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by HumanEngineer.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for HumanEngineer.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for HumanEngineer.

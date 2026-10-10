@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | StateMachineSolverEngine |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class StateMachineSolverEngine {
         +void execute_statemachinesolverengine()
     }
+    DEAPCompilerSystem --> StateMachineSolverEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_statemachinesolverengine() : void` - Executes operations for StateMachineSolverEngine
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for StateMachineSolverEngine.
+### 1. Test Data Shape
+```json
+{
+  "part": "StateMachineSolverEngine",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by StateMachineSolverEngine.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for StateMachineSolverEngine.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for StateMachineSolverEngine.

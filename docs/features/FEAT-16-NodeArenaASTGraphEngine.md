@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | NodeArenaASTGraphEngine |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class NodeArenaASTGraphEngine {
         +void execute_nodearenaastgraphengine()
     }
+    DEAPCompilerSystem --> NodeArenaASTGraphEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_nodearenaastgraphengine() : void` - Executes operations for NodeArenaASTGraphEngine
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for NodeArenaASTGraphEngine.
+### 1. Test Data Shape
+```json
+{
+  "part": "NodeArenaASTGraphEngine",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by NodeArenaASTGraphEngine.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for NodeArenaASTGraphEngine.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for NodeArenaASTGraphEngine.

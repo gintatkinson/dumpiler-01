@@ -19,17 +19,57 @@ generation_mode: subagent
 | **Subsystem** | Subsystem_4_Complete_SysMLv2_KerML_Grammar |
 | **Generation Mode** | subagent |
 
-## Subsystem Capability Allocations
+## 1. Context
+Structural Architecture for Subsystem 4 Complete SysMLv2 KerML Grammar
 
-| Capability | Subsystem | Description |
-| :--- | :--- | :--- |
-| **Subsystem_4_Complete_SysMLv2_KerML_Grammar** | Subsystem_4_Complete_SysMLv2_KerML_Grammar | Structural Architecture for Subsystem 4 Complete SysMLv2 KerML Grammar |
+## 2. Requirements & Checklist
+- [ ] REQ-EPIC-06-01: Subsystem capability implementation for Subsystem_4_Complete_SysMLv2_KerML_Grammar.
+- [ ] REQ-EPIC-06-02: Semantic verification and conformance against schema definitions.
 
-## Architectural Context
+
+### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+*To be populated after Phase 3*
+
+
+#### Associated User Stories
+*To be populated after Phase 3*
+
+## 3. Architecture
+Subsystem architectural layout and component allocation for Subsystem_4_Complete_SysMLv2_KerML_Grammar.
+
+## 4. Operational Considerations
+Operational lifecycle, deterministic lowering execution, and error handling policies for Subsystem_4_Complete_SysMLv2_KerML_Grammar.
+
+## 5. Security & Governance
+Safety-critical invariants, access governance, and zero-hardcoded domain rule adherence.
+
+## 6. Source References
+Schema source definitions in `schema/subsystems/` and system architecture in `schema/model.sysml`.
+
+## System-Level UML Class Diagram
 
 ```mermaid
 classDiagram
-    class Subsystem_4_Complete_SysMLv2_KerML_Grammar {
-        +void performSubsystem_4_Complete_SysMLv2_KerML_Grammar()
+    class DEAPCompilerSystem {
+        +execute_pipeline() void
     }
+    class GrammarLoweringEngine {
+        +execute() void
+    }
+    DEAPCompilerSystem --> GrammarLoweringEngine : orchestrates
+```
+
+## System State Machine Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing : dispatch
+    Processing --> Verification : verify
+    Verification --> Completed : pass
+    Verification --> Fault : fail
+    Fault --> Idle : reset
+    Completed --> [*]
 ```

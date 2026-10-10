@@ -20,10 +20,13 @@ generation_mode: subagent
 | **Part** | _2_Formal_Invariant |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class _2_Formal_Invariant {
         +String mathcal_mathcal
         +String text_text_text
@@ -33,14 +36,26 @@ classDiagram
         +String text_C
         +void execute__2_formal_invariant()
     }
+    DEAPCompilerSystem --> _2_Formal_Invariant : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute__2_formal_invariant() : void` - Executes operations for _2_Formal_Invariant
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for _2_Formal_Invariant.
+### 1. Test Data Shape
+```json
+{
+  "part": "_2_Formal_Invariant",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by _2_Formal_Invariant.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for _2_Formal_Invariant.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for _2_Formal_Invariant.

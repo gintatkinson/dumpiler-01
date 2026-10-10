@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | ICDEngine |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class ICDEngine {
         +void execute_icdengine()
     }
+    DEAPCompilerSystem --> ICDEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_icdengine() : void` - Executes operations for ICDEngine
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for ICDEngine.
+### 1. Test Data Shape
+```json
+{
+  "part": "ICDEngine",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by ICDEngine.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for ICDEngine.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for ICDEngine.

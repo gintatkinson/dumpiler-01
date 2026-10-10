@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | GrammarLoweringEngine |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class GrammarLoweringEngine {
         +void execute_grammarloweringengine()
     }
+    DEAPCompilerSystem --> GrammarLoweringEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_grammarloweringengine() : void` - Executes operations for GrammarLoweringEngine
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for GrammarLoweringEngine.
+### 1. Test Data Shape
+```json
+{
+  "part": "GrammarLoweringEngine",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by GrammarLoweringEngine.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for GrammarLoweringEngine.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for GrammarLoweringEngine.

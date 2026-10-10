@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | _1_Normative_Statement |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
+    class DEAPCompilerSystem {
+        +void execute_pipeline()
+    }
     class _1_Normative_Statement {
         +void execute__1_normative_statement()
     }
+    DEAPCompilerSystem --> _1_Normative_Statement : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute__1_normative_statement() : void` - Executes operations for _1_Normative_Statement
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for _1_Normative_Statement.
+### 1. Test Data Shape
+```json
+{
+  "part": "_1_Normative_Statement",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by _1_Normative_Statement.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for _1_Normative_Statement.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for _1_Normative_Statement.

@@ -1,4 +1,100 @@
 package SysML_Model {
+    doc /* System shall prevent Not providing during OA_01_Ingest_OEM_Artifacts */
+    assert constraint SC_001_SafetyConstraint {
+        SC_001 == true;
+    }
+    doc /* System shall prevent Providing during OA_01_Ingest_OEM_Artifacts */
+    assert constraint SC_002_SafetyConstraint {
+        SC_002 == true;
+    }
+    doc /* System shall prevent Too early / Too late / Out of order during OA_01_Ingest_OEM_Artifacts */
+    assert constraint SC_003_SafetyConstraint {
+        SC_003 == true;
+    }
+    doc /* System shall prevent Stopped too soon / Applied too long during OA_01_Ingest_OEM_Artifacts */
+    assert constraint SC_004_SafetyConstraint {
+        SC_004 == true;
+    }
+    doc /* System shall prevent Not providing during OA_02_Parse_SysML_AST */
+    assert constraint SC_005_SafetyConstraint {
+        SC_005 == true;
+    }
+    doc /* System shall prevent Providing during OA_02_Parse_SysML_AST */
+    assert constraint SC_006_SafetyConstraint {
+        SC_006 == true;
+    }
+    doc /* System shall prevent Too early / Too late / Out of order during OA_02_Parse_SysML_AST */
+    assert constraint SC_007_SafetyConstraint {
+        SC_007 == true;
+    }
+    doc /* System shall prevent Stopped too soon / Applied too long during OA_02_Parse_SysML_AST */
+    assert constraint SC_008_SafetyConstraint {
+        SC_008 == true;
+    }
+    doc /* System shall prevent Not providing during OA_03_Validate_Model_Semantics */
+    assert constraint SC_009_SafetyConstraint {
+        SC_009 == true;
+    }
+    doc /* System shall prevent Providing during OA_03_Validate_Model_Semantics */
+    assert constraint SC_010_SafetyConstraint {
+        SC_010 == true;
+    }
+    doc /* System shall prevent Too early / Too late / Out of order during OA_03_Validate_Model_Semantics */
+    assert constraint SC_011_SafetyConstraint {
+        SC_011 == true;
+    }
+    doc /* System shall prevent Stopped too soon / Applied too long during OA_03_Validate_Model_Semantics */
+    assert constraint SC_012_SafetyConstraint {
+        SC_012 == true;
+    }
+    doc /* System shall prevent Not providing during OA_04_Transpile_Safety_Artifacts */
+    assert constraint SC_013_SafetyConstraint {
+        SC_013 == true;
+    }
+    doc /* System shall prevent Providing during OA_04_Transpile_Safety_Artifacts */
+    assert constraint SC_014_SafetyConstraint {
+        SC_014 == true;
+    }
+    doc /* System shall prevent Too early / Too late / Out of order during OA_04_Transpile_Safety_Artifacts */
+    assert constraint SC_015_SafetyConstraint {
+        SC_015 == true;
+    }
+    doc /* System shall prevent Stopped too soon / Applied too long during OA_04_Transpile_Safety_Artifacts */
+    assert constraint SC_016_SafetyConstraint {
+        SC_016 == true;
+    }
+    doc /* System shall prevent Not providing during OA_05_Synthesize_Downstream_Projections */
+    assert constraint SC_017_SafetyConstraint {
+        SC_017 == true;
+    }
+    doc /* System shall prevent Providing during OA_05_Synthesize_Downstream_Projections */
+    assert constraint SC_018_SafetyConstraint {
+        SC_018 == true;
+    }
+    doc /* System shall prevent Too early / Too late / Out of order during OA_05_Synthesize_Downstream_Projections */
+    assert constraint SC_019_SafetyConstraint {
+        SC_019 == true;
+    }
+    doc /* System shall prevent Stopped too soon / Applied too long during OA_05_Synthesize_Downstream_Projections */
+    assert constraint SC_020_SafetyConstraint {
+        SC_020 == true;
+    }
+    doc /* System shall prevent Not providing during OA_06_Verify_Baseline_Parity */
+    assert constraint SC_021_SafetyConstraint {
+        SC_021 == true;
+    }
+    doc /* System shall prevent Providing during OA_06_Verify_Baseline_Parity */
+    assert constraint SC_022_SafetyConstraint {
+        SC_022 == true;
+    }
+    doc /* System shall prevent Too early / Too late / Out of order during OA_06_Verify_Baseline_Parity */
+    assert constraint SC_023_SafetyConstraint {
+        SC_023 == true;
+    }
+    doc /* System shall prevent Stopped too soon / Applied too long during OA_06_Verify_Baseline_Parity */
+    assert constraint SC_024_SafetyConstraint {
+        SC_024 == true;
+    }
     doc /* ConOps Level 0 Operational Activities */
     package ConOps {
         doc /* Ingest OEM documentation and structural schema artifacts into the compiler */

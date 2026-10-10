@@ -21,8 +21,16 @@
 
 ```mermaid
 graph TD
-    subgraph "Control Structure Topology"
-        DEAPCompilerSystem["DEAPCompilerSystem"] --> ControlledProcess["Controlled Process"]
+    subgraph "Hierarchical Safety Control Structure"
+        CompilerController["DEAPCompilerSystem (Supervisory Controller)"]
+        ActuatorEngine["UniversalIngestionEngine (Actuator Engine)"]
+        ControlledProcess["DownstreamApplicationHost (Execution Environment)"]
+        DiagnosticSensors["CompilerAssuranceEngine (Diagnostic Sensors)"]
+
+        CompilerController -->|"supervisory dispatch: trigger_lowering, invoke_codegen"| ActuatorEngine
+        ActuatorEngine -->|"artifact synthesis: lower_ast, write_binaries"| ControlledProcess
+        ControlledProcess -->|"compilation artifacts and execution traces"| DiagnosticSensors
+        DiagnosticSensors -->|"sensor feedback: diagnostic_errors, verification_metrics"| CompilerController
     end
 ```
 

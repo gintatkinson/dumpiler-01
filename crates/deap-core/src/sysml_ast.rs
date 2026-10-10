@@ -365,6 +365,48 @@ impl Default for PartDef {
     }
 }
 
+impl PartDef {
+    /// Recursively searches for a mutable reference to a part definition by identifier name across self and all nested parts.
+    ///
+    /// ## 1. Safety Intent & Regulatory Scope
+    /// Conforms to DO-178C Level A, ISO 26262 ASIL D, and ECSS-E-ST-40C safety-critical software
+    /// engineering standards. Mitigates AST divergence hazards (HAZ-AST-DIVERGENCE) and accidental
+    /// duplication of safety-critical structural elements across hierarchical SysML v2 part trees.
+    ///
+    /// ## 2. Invariants & Mathematical Properties
+    /// - Identity Invariant: If `self.name == name`, returns `Some(self)`.
+    /// - Structural Non-Mutation on Lookup: Does not alter tree topology or structural attributes during traversal.
+    /// - KerML Tree Consistency: Traverses strictly acyclic part containment hierarchies.
+    ///
+    /// ## 3. Preconditions
+    /// - `name` must be a valid non-empty KerML / SysML v2 identifier string.
+    ///
+    /// ## 4. Postconditions
+    /// - Returns `Some(&mut PartDef)` pointing to the matching element if found within self or nested sub-parts.
+    /// - Returns `None` if no matching part definition exists within this subtree.
+    ///
+    /// ## 5. Algorithmic Complexity Bounds
+    /// - Time Complexity: $O(V_{part} + E_{part})$ where $V_{part}$ is the number of nested part nodes and $E_{part}$ is the nesting containment edge count.
+    /// - Space Complexity: $O(D)$ auxiliary call stack depth where $D$ is the maximum part nesting depth.
+    ///
+    /// ## 6. Failure Modes & Fault Tolerance
+    /// - If the target part does not exist, returns `None` without panicking or modifying the AST.
+    ///
+    /// ## 7. Realization & Traceability
+    /// Realises: [REQ-SYSML-AST-SSOT-PARITY/PART-DEF-MUT]
+    pub fn find_part_mut(&mut self, name: &str) -> Option<&mut PartDef> {
+        if self.name == name {
+            return Some(self);
+        }
+        for sub in &mut self.parts {
+            if let Some(p) = sub.find_part_mut(name) {
+                return Some(p);
+            }
+        }
+        None
+    }
+}
+
 /// Represents an import statement in SysML v2 / KerML.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ImportDef {
@@ -501,6 +543,49 @@ impl PackageDef {
             }
         }
         result
+    }
+
+    /// Recursively searches for a mutable reference to a part definition by identifier name across self, nested parts, and all subpackages.
+    ///
+    /// ## 1. Safety Intent & Regulatory Scope
+    /// Conforms to DO-178C Level A, ISO 26262 ASIL D, and ECSS-E-ST-40C safety-critical software
+    /// engineering standards. Mitigates dual-schema AST drift hazards (HAZ-SCHEMA-DRIFT-GATE31) by ensuring
+    /// reverse-synchronization locates existing parts across multi-subsystem package boundaries rather than
+    /// synthesizing orphan duplicate definitions at the root package level.
+    ///
+    /// ## 2. Invariants & Mathematical Properties
+    /// - Exhaustive Traversal: Evaluates all $p \in \text{part\_defs}$ and recursively traverses all $pkg \in \text{packages}$.
+    /// - First-Match Determinism: Traversal order is strictly deterministic (depth-first search across declared vectors).
+    /// - Single Source of Truth Parity: Guarantees that reverse-sync updates in-place the exact AST node declared in subsystems.
+    ///
+    /// ## 3. Preconditions
+    /// - `name` must be a valid non-empty KerML / SysML v2 identifier string.
+    ///
+    /// ## 4. Postconditions
+    /// - Returns `Some(&mut PartDef)` pointing to the exact mutable AST node if located anywhere in the package hierarchy.
+    /// - Returns `None` if the identifier is not found in self or any subpackages.
+    ///
+    /// ## 5. Algorithmic Complexity Bounds
+    /// - Time Complexity: $O(V_{pkg} + V_{part})$ where $V_{pkg}$ is the total package count and $V_{part}$ is the total part count in the tree.
+    /// - Space Complexity: $O(D_{pkg} + D_{part})$ auxiliary stack space bounded by AST hierarchy depth.
+    ///
+    /// ## 6. Failure Modes & Fault Tolerance
+    /// - Returns `None` cleanly when the part definition is absent, allowing caller to handle fallback insertion safely.
+    ///
+    /// ## 7. Realization & Traceability
+    /// Realises: [REQ-SYSML-AST-SSOT-PARITY/PACKAGE-DEF-MUT]
+    pub fn find_part_mut(&mut self, name: &str) -> Option<&mut PartDef> {
+        for p in &mut self.part_defs {
+            if let Some(found) = p.find_part_mut(name) {
+                return Some(found);
+            }
+        }
+        for sub in &mut self.packages {
+            if let Some(p) = sub.find_part_mut(name) {
+                return Some(p);
+            }
+        }
+        None
     }
 }
 

@@ -133,25 +133,83 @@ flowchart TD
 
 ---
 
-### Phase 4: Full Quality Gate, Backlog Reconciliation & Remote Sync
+### Phase 0: Adversarial Defect Audit & Issue Creation [COMPLETED -- Commit bbd3680, Issue #9]
+- Audited `crates/compile-sysml/src/sync/forward.rs` and filed defect dossier for Issue #9.
+- Updated issue tracker with reproduction steps and architectural impact.
 
-#### Micro-Task 4.1: End-to-End Verification Suite
+---
+
+### Phase 1: Native Rust Forward-Sync Engine Remediation [COMPLETED -- Commit 2e952bd, refs #9]
+- Implemented recursive AST collectors on `PackageDef` in `crates/deap-core/src/sysml_ast.rs`.
+- Remediated `crates/compile-sysml/src/sync/forward.rs` to traverse all 12 subsystem packages and eliminated all hardcoded fallback domain concepts.
+- Added comprehensive unit tests in `forward.rs` verifying recursive traversal.
+
+---
+
+### Phase 2: STPA Safety Suite Transpilation [COMPLETED -- Commit b512138, refs #9]
+- Transpiled 10-pillar safety suite into `docs/safety/` (11 artifacts including `01_LOSSES_HAZARDS_TOPOLOGY.md`, `05_FMECA_MATRIX.md`, `HAZARD_LOG.md`, `STPA_MATRIX.md`).
+- Added formal SLDV proofs and SORA/SAIL risk assessments.
+
+---
+
+### Phase 3: Forward Specification Projection [COMPLETED -- Commit b512138, refs #9]
+- Forward-projected 80 specifications into `docs/epics/` (14 Epics) and `docs/features/` (65 Features) derived directly from SysML AST.
+- Clean landing zones maintained with zero spurious specifications.
+
+---
+
+### Phase 4: Full Quality Gate, SSOT Parity Remediation & Remote Sync
+
+#### Micro-Task 4.1: Closed-Loop STPA Control Structure Topology (Gate 30 Compliance)
+- **Target File:** `crates/compile-sysml/src/stpa/safety_suite.rs`
+- **Root Cause:**
+  `render_losses_hazards_topology` emits a 2-node graph (`DEAPCompilerSystem --> ControlledProcess`), which lacks downward control actions, actuator abstractions, and upward sensor feedback paths required by Gate 30 (`architecture_viewpoint_validator.py:1370-1375`).
+- **Implementation Details:**
+  1. In `crates/compile-sysml/src/stpa/safety_suite.rs:514-535`, expand the Mermaid diagram generated for `01_LOSSES_HAZARDS_TOPOLOGY.md` into a formal 4-tier closed-loop control structure:
+     - **Controller:** `DEAPCompilerSystem["DEAPCompilerSystem (Compiler Supervisory Controller)"]`
+     - **Actuators / Engines:** `IngestionActuators["Universal Ingestion & Lowering Engines (Actuators)"]`
+     - **Controlled Process:** `ControlledProcess["Target Compilation & Synthesis Process"]`
+     - **Sensors / Diagnostics:** `DiagnosticSensors["Diagnostic Catalog & Verification Probes (Sensors)"]`
+     - **Downward Control Actions:** `dispatch_parse`, `emit_code`, `execute_lowering`
+     - **Upward Feedback Paths:** `diagnostic_errors`, `telemetry_events`, `coverage_metrics`
+  2. Verify all node labels and subgraph titles are properly double-quoted.
+  3. Recompile release binary: `cargo build --release -p compile-sysml`.
+  4. Regenerate safety suite: `./target/release/compile-sysml --stpa-transpile --out-dir docs/safety`.
+- **Verification:** Inspect `docs/safety/01_LOSSES_HAZARDS_TOPOLOGY.md` to ensure valid Mermaid syntax, >= 4 edges, controller/actuator/process/sensor terms, and closed-loop topology.
+
+#### Micro-Task 4.2: Reverse-Sync AST SSOT Parity & Identifier Remediation (Check 31 Compliance)
+- **Target Files:**
+  - `crates/compile-sysml/src/sync/reverse.rs`
+  - `.pipeline/schema.sysml`
+  - `.pipeline/schema-digest.json`
+- **Root Cause:**
+  1. In `reverse.rs:144-150`, frontmatter `part` values such as `_1_Normative_Statement` were transformed via `to_pascal_case`, which stripped leading underscores and emitted `1NormativeStatement` (an invalid KerML identifier starting with a digit).
+  2. In `reverse.rs:111`, `extracted_parts` only loaded root `pkg.part_defs`, ignoring nested subsystem parts in `pkg.subpackages` (`pkg.get_all_parts()`), causing reverse-sync to synthesize duplicate phantom `part def` entries in `.pipeline/schema.sysml`.
+  3. This triggered Check 31 failure in `./target/release/verify-baseline . --no-domain`:
+     `part def defined in .pipeline/schema.sysml but missing in schema/*.sysml: ["3ComputationalComplexityAlgorithmicBounds", "2FormalInvariant", "1NormativeStatement", "4VerificationConformanceCriteria"]`.
+- **Implementation Details:**
+  1. In `crates/compile-sysml/src/sync/reverse.rs`:
+     - Update `to_pascal_case` to enforce the KerML identifier invariant: prefix with `_` if the initial character is an ASCII digit.
+     - Preserve frontmatter `part` and `part_def` verbatim when they already constitute valid KerML identifiers (e.g. `_1_Normative_Statement`).
+     - Populate `extracted_parts` using `pkg.get_all_parts()` to ensure all subsystem parts are indexed.
+     - When synchronizing parts, do not append to root `pkg.part_defs` if the part is already present in a subsystem subpackage.
+  2. Recompile release binary: `cargo build --release -p compile-sysml`.
+  3. Re-run `./target/release/compile-sysml --reverse-sync --docs docs` to regenerate clean `.pipeline/schema.sysml` and `.pipeline/schema-digest.json`.
+- **Verification:** Run `./target/release/verify-baseline . --no-domain` and verify Check 31 passes with exit code 0.
+
+#### Micro-Task 4.3: Full Quality Gate & Backlog Reconciliation
 - **Verification Commands:**
-  1. `cargo test --workspace` (Assert 100% tests pass).
-  2. `./target/release/verify-baseline . --no-domain` (Assert all 31 baseline checks pass).
-  3. Verify zero Unicode em dashes (`\u2014`).
+  1. `cargo test --workspace` (Assert 100% pass across all 132+ tests).
+  2. `./target/release/verify-baseline . --no-domain` (Assert all 31 baseline checks pass with exit code 0).
+  3. Execute `python3 scripts/reconcile_backlog.py --linter-timeout 1200` to synchronize local specifications, checklists, and tracker state.
+  4. Verify zero Unicode em dashes (`\u2014`) across all files.
 
-#### Micro-Task 4.2: Backlog Reconciliation & Tracker Transition
+#### Micro-Task 4.4: Remote Synchronization & Walkthrough
 - **Action:**
-  1. Execute `python3 scripts/reconcile_backlog.py` to synchronize local specs with issue tracker.
-  2. Transition audited issue to `status:fixed-resolved` with verification evidence.
-  3. Ensure all issues referenced in commit log carry `status:fixed-resolved`.
-
-#### Micro-Task 4.3: Remote Synchronization & Walkthrough
-- **Action:**
-  1. Push commits to `origin/main`.
-  2. Verify `git diff origin/main` is empty.
-  3. Provide comprehensive final walkthrough report.
+  1. Commit all changes with neutral citation: `(refs #9)`.
+  2. Push all commits to `origin/main`.
+  3. Verify `git diff origin/main` is empty.
+  4. Present comprehensive final completion report.
 
 ---
 

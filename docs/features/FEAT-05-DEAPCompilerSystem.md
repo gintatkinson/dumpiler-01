@@ -20,21 +20,36 @@ generation_mode: subagent
 | **Part** | DEAPCompilerSystem |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
 classDiagram
     class DEAPCompilerSystem {
         +void execute_deapcompilersystem()
     }
+    class UniversalIngestionEngine {
+        +void execute_universalingestionengine()
+    }
+    DEAPCompilerSystem --> UniversalIngestionEngine : orchestrates
 ```
 
 ## Logical Operations & Interface Messages
 - `+execute_deapcompilersystem() : void` - Executes operations for DEAPCompilerSystem
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for DEAPCompilerSystem.
+### 1. Test Data Shape
+```json
+{
+  "part": "DEAPCompilerSystem",
+  "status": "nominal"
+}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by DEAPCompilerSystem.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for DEAPCompilerSystem.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for DEAPCompilerSystem.

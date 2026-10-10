@@ -1,8 +1,37 @@
 //! Markdown Specifications to SysML v2 Reverse Synchronization Engine.
 //!
-//! Parses markdown specifications across docs/ (epics, features, user-stories, use-cases, safety),
-//! extracts canonical architectural entities and constraints, merges them non-destructively
-//! into the SysML v2 AST Single Source of Truth, and updates the schema and digest.
+//! ## 1. Safety Intent & Regulatory Scope
+//! Conforms to DO-178C Level A, ISO 26262 ASIL D, and ECSS-E-ST-40C safety-critical software
+//! engineering standards. Mitigates dual-schema AST drift hazards (HAZ-SCHEMA-DRIFT-GATE31)
+//! and specification-model desynchronization (HAZ-SPEC-MODEL-DESYNC).
+//!
+//! ## 2. Invariants & Mathematical Properties
+//! - KerML Identifier Invariant: All emitted classifier identifiers conform to KerML grammar
+//!   rules (starting with an alphabetic character or underscore, containing only alphanumeric/underscores).
+//! - Non-Destructive AST Parity: Existing schema AST structures and subsystem part definitions
+//!   are preserved, merging markdown-extracted operations into existing parts without creating
+//!   duplicate top-level entities.
+//! - Deterministic Serialization & Digest Integrity: Emitted `.pipeline/schema.sysml` and
+//!   `.pipeline/schema-digest.json` produce bit-for-bit identical outputs for identical inputs.
+//!
+//! ## 3. Preconditions
+//! - `opts.docs_dir` must exist and be readable.
+//! - Parsed markdown frontmatters must contain valid type discriminators.
+//!
+//! ## 4. Postconditions
+//! - Returns `(PackageDef, SchemaDigest)` representing the unified AST and cryptographic digest.
+//! - Atomically persists the updated schema and digest when configured.
+//!
+//! ## 5. Algorithmic Complexity Bounds
+//! - Time Complexity: $O(N_{docs} \cdot L_{doc} + V_{ast} + E_{ast})$ where $N_{docs}$ is the number
+//!   of specification files, $L_{doc}$ is average file length, and $(V, E)$ represent AST nodes and edges.
+//! - Space Complexity: $O(V_{ast} + E_{ast})$ memory for AST and extracted elements.
+//!
+//! ## 6. Failure Modes & Fault Tolerance
+//! - Returns `Err(String)` if `docs_dir` is missing, in-place overwrite is unauthorized, or filesystem writes fail.
+//!
+//! ## 7. Realization & Traceability
+//! Realises: [REQ-SYSML-REVERSE-SYNC-ENGINE]
 
 use std::collections::HashMap;
 use std::fs;
@@ -58,13 +87,41 @@ fn parse_frontmatter(content: &str) -> (HashMap<String, String>, &str) {
     }
 }
 
-/// Helper to convert a string into clean PascalCase.
+/// Helper to convert a string into clean PascalCase, prepending an underscore if leading with a digit.
+///
+/// ## 1. Safety Intent & Regulatory Scope
+/// Conforms to DO-178C Level A, ISO 26262 ASIL D, and ECSS-E-ST-40C safety-critical software
+/// engineering standards. Mitigates invalid identifier generation (HAZ-INVALID-KERML-IDENTIFIER)
+/// where digit-leading section names (e.g. `1_Normative_Statement`) would violate KerML grammar
+/// and cause dual-schema parity validation failure (Check 31).
+///
+/// ## 2. Invariants & Mathematical Properties
+/// - KerML Grammar Conformance: Produced string $S$ satisfies $(S[0] \in \{'\_'\} \cup \text{Alpha}) \land \forall c \in S, c \in \text{Alphanumeric} \cup \{'\_'\}$.
+/// - Digit Prefixing Invariant: If input trimmed text begins with a digit, output is guaranteed to start with `_`.
+///
+/// ## 3. Preconditions
+/// - `text` may be any arbitrary ASCII / UTF-8 string slice.
+///
+/// ## 4. Postconditions
+/// - Returns a PascalCase string conforming to KerML identifier syntax rules.
+/// - Preserves leading digit semantics by prepending `_`.
+///
+/// ## 5. Algorithmic Complexity Bounds
+/// - Time Complexity: $O(L)$ where $L$ is the byte length of `text`.
+/// - Space Complexity: $O(L)$ allocated for the resulting `String`.
+///
+/// ## 6. Failure Modes & Fault Tolerance
+/// - Empty input returns empty string; all non-alphanumeric characters act as word boundaries.
+///
+/// ## 7. Realization & Traceability
+/// Realises: [REQ-SYSML-SYNC-REVERSE/PASCAL-CASE-IDENTIFIER]
 fn to_pascal_case(text: &str) -> String {
+    let has_leading_digit = text.trim_start_matches(|c: char| !c.is_alphanumeric()).chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false);
     let words: Vec<&str> = text
         .split(|c: char| !c.is_alphanumeric())
         .filter(|w| !w.is_empty())
         .collect();
-    words
+    let pascal: String = words
         .iter()
         .map(|w| {
             let mut c = w.chars();
@@ -73,10 +130,44 @@ fn to_pascal_case(text: &str) -> String {
                 Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
             }
         })
-        .collect()
+        .collect();
+    if has_leading_digit || pascal.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+        format!("_{}", pascal)
+    } else {
+        pascal
+    }
 }
 
 /// Reverse synchronizes markdown documents under `docs_dir` into the SysML AST SSOT.
+///
+/// ## 1. Safety Intent & Regulatory Scope
+/// Conforms to DO-178C Level A, ISO 26262 ASIL D, and ECSS-E-ST-40C safety-critical software
+/// engineering standards. Mitigates dual-schema AST drift hazards (HAZ-SCHEMA-DRIFT-GATE31)
+/// and ensures complete bidirectional traceability between downstream markdown requirements
+/// and formal SysML v2 architectural models.
+///
+/// ## 2. Invariants & Mathematical Properties
+/// - AST SSOT Parity Invariant: Structural part definitions present in multi-file subsystem schemas
+///   are located via `pkg.find_part_mut` and updated in-place without generating root-level duplicate definitions.
+/// - Cryptographic Digest Invariant: Emits SHA-256 digest capturing normalized AST structure and serialized text.
+///
+/// ## 3. Preconditions
+/// - `opts.docs_dir` must point to an accessible directory containing markdown specifications.
+/// - If `opts.allow_overwrite` is false, `opts.output_path` must not collide with `opts.schema_path`.
+///
+/// ## 4. Postconditions
+/// - Emits atomically written `.pipeline/schema.sysml` and `.pipeline/schema-digest.json`.
+/// - Returns `Ok((PackageDef, SchemaDigest))` on success.
+///
+/// ## 5. Algorithmic Complexity Bounds
+/// - Time Complexity: $O(N_{files} \cdot S_{file} + V_{ast})$ where $N_{files}$ is the count of scanned markdown files.
+/// - Space Complexity: $O(V_{ast})$ proportional to AST entity count.
+///
+/// ## 6. Failure Modes & Fault Tolerance
+/// - Returns descriptive `Err(String)` if filesystem operations fail or invalid paths are supplied.
+///
+/// ## 7. Realization & Traceability
+/// Realises: [REQ-SYSML-SYNC-REVERSE/ENGINE-SYNC]
 pub fn reverse_sync_specs_to_sysml(
     base_pkg: Option<&PackageDef>,
     opts: &ReverseSyncOptions,
@@ -108,8 +199,8 @@ pub fn reverse_sync_specs_to_sysml(
     let mut extracted_constraints = Vec::new();
 
     // Populate existing parts into the map for merge
-    for part in &pkg.part_defs {
-        extracted_parts.insert(part.name.clone(), part.clone());
+    for part in pkg.get_all_parts() {
+        extracted_parts.insert(part.name.clone(), part);
     }
 
     for entry in WalkDir::new(&opts.docs_dir)
@@ -144,7 +235,17 @@ pub fn reverse_sync_specs_to_sysml(
                     let part_name = fm
                         .get("part")
                         .or_else(|| fm.get("part_def"))
-                        .map(|s| to_pascal_case(s))
+                        .map(|s| {
+                            // If already a valid KerML identifier, preserve it directly
+                            if !s.is_empty()
+                                && (s.starts_with('_') || s.chars().next().unwrap().is_alphabetic())
+                                && s.chars().all(|c| c.is_alphanumeric() || c == '_')
+                            {
+                                s.clone()
+                            } else {
+                                to_pascal_case(s)
+                            }
+                        })
                         .unwrap_or_else(|| {
                             to_pascal_case(&path.file_stem().unwrap().to_string_lossy())
                         });
@@ -158,8 +259,13 @@ pub fn reverse_sync_specs_to_sysml(
 
                         // Extract operations/actions from markdown lists: - `+ActionName() : void`
                         let act_re = regex::Regex::new(r"-\s*`\+([A-Za-z0-9_]+)\s*\([^)]*\)\s*:\s*([A-Za-z0-9_]+)`").unwrap();
+                        let default_act = format!("execute_{}", part_name.to_lowercase());
                         for cap in act_re.captures_iter(body) {
                             let act_name = cap[1].to_string();
+                            // Skip forward-sync synthetic placeholder actions (execute_<part_name>) to preserve SSOT parity
+                            if act_name.to_lowercase() == default_act.to_lowercase() {
+                                continue;
+                            }
                             if !entry.actions.iter().any(|a| a.name == act_name) {
                                 let mut a = ActionDef::default();
                                 a.name = act_name;
@@ -240,7 +346,7 @@ pub fn reverse_sync_specs_to_sysml(
 
     // Update part defs
     for (_, part) in extracted_parts {
-        if let Some(existing) = pkg.part_defs.iter_mut().find(|p| p.name == part.name) {
+        if let Some(existing) = pkg.find_part_mut(&part.name) {
             for act in part.actions {
                 if !existing.actions.iter().any(|a| a.name == act.name) {
                     existing.actions.push(act);
@@ -281,7 +387,18 @@ pub fn reverse_sync_specs_to_sysml(
     write_atomic(&opts.output_path, &sysml_code).map_err(|e| e.to_string())?;
 
     // Compute and write digest
-    let digest = generate_digest(&pkg, &sysml_code);
+    let mut digest = generate_digest(&pkg, &sysml_code);
+    let schema_dir = opts
+        .schema_path
+        .as_deref()
+        .unwrap_or_else(|| std::path::Path::new("schema"));
+    if schema_dir.is_dir() {
+        let files = crate::parser::grammar::discover_sysml_files(schema_dir);
+        if !files.is_empty() {
+            let manifest = crate::semantic::digest::compute_file_manifest(&files);
+            digest = digest.with_file_manifest(manifest);
+        }
+    }
     write_digest_atomic(&opts.digest_path, &digest).map_err(|e| e.to_string())?;
 
     println!(

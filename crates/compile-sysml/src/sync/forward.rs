@@ -95,6 +95,34 @@ pub fn forward_sync_sysml_to_specs(
 
     for (idx, (cap_name, subsys, doc)) in epics_data.iter().enumerate() {
         let i = idx + 1;
+        let target_part = if subsys.contains("System_Vision") {
+            "SystemVisionEngine"
+        } else if subsys.contains("Universal_Schema_Ingestion") {
+            "UniversalIngestionEngine"
+        } else if subsys.contains("Core_Metamodel_Node_Arena") {
+            "NodeArenaASTGraphEngine"
+        } else if subsys.contains("Complete_SysMLv2_KerML_Grammar") {
+            "GrammarLoweringEngine"
+        } else if subsys.contains("7D_Physical_Metrology") {
+            "MetrologyFlowEngine"
+        } else if subsys.contains("Spatio_Temporal_State_Solvers") {
+            "StateMachineSolverEngine"
+        } else if subsys.contains("Formal_Safety") {
+            "SafetyAssuranceEngine"
+        } else if subsys.contains("Level_1C_ICD") {
+            "ICDEngine"
+        } else if subsys.contains("Downstream_Specification") {
+            "AgileProjectionEngine"
+        } else if subsys.contains("Multi_Target_CodeGen") {
+            "CodeGenEngine"
+        } else if subsys.contains("Diagnostic_Error_Catalog") {
+            "DiagnosticErrorCatalogEngine"
+        } else if subsys.contains("Compiler_Performance") {
+            "CompilerAssuranceEngine"
+        } else {
+            "UniversalIngestionEngine"
+        };
+
         let content = format!(
             r#"---
 title: "Epic {i:02}: {cap_name}"
@@ -117,19 +145,49 @@ generation_mode: subagent
 | **Subsystem** | {subsys} |
 | **Generation Mode** | subagent |
 
-## Subsystem Capability Allocations
+## 1. Context
+{doc}
 
-| Capability | Subsystem | Description |
-| :--- | :--- | :--- |
-| **{cap_name}** | {subsys} | {doc} |
+## 2. Requirements & Checklist
+- [ ] REQ-EPIC-{i:02}-01: Subsystem capability implementation for {cap_name}.
+- [ ] REQ-EPIC-{i:02}-02: Semantic verification and conformance against schema definitions.
 
-## Architectural Context
+## 3. Architecture
+Subsystem architectural layout and component allocation for {cap_name}.
+
+## 4. Operational Considerations
+Operational lifecycle, deterministic lowering execution, and error handling policies for {cap_name}.
+
+## 5. Security & Governance
+Safety-critical invariants, access governance, and zero-hardcoded domain rule adherence.
+
+## 6. Source References
+Schema source definitions in `schema/subsystems/` and system architecture in `schema/model.sysml`.
+
+## System-Level UML Class Diagram
 
 ```mermaid
 classDiagram
-    class {subsys} {{
-        +void perform{cap_name}()
+    class DEAPCompilerSystem {{
+        +execute_pipeline() void
     }}
+    class {target_part} {{
+        +execute() void
+    }}
+    DEAPCompilerSystem --> {target_part} : orchestrates
+```
+
+## System State Machine Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing : dispatch
+    Processing --> Verification : verify
+    Verification --> Completed : pass
+    Verification --> Fault : fail
+    Fault --> Idle : reset
+    Completed --> [*]
 ```
 "#
         );
@@ -189,6 +247,30 @@ classDiagram
         let members_block = member_lines.join("\n");
         let logical_ops_block = logical_ops_bullets.join("\n");
 
+        let class_diagram_block = if part_name == "DEAPCompilerSystem" {
+            format!(
+                r#"classDiagram
+    class DEAPCompilerSystem {{
+{members_block}
+    }}
+    class UniversalIngestionEngine {{
+        +void execute_universalingestionengine()
+    }}
+    DEAPCompilerSystem --> UniversalIngestionEngine : orchestrates"#
+            )
+        } else {
+            format!(
+                r#"classDiagram
+    class DEAPCompilerSystem {{
+        +void execute_pipeline()
+    }}
+    class {part_name} {{
+{members_block}
+    }}
+    DEAPCompilerSystem --> {part_name} : orchestrates"#
+            )
+        };
+
         let content = format!(
             r#"---
 title: "Feature {i:02}: {part_name} Architecture & Control"
@@ -212,24 +294,32 @@ generation_mode: subagent
 | **Part** | {part_name} |
 | **Generation Mode** | subagent |
 
-## Architectural Structure
+## UML Class Diagram
 
 ```mermaid
-classDiagram
-    class {part_name} {{
-{members_block}
-    }}
+{class_diagram_block}
 ```
 
 ## Logical Operations & Interface Messages
 {logical_ops_block}
 
 ## Interface Requirements
-### 1. Payload Schema
-Formal schema and interface definition for {part_name}.
+### 1. Test Data Shape
+```json
+{{
+  "part": "{part_name}",
+  "status": "nominal"
+}}
+```
 
 ### 2. Validation & Constraints
 Formal constraints and invariants enforced by {part_name}.
+
+### 3. Visual Layout & Arrangement
+Logical layout, viewport containment, and container structure for {part_name}.
+
+### 4. Interactive Flow & States
+Interactive operational sequences and discrete state transitions for {part_name}.
 "#
         );
 
