@@ -1,35 +1,39 @@
 {
-  "sha256": "530fe012d151686cb10512d0ad05caab00095711da0f25ffe61747e0dd4fdc23",
-  "total_lines": 5556,
+  "sha256": "13873313cf91ddd6441acb1169b9eac3255c2d43b6b420ad135986e34c8eb792",
+  "total_lines": 5600,
   "node_counts": {
-    "action_defs": 0,
+    "action_defs": 6,
     "attribute_defs": 42,
     "capability_defs": 0,
     "connection_defs": 8,
     "constraint_defs": 0,
-    "containers": 60,
+    "containers": 64,
     "groupings": 0,
     "hazard_defs": 0,
     "identities": 0,
     "interaction_defs": 0,
-    "item_defs": 0,
+    "item_defs": 4,
     "leaves": 42,
-    "lists": 0,
+    "lists": 6,
     "operation_defs": 0,
-    "packages": 13,
-    "part_defs": 60,
+    "packages": 15,
+    "part_defs": 64,
     "port_defs": 23,
     "requirement_defs": 199,
     "risk_defs": 0,
-    "state_defs": 0,
+    "state_defs": 1,
     "test_case_defs": 0,
     "typedefs": 0,
     "use_case_defs": 0
   },
   "schema_nodes": [
     "AgileProjectionEngine",
+    "CIContinuousIntegrationRunner",
     "CodeGenEngine",
     "CompilerAssuranceEngine",
+    "CompilerLifecycleModes",
+    "ConOps",
+    "CorruptSchemaInput",
     "DEAP_Compiler_System",
     "D_b_lambda",
     "Delta_D_mathcal",
@@ -37,12 +41,21 @@
     "Delta_text",
     "Delta_x",
     "DiagnosticErrorCatalogEngine",
+    "DownstreamApplicationHost",
     "G_mathcal",
     "GrammarLoweringEngine",
+    "HumanEngineer",
     "ICDEngine",
     "M_mathcal",
+    "MalformedASTPayload",
     "MetrologyFlowEngine",
     "NodeArenaASTGraphEngine",
+    "OA_01_Ingest_OEM_Artifacts",
+    "OA_02_Parse_SysML_AST",
+    "OA_03_Validate_Model_Semantics",
+    "OA_04_Transpile_Safety_Artifacts",
+    "OA_05_Synthesize_Downstream_Projections",
+    "OA_06_Verify_Baseline_Parity",
     "Phi",
     "REQ_0001_Abstract_MBSE_Compiler_Mandate",
     "REQ_0002_Surjective_Lexical_Provenance_Gate",
@@ -243,6 +256,8 @@
     "REQ_0197_NP_8",
     "REQ_0198_Property_Based_Fuzzing",
     "REQ_0199__4_Pass_Semantic_Parity_Verification_Framework",
+    "RemoteArtifactRegistry",
+    "ResourceExhaustionFlood",
     "S_i_tau",
     "SafetyAssuranceEngine",
     "StateMachineSolverEngine",
@@ -258,8 +273,10 @@
     "Subsystem_7_Formal_Safety_Traceability_Verification",
     "Subsystem_8_Level_1C_ICD_Interconnect_Contracts",
     "Subsystem_9_Downstream_Specification_Projections",
+    "SysML_Model",
     "SystemVisionEngine",
     "U_text_text",
+    "UnauthorizedModelTampering",
     "UniversalIngestionEngine",
     "V_E",
     "_1_Normative_Statement",
@@ -325,80 +342,44 @@
     "token_out"
   ],
   "operational_activities": [],
-  "operational_exchanges": [
-    {
-      "id": "OpTx-01",
-      "name": "c_ingest_to_arena",
-      "source_port": "UniversalIngestionEngine.token_out",
-      "target_port": "NodeArenaASTGraphEngine.token_in",
-      "source_part": "UniversalIngestionEngine",
-      "target_part": "NodeArenaASTGraphEngine",
-      "protocol": ""
-    },
-    {
-      "id": "OpTx-02",
-      "name": "c_arena_to_grammar",
-      "source_port": "NodeArenaASTGraphEngine.ast_graph_out",
-      "target_port": "GrammarLoweringEngine.ast_in",
-      "source_part": "NodeArenaASTGraphEngine",
-      "target_part": "GrammarLoweringEngine",
-      "protocol": ""
-    },
-    {
-      "id": "OpTx-03",
-      "name": "c_grammar_to_metrology",
-      "source_port": "GrammarLoweringEngine.ast_out",
-      "target_port": "MetrologyFlowEngine.ast_in",
-      "source_part": "GrammarLoweringEngine",
-      "target_part": "MetrologyFlowEngine",
-      "protocol": ""
-    },
-    {
-      "id": "OpTx-04",
-      "name": "c_grammar_to_statemachine",
-      "source_port": "GrammarLoweringEngine.ast_out",
-      "target_port": "StateMachineSolverEngine.ast_in",
-      "source_part": "GrammarLoweringEngine",
-      "target_part": "StateMachineSolverEngine",
-      "protocol": ""
-    },
-    {
-      "id": "OpTx-05",
-      "name": "c_solver_to_safety",
-      "source_port": "StateMachineSolverEngine.state_out",
-      "target_port": "SafetyAssuranceEngine.state_in",
-      "source_part": "StateMachineSolverEngine",
-      "target_part": "SafetyAssuranceEngine",
-      "protocol": ""
-    },
-    {
-      "id": "OpTx-06",
-      "name": "c_safety_to_icd",
-      "source_port": "SafetyAssuranceEngine.safety_out",
-      "target_port": "ICDEngine.safety_in",
-      "source_part": "SafetyAssuranceEngine",
-      "target_part": "ICDEngine",
-      "protocol": ""
-    },
-    {
-      "id": "OpTx-07",
-      "name": "c_icd_to_projections",
-      "source_port": "ICDEngine.icd_out",
-      "target_port": "AgileProjectionEngine.icd_in",
-      "source_part": "ICDEngine",
-      "target_part": "AgileProjectionEngine",
-      "protocol": ""
-    },
-    {
-      "id": "OpTx-08",
-      "name": "c_projections_to_codegen",
-      "source_port": "AgileProjectionEngine.specs_out",
-      "target_port": "CodeGenEngine.specs_in",
-      "source_part": "AgileProjectionEngine",
-      "target_part": "CodeGenEngine",
-      "protocol": ""
-    }
-  ],
+  "operational_exchanges": [],
   "operational_scenarios": [],
-  "operational_nodes": []
+  "operational_nodes": [],
+  "file_manifest": [
+    {
+      "path": "schema/conops/activities.sysml",
+      "sha256": "839c4fd5f9fff607f124661f8ff4ecfde7b85271a6130e63d858fa367f1f8bab",
+      "bytes": 889,
+      "lines": 20,
+      "entities": 6
+    },
+    {
+      "path": "schema/conops/actors.sysml",
+      "sha256": "0c7359ce202357ec095f74a3eef48cc808f87fd6015d2e759fa110ee6d3e9c0b",
+      "bytes": 603,
+      "lines": 14,
+      "entities": 4
+    },
+    {
+      "path": "schema/conops/operational_modes.sysml",
+      "sha256": "51ae89fdeb0c891bb4c656099bd633b603dfc7b06ce7fcee629c162b1d06989b",
+      "bytes": 346,
+      "lines": 12,
+      "entities": 1
+    },
+    {
+      "path": "schema/conops/threats.sysml",
+      "sha256": "bd8f6c03f3c98d934b52bf567da9ce766b51161aee0726997f542d93cad43ee9",
+      "bytes": 589,
+      "lines": 14,
+      "entities": 4
+    },
+    {
+      "path": "schema/model.sysml",
+      "sha256": "a0e3eac986d32850794126f6427372147737fd6dedf56f84e04f32bdf8e0c63f",
+      "bytes": 977541,
+      "lines": 5556,
+      "entities": 267
+    }
+  ]
 }
