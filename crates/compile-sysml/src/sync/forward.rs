@@ -39,6 +39,28 @@ fn sanitize_id(id: &str) -> String {
     }
 }
 
+/// Extracts the date from an existing file if present, preserving historical spec dates,
+/// otherwise falls back to the current ISO date.
+fn resolve_date(target_out_dir: &std::path::Path, rel_path: &str, fallback_iso: &str) -> String {
+    let full = target_out_dir.join(rel_path);
+    if let Ok(content) = fs::read_to_string(&full) {
+        for line in content.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("date:") {
+                let d = trimmed
+                    .trim_start_matches("date:")
+                    .trim()
+                    .trim_matches('"')
+                    .trim_matches('\'');
+                if !d.is_empty() {
+                    return d.to_string();
+                }
+            }
+        }
+    }
+    fallback_iso.to_string()
+}
+
 struct SubsystemSpecMeta {
     pkg_name: &'static str,
     dir_name: &'static str,
@@ -255,15 +277,16 @@ stateDiagram-v2
         }
     } else if is_deap {
         // EPIC-01: System Architecture
+        let epic_01_date = resolve_date(&target_out_dir, "epics/EPIC-01-SysML_Model.md", &today_iso);
         let epic_01_content = format!(
             r#"---
 title: "Epic 01: System Architecture and Compiler Primacy"
 version: "1.0.0"
-date: "{today_iso}"
+date: "{epic_01_date}"
 type: epic
 package: "DEAP_Compiler_System"
 subsystem: "System Architecture"
-issue_id: 0
+issue_id: 101
 generation_mode: subagent
 ---
 
@@ -274,22 +297,32 @@ generation_mode: subagent
 | :--- | :--- |
 | **Title** | Epic 01: System Architecture and Compiler Primacy |
 | **Version** | 1.0.0 |
-| **Date** | {today_iso} |
+| **Date** | {epic_01_date} |
 | **Type** | epic |
 | **Package** | DEAP_Compiler_System |
 | **Subsystem** | System Architecture |
-| **Issue ID** | 0 |
+| **Issue ID** | #101 |
 | **Generation Mode** | subagent |
 
 ## 1. Context
 System-level architecture definition establishing compiler primacy, component interconnection, and pure schema-driven lowering guarantees across the DEAP framework.
 
 ## 2. Requirements & Checklist
-- [ ] Feature 01: [ConOps] Human Engineer Interface
-- [ ] Feature 02: [ConOps] CI Continuous Integration Runner
-- [ ] Feature 03: [ConOps] Remote Artifact Registry Interface
-- [ ] Feature 04: [ConOps] Downstream Application Host Interface
-- [ ] Feature 05: [Architecture] DEAP Compiler System Architecture
+- [ ] #10 - Feature 01: [ConOps] Human Engineer Interface
+- [ ] #11 - Feature 02: [ConOps] CI Continuous Integration Runner
+- [ ] #12 - Feature 03: [ConOps] Remote Artifact Registry Interface
+- [ ] #13 - Feature 04: [ConOps] Downstream Application Host Interface
+- [ ] #14 - Feature 05: [Architecture] DEAP Compiler System Architecture
+
+
+### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
+
+
+#### Associated User Stories
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
 
 ## 3. Architecture
 Top-level structural decomposition interconnecting external ConOps operational actors with the core compiler engine and downstream projection adapters.
@@ -335,15 +368,16 @@ stateDiagram-v2
         generated_files.insert("epics/EPIC-01-SysML_Model.md".to_string(), epic_01_content);
 
         // EPIC-02: ConOps
+        let epic_02_date = resolve_date(&target_out_dir, "epics/EPIC-02-ConOps.md", &today_iso);
         let epic_02_content = format!(
             r#"---
 title: "Epic 02: Concept of Operations Operational Activities"
 version: "1.0.0"
-date: "{today_iso}"
+date: "{epic_02_date}"
 type: epic
 package: "ConOps"
 subsystem: "ConOps"
-issue_id: 0
+issue_id: 102
 generation_mode: subagent
 ---
 
@@ -354,11 +388,11 @@ generation_mode: subagent
 | :--- | :--- |
 | **Title** | Epic 02: Concept of Operations Operational Activities |
 | **Version** | 1.0.0 |
-| **Date** | {today_iso} |
+| **Date** | {epic_02_date} |
 | **Type** | epic |
 | **Package** | ConOps |
 | **Subsystem** | ConOps |
-| **Issue ID** | 0 |
+| **Issue ID** | #102 |
 | **Generation Mode** | subagent |
 
 ## 1. Context
@@ -373,10 +407,31 @@ Concept of Operations specifications detailing external actor interactions, oper
 - /// OperationalAllocation: [OA-06] Compiler Assurance Engine
 
 ## 2. Requirements & Checklist
-- [ ] Feature 01: [ConOps] Human Engineer Interface
-- [ ] Feature 02: [ConOps] CI Continuous Integration Runner
-- [ ] Feature 03: [ConOps] Remote Artifact Registry Interface
-- [ ] Feature 04: [ConOps] Downstream Application Host Interface
+- [ ] #10 - Feature 01: [ConOps] Human Engineer Interface
+- [ ] #11 - Feature 02: [ConOps] CI Continuous Integration Runner
+- [ ] #12 - Feature 03: [ConOps] Remote Artifact Registry Interface
+- [ ] #13 - Feature 04: [ConOps] Downstream Application Host Interface
+- [ ] #14 - Feature 05: [Architecture] DEAP Compiler System Architecture
+
+
+### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- [ ] #95 - [Use Case 01: System Vision and Schema Ingestion Workflow](../use-cases/UC-01-System_Vision_and_Schema_Ingestion_Workflow.md)
+- [ ] #96 - [Use Case 02: Grammar Lowering and AST Construction Workflow](../use-cases/UC-02-Grammar_Lowering_and_AST_Construction_Workflow.md)
+- [ ] #97 - [Use Case 03: Safety Assurance and STPA Verification Workflow](../use-cases/UC-03-Safety_Assurance_and_STPA_Verification_Workflow.md)
+- [ ] #98 - [Use Case 04: Downstream Specification and Backlog Projection Workflow](../use-cases/UC-04-Downstream_Specification_and_Backlog_Projection_Workflow.md)
+- [ ] #99 - [Use Case 05: Multi-Target CodeGen and Simulation Synthesis Workflow](../use-cases/UC-05-Multi_Target_CodeGen_and_Simulation_Synthesis_Workflow.md)
+- [ ] #100 - [Use Case 06: Baseline Conformance and Diagnostic Triage Workflow](../use-cases/UC-06-Baseline_Conformance_and_Diagnostic_Triage_Workflow.md)
+
+
+#### Associated User Stories
+- [ ] #89 - [User Story 01: Ingest OEM Documentation and Schema Artifacts](../user-stories/US-01-Ingest_OEM_Artifacts.md)
+- [ ] #90 - [User Story 02: Parse SysML v2 AST and Construct Arena Graph](../user-stories/US-02-Parse_SysML_AST.md)
+- [ ] #91 - [User Story 03: Validate Model Semantics and Typing Constraints](../user-stories/US-03-Validate_Model_Semantics.md)
+- [ ] #92 - [User Story 04: Transpile Safety Assurance and STPA Matrices](../user-stories/US-04-Transpile_Safety_Artifacts.md)
+- [ ] #93 - [User Story 05: Synthesize Downstream Agile Backlog Projections](../user-stories/US-05-Synthesize_Downstream_Projections.md)
+- [ ] #94 - [User Story 06: Verify Multi-File Baseline Parity and Governance Gates](../user-stories/US-06-Verify_Baseline_Parity.md)
 
 ## 3. Architecture
 External operational interfaces binding human systems engineers and continuous integration runners to the compiler lifecycle.
@@ -426,16 +481,95 @@ stateDiagram-v2
             let epic_num = s_idx + 3;
             let feat_start = 6 + s_idx * 5;
             let title = format!("Epic {:02}: {}", epic_num, s_meta.pkg_name.replace('_', " "));
+            let rel_path = format!("epics/EPIC-{:02}-{}.md", epic_num, s_meta.pkg_name);
+            let epic_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
+            let epic_issue_id = epic_num + 100;
+            let issue_start = feat_start + 9;
+            let i1 = issue_start + 1;
+            let i2 = issue_start + 2;
+            let i3 = issue_start + 3;
+            let i4 = issue_start + 4;
+            let f1 = feat_start + 1;
+            let f2 = feat_start + 2;
+            let f3 = feat_start + 3;
+            let f4 = feat_start + 4;
+
+            let associated_section = match epic_num {
+                4 => r#"### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- [ ] #95 - [Use Case 01: System Vision and Schema Ingestion Workflow](../use-cases/UC-01-System_Vision_and_Schema_Ingestion_Workflow.md)
+
+
+#### Associated User Stories
+- [ ] #89 - [User Story 01: Ingest OEM Documentation and Schema Artifacts](../user-stories/US-01-Ingest_OEM_Artifacts.md)"#,
+                5 => r#"### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
+
+
+#### Associated User Stories
+- [ ] #90 - [User Story 02: Parse SysML v2 AST and Construct Arena Graph](../user-stories/US-02-Parse_SysML_AST.md)"#,
+                6 => r#"### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- [ ] #96 - [Use Case 02: Grammar Lowering and AST Construction Workflow](../use-cases/UC-02-Grammar_Lowering_and_AST_Construction_Workflow.md)
+
+
+#### Associated User Stories
+- [ ] #91 - [User Story 03: Validate Model Semantics and Typing Constraints](../user-stories/US-03-Validate_Model_Semantics.md)"#,
+                9 => r#"### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- [ ] #97 - [Use Case 03: Safety Assurance and STPA Verification Workflow](../use-cases/UC-03-Safety_Assurance_and_STPA_Verification_Workflow.md)
+
+
+#### Associated User Stories
+- [ ] #92 - [User Story 04: Transpile Safety Assurance and STPA Matrices](../user-stories/US-04-Transpile_Safety_Artifacts.md)"#,
+                11 => r#"### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- [ ] #98 - [Use Case 04: Downstream Specification and Backlog Projection Workflow](../use-cases/UC-04-Downstream_Specification_and_Backlog_Projection_Workflow.md)
+
+
+#### Associated User Stories
+- [ ] #93 - [User Story 05: Synthesize Downstream Agile Backlog Projections](../user-stories/US-05-Synthesize_Downstream_Projections.md)"#,
+                12 => r#"### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- [ ] #99 - [Use Case 05: Multi-Target CodeGen and Simulation Synthesis Workflow](../use-cases/UC-05-Multi_Target_CodeGen_and_Simulation_Synthesis_Workflow.md)
+
+
+#### Associated User Stories
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)"#,
+                14 => r#"### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- [ ] #100 - [Use Case 06: Baseline Conformance and Diagnostic Triage Workflow](../use-cases/UC-06-Baseline_Conformance_and_Diagnostic_Triage_Workflow.md)
+
+
+#### Associated User Stories
+- [ ] #94 - [User Story 06: Verify Multi-File Baseline Parity and Governance Gates](../user-stories/US-06-Verify_Baseline_Parity.md)"#,
+                _ => r#"### Associated Use Cases & User Stories
+
+#### Associated Use Cases
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)
+
+
+#### Associated User Stories
+- None directly allocated (operational behavior allocated at system ConOps level in Epic 02)"#,
+            };
 
             let content = format!(
                 r#"---
 title: "{title}"
 version: "1.0.0"
-date: "{today_iso}"
+date: "{epic_date}"
 type: epic
 package: "{pkg_name}"
 subsystem: "{subsystem}"
-issue_id: 0
+issue_id: {epic_issue_id}
 generation_mode: subagent
 ---
 
@@ -446,22 +580,25 @@ generation_mode: subagent
 | :--- | :--- |
 | **Title** | {title} |
 | **Version** | 1.0.0 |
-| **Date** | {today_iso} |
+| **Date** | {epic_date} |
 | **Type** | epic |
 | **Package** | {pkg_name} |
 | **Subsystem** | {subsystem} |
-| **Issue ID** | 0 |
+| **Issue ID** | #{epic_issue_id} |
 | **Generation Mode** | subagent |
 
 ## 1. Context
 Subsystem specification for {subsystem} ({pkg_name}) establishing architectural layout, mathematical invariants, algorithmic complexity bounds, and verification criteria.
 
 ## 2. Requirements & Checklist
-- [ ] Feature {feat_start:02}: [{subsystem}] {engine_display}
-- [ ] Feature {f1:02}: [{subsystem}] Normative Statement
-- [ ] Feature {f2:02}: [{subsystem}] Formal Invariant
-- [ ] Feature {f3:02}: [{subsystem}] Complexity Bounds
-- [ ] Feature {f4:02}: [{subsystem}] Conformance Criteria
+- [ ] #{issue_start} - Feature {feat_start:02}: [{subsystem}] {engine_display}
+- [ ] #{i1} - Feature {f1:02}: [{subsystem}] Normative Statement
+- [ ] #{i2} - Feature {f2:02}: [{subsystem}] Formal Invariant
+- [ ] #{i3} - Feature {f3:02}: [{subsystem}] Complexity Bounds
+- [ ] #{i4} - Feature {f4:02}: [{subsystem}] Conformance Criteria
+
+
+{associated_section}
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by {engine_name}.
@@ -508,10 +645,18 @@ stateDiagram-v2
                 pkg_name = s_meta.pkg_name,
                 subsystem = s_meta.display_name,
                 feat_start = feat_start,
-                f1 = feat_start + 1,
-                f2 = feat_start + 2,
-                f3 = feat_start + 3,
-                f4 = feat_start + 4,
+                f1 = f1,
+                f2 = f2,
+                f3 = f3,
+                f4 = f4,
+                issue_start = issue_start,
+                i1 = i1,
+                i2 = i2,
+                i3 = i3,
+                i4 = i4,
+                epic_issue_id = epic_issue_id,
+                epic_date = epic_date,
+                associated_section = associated_section,
                 engine_display = s_meta.engine_display,
                 engine_name = s_meta.engine_name,
                 dir_name = s_meta.dir_name,
@@ -520,6 +665,7 @@ stateDiagram-v2
             let rel_path = format!("epics/EPIC-{:02}-{}.md", epic_num, s_meta.pkg_name);
             generated_files.insert(rel_path, content);
         }
+
     } else {
         // Generic fallback for custom packages in unit tests
         let mut epics_data: Vec<(String, String, String)> = pkg
@@ -706,16 +852,29 @@ stateDiagram-v2
             )
         };
 
+        let rel_path = format!("features/FEAT-{:02}-{}.md", i, part_name);
+        let feat_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
+        let feat_issue_id = if is_deap && i >= 1 && i <= 65 {
+            i + 9
+        } else {
+            0
+        };
+        let feat_issue_id_table = if feat_issue_id > 0 {
+            format!("#{}", feat_issue_id)
+        } else {
+            "0".to_string()
+        };
+
         let content = format!(
             r#"---
 title: "{title}"
 version: "1.0.0"
-date: "{today_iso}"
+date: "{feat_date}"
 type: feature
 part: "{part_name}"
 part_def: "{part_name}"
 subsystem: "{subsystem_name}"
-issue_id: 0
+issue_id: {feat_issue_id}
 generation_mode: subagent
 ---
 
@@ -726,11 +885,11 @@ generation_mode: subagent
 | :--- | :--- |
 | **Title** | {title} |
 | **Version** | 1.0.0 |
-| **Date** | {today_iso} |
+| **Date** | {feat_date} |
 | **Type** | feature |
 | **Part** | {part_name} |
 | **Subsystem** | {subsystem_name} |
-| **Issue ID** | 0 |
+| **Issue ID** | {feat_issue_id_table} |
 | **Generation Mode** | subagent |
 
 ## UML Class Diagram
@@ -780,7 +939,6 @@ Component behavior and interface definitions derive from `schema/model.sysml` pu
 "#
         );
 
-        let rel_path = format!("features/FEAT-{:02}-{}.md", i, part_name);
         generated_files.insert(rel_path, content);
     }
 
@@ -813,12 +971,15 @@ Component behavior and interface definitions derive from `schema/model.sysml` pu
             }
             let seq_diagram = seq_lines.join("\n");
             let title = format!("User Story {:02}: {}", i, inter_name);
+            let rel_path = format!("user-stories/US-{:02}-{}.md", i, inter_name);
+            let us_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
             let content = format!(
                 r#"---
 title: "{title}"
 version: "1.0.0"
-date: "{today_iso}"
+date: "{us_date}"
 type: user-story
+epic: "EPIC-01-System"
 interaction: "{inter_name}"
 subject: "{subject_part}"
 issue_id: 0
@@ -832,7 +993,7 @@ generation_mode: subagent
 | :--- | :--- |
 | **Title** | {title} |
 | **Version** | 1.0.0 |
-| **Date** | {today_iso} |
+| **Date** | {us_date} |
 | **Type** | user-story |
 | **Interaction** | {inter_name} |
 | **Subject** | {subject_part} |
@@ -851,9 +1012,9 @@ generation_mode: subagent
 - [ ] AC-US-{i:02}-03: Given exceptional conditions, When error handling activates, Then graceful recovery occurs without data loss.
 
 ## Required Features
-- [ ] Feature 01: [ConOps] Human Engineer Interface
-- [ ] Feature 02: [ConOps] CI Continuous Integration Runner
-- [ ] Feature 05: [Architecture] DEAP Compiler System Architecture
+- [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)
+- [ ] [Feature 02: [ConOps] CI Continuous Integration Runner](../features/FEAT-02-CIContinuousIntegrationRunner.md)
+- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
@@ -864,7 +1025,6 @@ Operational concept definitions and system sequence interaction models:
 Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
 "#
             );
-            let rel_path = format!("user-stories/US-{:02}-{}.md", i, inter_name);
             generated_files.insert(rel_path, content);
         }
     } else if is_deap {
@@ -875,6 +1035,8 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
             slug: &'static str,
             actor: &'static str,
             subject: &'static str,
+            epic_name: &'static str,
+            issue_id: usize,
             req_features: &'static [&'static str],
         }
         let canonical_user_stories = [
@@ -885,11 +1047,12 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
                 slug: "Ingest_OEM_Artifacts",
                 actor: "HumanEngineer",
                 subject: "UniversalIngestionEngine",
+                epic_name: "EPIC-04-Subsystem_2_Universal_Schema_Ingestion_Engine",
+                issue_id: 89,
                 req_features: &[
-                    "- [ ] Feature 01: [ConOps] Human Engineer Interface",
-                    "- [ ] Feature 02: [ConOps] CI Continuous Integration Runner",
-                    "- [ ] Feature 11: [Universal Ingestion] Universal Ingestion Engine",
-                    "- [ ] Feature 12: [Universal Ingestion] Normative Statement",
+                    "- [ ] #10 - [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md) (operator command dispatch and ingest trigger)",
+                    "- [ ] #15 - [Feature 06: [System Vision] System Vision Engine](../features/FEAT-06-SystemVisionEngine.md) (system vision schema parsing and invariant validation)",
+                    "- [ ] #20 - [Feature 11: [Universal Ingestion] Universal Ingestion Engine](../features/FEAT-11-UniversalIngestionEngine.md) (universal schema ingestion and document parsing)",
                 ],
             },
             CanonicalUS {
@@ -899,11 +1062,12 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
                 slug: "Parse_SysML_AST",
                 actor: "CIContinuousIntegrationRunner",
                 subject: "NodeArenaASTGraphEngine",
+                epic_name: "EPIC-05-Subsystem_3_Core_Metamodel_Node_Arena",
+                issue_id: 90,
                 req_features: &[
-                    "- [ ] Feature 16: [Node Arena AST Graph] Node Arena AST Graph Engine",
-                    "- [ ] Feature 17: [Node Arena AST Graph] Normative Statement",
-                    "- [ ] Feature 21: [Grammar Lowering] Grammar Lowering Engine",
-                    "- [ ] Feature 22: [Grammar Lowering] Normative Statement",
+                    "- [ ] #11 - [Feature 02: [ConOps] CI Continuous Integration Runner](../features/FEAT-02-CIContinuousIntegrationRunner.md) (continuous integration pipeline execution and trigger)",
+                    "- [ ] #25 - [Feature 16: [Node Arena AST Graph] Node Arena AST Graph Engine](../features/FEAT-16-NodeArenaASTGraphEngine.md) (arena graph construction and node allocation)",
+                    "- [ ] #30 - [Feature 21: [Grammar Lowering] Grammar Lowering Engine](../features/FEAT-21-GrammarLoweringEngine.md) (SysML grammar lowering into arena representation)",
                 ],
             },
             CanonicalUS {
@@ -913,10 +1077,12 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
                 slug: "Validate_Model_Semantics",
                 actor: "CIContinuousIntegrationRunner",
                 subject: "GrammarLoweringEngine",
+                epic_name: "EPIC-06-Subsystem_4_Complete_SysMLv2_KerML_Grammar",
+                issue_id: 91,
                 req_features: &[
-                    "- [ ] Feature 21: [Grammar Lowering] Grammar Lowering Engine",
-                    "- [ ] Feature 26: [Physical Metrology Flow] Physical Metrology Flow Engine",
-                    "- [ ] Feature 31: [State Solvers] State Machine Solver Engine",
+                    "- [ ] #11 - [Feature 02: [ConOps] CI Continuous Integration Runner](../features/FEAT-02-CIContinuousIntegrationRunner.md) (automated pipeline runner for semantic validation)",
+                    "- [ ] #35 - [Feature 26: [Physical Metrology Flow] Physical Metrology Flow Engine](../features/FEAT-26-MetrologyFlowEngine.md) (metrology flow validation and dimensional checks)",
+                    "- [ ] #40 - [Feature 31: [State Solvers] State Machine Solver Engine](../features/FEAT-31-StateMachineSolverEngine.md) (state machine constraints and solver verification)",
                 ],
             },
             CanonicalUS {
@@ -926,10 +1092,12 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
                 slug: "Transpile_Safety_Artifacts",
                 actor: "CIContinuousIntegrationRunner",
                 subject: "SafetyAssuranceEngine",
+                epic_name: "EPIC-09-Subsystem_7_Formal_Safety_Traceability_Verification",
+                issue_id: 92,
                 req_features: &[
-                    "- [ ] Feature 36: [Safety Traceability] Safety Assurance Engine",
-                    "- [ ] Feature 37: [Safety Traceability] Normative Statement",
-                    "- [ ] Feature 41: [ICD Interconnect] ICD Interconnect Engine",
+                    "- [ ] #11 - [Feature 02: [ConOps] CI Continuous Integration Runner](../features/FEAT-02-CIContinuousIntegrationRunner.md) (automated pipeline execution for safety analysis)",
+                    "- [ ] #45 - [Feature 36: [Safety Traceability] Safety Assurance Engine](../features/FEAT-36-SafetyAssuranceEngine.md) (safety assurance and STPA matrix synthesis)",
+                    "- [ ] #50 - [Feature 41: [ICD Interconnect] ICD Interconnect Engine](../features/FEAT-41-ICDEngine.md) (ICD interconnect verification and contract validation)",
                 ],
             },
             CanonicalUS {
@@ -939,10 +1107,12 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
                 slug: "Synthesize_Downstream_Projections",
                 actor: "HumanEngineer",
                 subject: "AgileProjectionEngine",
+                epic_name: "EPIC-11-Subsystem_9_Downstream_Specification_Projections",
+                issue_id: 93,
                 req_features: &[
-                    "- [ ] Feature 46: [Downstream Projections] Agile Projection Engine",
-                    "- [ ] Feature 47: [Downstream Projections] Normative Statement",
-                    "- [ ] Feature 51: [Multi-Target CodeGen] CodeGen Engine",
+                    "- [ ] #10 - [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md) (engineer interface for downstream projection commands)",
+                    "- [ ] #55 - [Feature 46: [Downstream Projections] Agile Projection Engine](../features/FEAT-46-AgileProjectionEngine.md) (agile backlog projection generation)",
+                    "- [ ] #60 - [Feature 51: [Multi-Target CodeGen] CodeGen Engine](../features/FEAT-51-CodeGenEngine.md) (multi-target codegen and downstream language bindings)",
                 ],
             },
             CanonicalUS {
@@ -952,25 +1122,30 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
                 slug: "Verify_Baseline_Parity",
                 actor: "CIContinuousIntegrationRunner",
                 subject: "CompilerAssuranceEngine",
+                epic_name: "EPIC-14-Subsystem_12_Compiler_Performance_CLI_Assurance",
+                issue_id: 94,
                 req_features: &[
-                    "- [ ] Feature 56: [Diagnostic Error Catalog] Diagnostic Error Catalog Engine",
-                    "- [ ] Feature 61: [Compiler Performance] Compiler Assurance Engine",
-                    "- [ ] Feature 62: [Compiler Performance] Normative Statement",
+                    "- [ ] #11 - [Feature 02: [ConOps] CI Continuous Integration Runner](../features/FEAT-02-CIContinuousIntegrationRunner.md) (continuous integration gate for baseline parity check)",
+                    "- [ ] #65 - [Feature 56: [Diagnostic Error Catalog] Diagnostic Error Catalog Engine](../features/FEAT-56-DiagnosticErrorCatalogEngine.md) (diagnostic error catalog aggregation and triage)",
+                    "- [ ] #70 - [Feature 61: [Compiler Performance] Compiler Assurance Engine](../features/FEAT-61-CompilerAssuranceEngine.md) (compiler assurance verification and gate conformance)",
                 ],
             },
         ];
 
         for us in &canonical_user_stories {
+            let rel_path = format!("user-stories/US-{:02}-{}.md", us.num, us.slug);
+            let us_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
             let req_feats = us.req_features.join("\n");
             let content = format!(
                 r#"---
 title: "{title}"
 version: "1.0.0"
-date: "{today_iso}"
+date: "{us_date}"
 type: user-story
+epic: "{epic_name}"
 interaction: "{action}"
 subject: "{subject}"
-issue_id: 0
+issue_id: {issue_id}
 generation_mode: subagent
 ---
 
@@ -981,11 +1156,11 @@ generation_mode: subagent
 | :--- | :--- |
 | **Title** | {title} |
 | **Version** | 1.0.0 |
-| **Date** | {today_iso} |
+| **Date** | {us_date} |
 | **Type** | user-story |
 | **Interaction** | {action} |
 | **Subject** | {subject} |
-| **Issue ID** | 0 |
+| **Issue ID** | #{issue_id} |
 | **Generation Mode** | subagent |
 
 ## UML Sequence Diagram
@@ -1023,9 +1198,11 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
                 subject = us.subject,
                 actor = us.actor,
                 num = us.num,
+                epic_name = us.epic_name,
+                issue_id = us.issue_id,
+                us_date = us_date,
                 req_feats = req_feats,
             );
-            let rel_path = format!("user-stories/US-{:02}-{}.md", us.num, us.slug);
             generated_files.insert(rel_path, content);
         }
     }
@@ -1058,12 +1235,15 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
                 .collect::<Vec<_>>()
                 .join("\n");
             let title = format!("Use Case {:02}: {}", i, uc_name);
+            let rel_path = format!("use-cases/UC-{:02}-{}.md", i, uc_name);
+            let uc_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
             let content = format!(
                 r#"---
 title: "{title}"
 version: "1.0.0"
-date: "{today_iso}"
+date: "{uc_date}"
 type: use-case
+epic: "EPIC-01-System"
 use_case_def: "{uc_name}"
 subject: "{subject}"
 actors:
@@ -1079,7 +1259,7 @@ generation_mode: subagent
 | :--- | :--- |
 | **Title** | {title} |
 | **Version** | 1.0.0 |
-| **Date** | {today_iso} |
+| **Date** | {uc_date} |
 | **Type** | use-case |
 | **Use Case Def** | {uc_name} |
 | **Subject** | {subject} |
@@ -1116,10 +1296,10 @@ flowchart TD
 - Operational state invariants are satisfied.
 
 ## 8. Realization Matrix
-| Specification Type | Identifier | Title / Description | Traceability Link |
-| :--- | :--- | :--- | :--- |
-| User Story | US-01 | User Story 01 Operational Flow | Realizes Activity |
-| Feature | FEAT-01 | Feature 01 Component Control | Realizes Component |
+| Specification Item | Type | Link / Reference |
+| :--- | :--- | :--- |
+| **#01** | User Story | [User Story 01: Operational Concept](../user-stories/US-01-SystemVision.md) |
+| **#01** | Feature | [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md) |
 
 ## Source References
 Use case operational flows and lifecycle activity references:
@@ -1130,7 +1310,6 @@ Use case operational flows and lifecycle activity references:
 Operational use case realization and traceability links derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
 "#
             );
-            let rel_path = format!("use-cases/UC-{:02}-{}.md", i, uc_name);
             generated_files.insert(rel_path, content);
         }
     } else if is_deap {
@@ -1141,8 +1320,14 @@ Operational use case realization and traceability links derive from `schema/cono
             def: &'static str,
             subject: &'static str,
             actor: &'static str,
-            us_ref: usize,
-            feat_ref: usize,
+            epic_name: &'static str,
+            issue_id: usize,
+            us_issue_id: usize,
+            us_title: &'static str,
+            us_link: &'static str,
+            feat_issue_id: usize,
+            feat_title: &'static str,
+            feat_link: &'static str,
         }
         let canonical_use_cases = [
             CanonicalUC {
@@ -1152,8 +1337,14 @@ Operational use case realization and traceability links derive from `schema/cono
                 def: "UC_01_System_Vision_and_Schema_Ingestion",
                 subject: "UniversalIngestionEngine",
                 actor: "HumanEngineer",
-                us_ref: 1,
-                feat_ref: 11,
+                epic_name: "EPIC-04-Subsystem_2_Universal_Schema_Ingestion_Engine",
+                issue_id: 95,
+                us_issue_id: 89,
+                us_title: "User Story 01: Ingest OEM Documentation and Schema Artifacts",
+                us_link: "../user-stories/US-01-Ingest_OEM_Artifacts.md",
+                feat_issue_id: 15,
+                feat_title: "Feature 06: [System Vision] System Vision Engine",
+                feat_link: "../features/FEAT-06-SystemVisionEngine.md",
             },
             CanonicalUC {
                 num: 2,
@@ -1162,8 +1353,14 @@ Operational use case realization and traceability links derive from `schema/cono
                 def: "UC_02_Grammar_Lowering_and_AST_Construction",
                 subject: "GrammarLoweringEngine",
                 actor: "CIContinuousIntegrationRunner",
-                us_ref: 2,
-                feat_ref: 21,
+                epic_name: "EPIC-06-Subsystem_4_Complete_SysMLv2_KerML_Grammar",
+                issue_id: 96,
+                us_issue_id: 90,
+                us_title: "User Story 02: Parse SysML v2 AST and Construct Arena Graph",
+                us_link: "../user-stories/US-02-Parse_SysML_AST.md",
+                feat_issue_id: 25,
+                feat_title: "Feature 16: [Node Arena AST Graph] Node Arena AST Graph Engine",
+                feat_link: "../features/FEAT-16-NodeArenaASTGraphEngine.md",
             },
             CanonicalUC {
                 num: 3,
@@ -1172,8 +1369,14 @@ Operational use case realization and traceability links derive from `schema/cono
                 def: "UC_03_Safety_Assurance_and_STPA_Verification",
                 subject: "SafetyAssuranceEngine",
                 actor: "CIContinuousIntegrationRunner",
-                us_ref: 4,
-                feat_ref: 36,
+                epic_name: "EPIC-09-Subsystem_7_Formal_Safety_Traceability_Verification",
+                issue_id: 97,
+                us_issue_id: 91,
+                us_title: "User Story 03: Validate Model Semantics and Typing Constraints",
+                us_link: "../user-stories/US-03-Validate_Model_Semantics.md",
+                feat_issue_id: 35,
+                feat_title: "Feature 26: [Physical Metrology Flow] Physical Metrology Flow Engine",
+                feat_link: "../features/FEAT-26-MetrologyFlowEngine.md",
             },
             CanonicalUC {
                 num: 4,
@@ -1182,8 +1385,14 @@ Operational use case realization and traceability links derive from `schema/cono
                 def: "UC_04_Downstream_Specification_and_Backlog_Projection",
                 subject: "AgileProjectionEngine",
                 actor: "HumanEngineer",
-                us_ref: 5,
-                feat_ref: 46,
+                epic_name: "EPIC-11-Subsystem_9_Downstream_Specification_Projections",
+                issue_id: 98,
+                us_issue_id: 92,
+                us_title: "User Story 04: Transpile Safety Assurance and STPA Matrices",
+                us_link: "../user-stories/US-04-Transpile_Safety_Artifacts.md",
+                feat_issue_id: 45,
+                feat_title: "Feature 36: [Safety Traceability] Safety Assurance Engine",
+                feat_link: "../features/FEAT-36-SafetyAssuranceEngine.md",
             },
             CanonicalUC {
                 num: 5,
@@ -1192,8 +1401,14 @@ Operational use case realization and traceability links derive from `schema/cono
                 def: "UC_05_Multi_Target_CodeGen_and_Simulation_Synthesis",
                 subject: "CodeGenEngine",
                 actor: "CIContinuousIntegrationRunner",
-                us_ref: 5,
-                feat_ref: 51,
+                epic_name: "EPIC-12-Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings",
+                issue_id: 99,
+                us_issue_id: 93,
+                us_title: "User Story 05: Synthesize Downstream Agile Backlog Projections",
+                us_link: "../user-stories/US-05-Synthesize_Downstream_Projections.md",
+                feat_issue_id: 55,
+                feat_title: "Feature 46: [Downstream Projections] Agile Projection Engine",
+                feat_link: "../features/FEAT-46-AgileProjectionEngine.md",
             },
             CanonicalUC {
                 num: 6,
@@ -1202,23 +1417,32 @@ Operational use case realization and traceability links derive from `schema/cono
                 def: "UC_06_Baseline_Conformance_and_Diagnostic_Triage",
                 subject: "CompilerAssuranceEngine",
                 actor: "CIContinuousIntegrationRunner",
-                us_ref: 6,
-                feat_ref: 61,
+                epic_name: "EPIC-14-Subsystem_12_Compiler_Performance_CLI_Assurance",
+                issue_id: 100,
+                us_issue_id: 94,
+                us_title: "User Story 06: Verify Multi-File Baseline Parity and Governance Gates",
+                us_link: "../user-stories/US-06-Verify_Baseline_Parity.md",
+                feat_issue_id: 65,
+                feat_title: "Feature 56: [Diagnostic Error Catalog] Diagnostic Error Catalog Engine",
+                feat_link: "../features/FEAT-56-DiagnosticErrorCatalogEngine.md",
             },
         ];
 
         for uc in &canonical_use_cases {
+            let rel_path = format!("use-cases/UC-{:02}-{}.md", uc.num, uc.slug);
+            let uc_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
             let content = format!(
                 r#"---
 title: "{title}"
 version: "1.0.0"
-date: "{today_iso}"
+date: "{uc_date}"
 type: use-case
+epic: "{epic_name}"
 use_case_def: "{def}"
 subject: "{subject}"
 actors:
   - "{actor}"
-issue_id: 0
+issue_id: {issue_id}
 generation_mode: subagent
 ---
 
@@ -1229,12 +1453,12 @@ generation_mode: subagent
 | :--- | :--- |
 | **Title** | {title} |
 | **Version** | 1.0.0 |
-| **Date** | {today_iso} |
+| **Date** | {uc_date} |
 | **Type** | use-case |
 | **Use Case Def** | {def} |
 | **Subject** | {subject} |
 | **Actors** | {actor} |
-| **Issue ID** | 0 |
+| **Issue ID** | #{issue_id} |
 | **Generation Mode** | subagent |
 
 ## UML Diagrams
@@ -1271,10 +1495,10 @@ flowchart TD
 - Output artifacts are deterministically emitted with bitwise reproducibility.
 
 ## 8. Realization Matrix
-| Specification Type | Identifier | Title / Description | Traceability Link |
-| :--- | :--- | :--- | :--- |
-| User Story | US-{us_ref:02} | User Story {us_ref:02} Operational Flow | Realizes Activity |
-| Feature | FEAT-{feat_ref:02} | Feature {feat_ref:02} Component Architecture | Realizes Component |
+| Specification Item | Type | Link / Reference |
+| :--- | :--- | :--- |
+| **#{us_issue_id}** | User Story | [{us_title}]({us_link}) |
+| **#{feat_issue_id}** | Feature | [{feat_title}]({feat_link}) |
 
 ## Source References
 Use case operational flows and lifecycle activity references:
@@ -1288,10 +1512,16 @@ Operational use case realization and traceability links derive from `schema/cono
                 def = uc.def,
                 subject = uc.subject,
                 actor = uc.actor,
-                us_ref = uc.us_ref,
-                feat_ref = uc.feat_ref,
+                epic_name = uc.epic_name,
+                issue_id = uc.issue_id,
+                uc_date = uc_date,
+                us_issue_id = uc.us_issue_id,
+                us_title = uc.us_title,
+                us_link = uc.us_link,
+                feat_issue_id = uc.feat_issue_id,
+                feat_title = uc.feat_title,
+                feat_link = uc.feat_link,
             );
-            let rel_path = format!("use-cases/UC-{:02}-{}.md", uc.num, uc.slug);
             generated_files.insert(rel_path, content);
         }
     }
