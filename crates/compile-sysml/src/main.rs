@@ -3,12 +3,14 @@
 use clap::Parser;
 use compile_sysml::semantic::serializer::{to_sysml, SysmlSerializable};
 use compile_sysml::semantic::validator::SemanticValidator;
-use compile_sysml::stpa::{compile_stpa_to_constraints, transpile_stpa};
+use compile_sysml::stpa::compile_stpa_to_constraints;
 use compile_sysml::sync::{
     forward_sync_sysml_to_specs, reverse_sync_specs_to_sysml, ForwardSyncOptions,
     ReverseSyncOptions,
 };
-use compile_sysml::{parse_sysml, SchemaDigest};
+use compile_sysml::{
+    discover_sysml_files, parse_sysml, parse_sysml_tree, PackageDef, SchemaDigest,
+};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
@@ -87,8 +89,8 @@ fn main() {
 
     // 1. STPA Transpilation: transpile schema AST into 10-pillar safety suite
     if cli.stpa_transpile {
-        let schema_path = match resolve_schema_file(cli.schema.or(cli.file)) {
-            Ok(p) => p,
+        let target = match resolve_schema_targets(cli.schema.or(cli.file)) {
+            Ok(t) => t,
             Err(e) => {
                 eprintln!("{}", e);
                 process::exit(1);
@@ -96,10 +98,62 @@ fn main() {
         };
 
         let out_dir = cli.out_dir.unwrap_or_else(|| PathBuf::from("docs/safety"));
-        if let Err(e) = transpile_stpa(&schema_path, &out_dir, cli.scoring_config.as_deref()) {
+        let scoring_config = if let Some(cfg_path) = cli.scoring_config.as_deref() {
+            if !cfg_path.exists() {
+                eprintln!("Error: FMECA scoring config does not exist: {}", cfg_path.display());
+                process::exit(1);
+            }
+            let cfg_text = match fs::read_to_string(cfg_path) {
+                Ok(t) => t,
+                Err(e) => {
+                    eprintln!("Failed to read scoring config: {}", e);
+                    process::exit(1);
+                }
+            };
+            match serde_json::from_str(&cfg_text) {
+                Ok(cfg) => Some(cfg),
+                Err(e) => {
+                    eprintln!("Failed to parse scoring config JSON: {}", e);
+                    process::exit(1);
+                }
+            }
+        } else {
+            None
+        };
+
+        let pkg = match target {
+            SchemaTarget::SingleFile(schema_path) => {
+                let content = match fs::read_to_string(&schema_path) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("Error reading schema '{}': {}", schema_path.display(), e);
+                        process::exit(1);
+                    }
+                };
+                match parse_sysml(&content) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        eprintln!("Error parsing schema '{}': {}", schema_path.display(), e);
+                        process::exit(1);
+                    }
+                }
+            }
+            SchemaTarget::Directory(dir, files) => {
+                match parse_sysml_tree(&files) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        eprintln!("Error parsing schema directory '{}': {}", dir.display(), e);
+                        process::exit(1);
+                    }
+                }
+            }
+        };
+
+        if let Err(e) = compile_sysml::stpa::emit_safety_suite(&pkg, &out_dir, scoring_config.as_ref()) {
             eprintln!("Error during STPA transpilation: {}", e);
             process::exit(1);
         }
+        println!("[STPA Transpile] Emitted safety artifact suite to '{}'", out_dir.display());
         process::exit(0);
     }
 
@@ -140,27 +194,42 @@ fn main() {
 
     // 3. Forward Synchronization
     if cli.forward_sync {
-        let schema_path = match resolve_schema_file(cli.schema.or(cli.file)) {
-            Ok(p) => p,
+        let target = match resolve_schema_targets(cli.schema.or(cli.file)) {
+            Ok(t) => t,
             Err(e) => {
                 eprintln!("{}", e);
                 process::exit(1);
             }
         };
 
-        let content = match fs::read_to_string(&schema_path) {
-            Ok(c) => c,
-            Err(e) => {
-                eprintln!("Error reading schema '{}': {}", schema_path.display(), e);
-                process::exit(1);
-            }
-        };
+        let (pkg, schema_path) = match target {
+            SchemaTarget::SingleFile(p) => {
+                let content = match fs::read_to_string(&p) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("Error reading schema '{}': {}", p.display(), e);
+                        process::exit(1);
+                    }
+                };
 
-        let pkg = match parse_sysml(&content) {
-            Ok(p) => p,
-            Err(e) => {
-                eprintln!("Error parsing schema '{}': {}", schema_path.display(), e);
-                process::exit(1);
+                let parsed = match parse_sysml(&content) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        eprintln!("Error parsing schema '{}': {}", p.display(), e);
+                        process::exit(1);
+                    }
+                };
+                (parsed, p)
+            }
+            SchemaTarget::Directory(dir, files) => {
+                let parsed = match parse_sysml_tree(&files) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        eprintln!("Error parsing schema directory '{}': {}", dir.display(), e);
+                        process::exit(1);
+                    }
+                };
+                (parsed, dir)
             }
         };
 
@@ -181,15 +250,15 @@ fn main() {
 
     // 4. Reverse Synchronization
     if cli.reverse_sync {
-        let base_pkg = if let Ok(schema_path) = resolve_schema_file(cli.schema.clone().or_else(|| cli.file.clone())) {
-            if schema_path.exists() {
-                let content = fs::read_to_string(&schema_path).unwrap_or_default();
+        let base_pkg = match resolve_schema_targets(cli.schema.clone().or_else(|| cli.file.clone())) {
+            Ok(SchemaTarget::SingleFile(path)) => {
+                let content = fs::read_to_string(&path).unwrap_or_default();
                 parse_sysml(&content).ok()
-            } else {
-                None
             }
-        } else {
-            None
+            Ok(SchemaTarget::Directory(_, files)) => {
+                parse_sysml_tree(&files).ok()
+            }
+            Err(_) => None,
         };
 
         let opts = ReverseSyncOptions {
@@ -216,61 +285,85 @@ fn main() {
     println!("compile-sysml: Specify --compile, --stpa-transpile, --stpa, --forward-sync, or --reverse-sync. Run with --help for usage.");
 }
 
+/// Target SysML schema input resolved from CLI flags or default paths.
+#[derive(Debug, Clone, PartialEq)]
+pub enum SchemaTarget {
+    /// A single concrete .sysml file path.
+    SingleFile(PathBuf),
+    /// A directory containing multiple discovered .sysml files.
+    Directory(PathBuf, Vec<PathBuf>),
+}
+
 /// Execute the Pipeline 0 compilation gate.
 pub fn run_compilation_gate(
     explicit_schema: Option<PathBuf>,
     output_path: &Path,
     digest_path: &Path,
 ) -> i32 {
-    let schema_file = match resolve_schema_file(explicit_schema) {
-        Ok(path) => path,
+    let target = match resolve_schema_targets(explicit_schema) {
+        Ok(t) => t,
         Err(msg) => {
             eprintln!("{}", msg);
             return 1;
         }
     };
 
-    let content = match fs::read_to_string(&schema_file) {
-        Ok(c) => c,
-        Err(e) => {
-            eprintln!("Error reading schema file '{}': {}", schema_file.display(), e);
-            return 1;
+    let (pkg, display_name) = match target {
+        SchemaTarget::SingleFile(schema_file) => {
+            let content = match fs::read_to_string(&schema_file) {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("Error reading schema file '{}': {}", schema_file.display(), e);
+                    return 1;
+                }
+            };
+
+            if content.trim().is_empty() {
+                eprintln!("Error: Schema file '{}' is empty.", schema_file.display());
+                return 1;
+            }
+
+            let default_name = schema_file
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("SysML_Model");
+
+            let parsed = match parse_sysml(&content) {
+                Ok(p) => p,
+                Err(err) => {
+                    eprintln!("Error parsing schema file '{}': {}", schema_file.display(), err);
+                    return 1;
+                }
+            };
+
+            (parsed, default_name.to_string())
         }
-    };
+        SchemaTarget::Directory(dir, files) => {
+            let dir_name = dir
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("SysML_Model")
+                .to_string();
 
-    if content.trim().is_empty() {
-        eprintln!("Error: Schema file '{}' is empty.", schema_file.display());
-        return 1;
-    }
+            let parsed = match parse_sysml_tree(&files) {
+                Ok(p) => p,
+                Err(err) => {
+                    eprintln!("Error parsing schema directory '{}': {}", dir.display(), err);
+                    return 1;
+                }
+            };
 
-    let default_name = schema_file
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("SysML_Model");
-
-    let pkg = match parse_sysml(&content) {
-        Ok(p) => p,
-        Err(err) => {
-            eprintln!("Error parsing schema file '{}': {}", schema_file.display(), err);
-            return 1;
+            (parsed, dir_name)
         }
     };
 
     // Check structural elements
-    let total_elements = pkg.part_defs.len()
-        + pkg.attribute_defs.len()
-        + pkg.port_defs.len()
-        + pkg.action_defs.len()
-        + pkg.constraint_defs.len()
-        + pkg.requirement_defs.len()
-        + pkg.connection_defs.len()
-        + pkg.state_defs.len()
-        + pkg.item_defs.len();
+    let total_elements = count_structural_elements(&pkg);
 
     if total_elements == 0 {
         eprintln!(
-            "Error: Schema file '{}' contains 0 structural elements.",
-            schema_file.display()
+            "Error: Schema '{}' contains 0 structural elements.",
+            display_name
         );
         return 1;
     }
@@ -307,7 +400,7 @@ pub fn run_compilation_gate(
 
     println!(
         "Successfully compiled SysML schema '{}' to '{}' (SHA-256: {}, {} elements)",
-        default_name,
+        display_name,
         output_path.display(),
         digest.sha256,
         total_elements
@@ -316,14 +409,20 @@ pub fn run_compilation_gate(
     0
 }
 
-fn resolve_schema_file(explicit_path: Option<PathBuf>) -> Result<PathBuf, String> {
+/// Resolve input schema path into either a single file or a directory containing .sysml files.
+pub fn resolve_schema_targets(explicit_path: Option<PathBuf>) -> Result<SchemaTarget, String> {
     if let Some(path) = explicit_path {
         if path.is_file() {
-            return Ok(path);
+            return Ok(SchemaTarget::SingleFile(path));
         } else if path.is_dir() {
-            if let Some(found) = find_sysml_in_dir(&path) {
-                return Ok(found);
+            let files = discover_sysml_files(&path);
+            if files.is_empty() {
+                return Err(format!("Error: No .sysml files found in directory: {}", path.display()));
             }
+            if files.len() == 1 {
+                return Ok(SchemaTarget::SingleFile(files[0].clone()));
+            }
+            return Ok(SchemaTarget::Directory(path, files));
         }
         return Err(format!("Error: Schema file does not exist: {}", path.display()));
     }
@@ -331,27 +430,50 @@ fn resolve_schema_file(explicit_path: Option<PathBuf>) -> Result<PathBuf, String
     // Look in current directory schema/
     let schema_dir = Path::new("schema");
     if schema_dir.is_dir() {
-        if let Some(found) = find_sysml_in_dir(schema_dir) {
-            return Ok(found);
+        let files = discover_sysml_files(schema_dir);
+        if !files.is_empty() {
+            if files.len() == 1 {
+                return Ok(SchemaTarget::SingleFile(files[0].clone()));
+            }
+            return Ok(SchemaTarget::Directory(schema_dir.to_path_buf(), files));
         }
     }
 
     Err(SCHEMA_REMEDIATION_MESSAGE.to_string())
 }
 
-fn find_sysml_in_dir(dir: &Path) -> Option<PathBuf> {
-    if let Ok(entries) = fs::read_dir(dir) {
-        let mut sysml_files = Vec::new();
-        for entry in entries.flatten() {
-            let p = entry.path();
-            if p.is_file() && p.extension().map_or(false, |ext| ext == "sysml") {
-                sysml_files.push(p);
+/// Resolve a single concrete schema file path for legacy/single-file callers.
+pub fn resolve_schema_file(explicit_path: Option<PathBuf>) -> Result<PathBuf, String> {
+    match resolve_schema_targets(explicit_path)? {
+        SchemaTarget::SingleFile(p) => Ok(p),
+        SchemaTarget::Directory(_, files) => {
+            if let Some(model) = files.iter().find(|p| p.file_name().map_or(false, |n| n == "model.sysml")) {
+                Ok(model.clone())
+            } else {
+                Ok(files[0].clone())
             }
         }
-        sysml_files.sort();
-        if let Some(first) = sysml_files.into_iter().next() {
-            return Some(first);
-        }
     }
-    None
+}
+
+fn count_structural_elements(pkg: &PackageDef) -> usize {
+    let direct = pkg.part_defs.len()
+        + pkg.attribute_defs.len()
+        + pkg.port_defs.len()
+        + pkg.action_defs.len()
+        + pkg.operation_defs.len()
+        + pkg.capability_defs.len()
+        + pkg.interaction_defs.len()
+        + pkg.constraint_defs.len()
+        + pkg.test_case_defs.len()
+        + pkg.requirement_defs.len()
+        + pkg.connection_defs.len()
+        + pkg.state_defs.len()
+        + pkg.use_case_defs.len()
+        + pkg.item_defs.len()
+        + pkg.hazard_defs.len()
+        + pkg.risk_defs.len();
+
+    let nested: usize = pkg.packages.iter().map(count_structural_elements).sum();
+    direct + nested
 }

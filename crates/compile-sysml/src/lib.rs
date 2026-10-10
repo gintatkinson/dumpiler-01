@@ -10,7 +10,10 @@ pub use deap_core::sysml_ast::*;
 pub use lexer::scanner::Scanner;
 pub use lexer::token::{Span, Token, TokenKind};
 pub use parser::expressions::{parse_expression, BinaryOp, Expr, ExpressionParser, UnaryOp};
-pub use parser::grammar::{ParseError, SysmlParser};
+pub use parser::grammar::{
+    discover_sysml_files, merge_package_defs, parse_sysml_directory, parse_sysml_tree, ParseError,
+    SysmlParser,
+};
 pub use semantic::digest::{generate_digest, write_atomic, write_digest_atomic, SchemaDigest};
 pub use semantic::serializer::{to_sysml, SysmlSerializable};
 pub use semantic::symbols::{Symbol, SymbolKind, SymbolTable};

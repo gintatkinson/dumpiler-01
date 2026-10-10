@@ -4,6 +4,9 @@ use crate::lexer::scanner::Scanner;
 use crate::lexer::token::{Span, Token, TokenKind};
 use deap_core::sysml_ast::*;
 use std::fmt;
+use std::fs;
+use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 
 /// Diagnostic error with source location span.
 #[derive(Debug, Clone, PartialEq)]
@@ -1664,6 +1667,133 @@ impl<'a> SysmlParser<'a> {
     }
 }
 
+/// Discover all .sysml files recursively under `dir`, filtering out hidden and temporary files.
+///
+/// Returns file paths sorted lexicographically in deterministic order.
+pub fn discover_sysml_files(dir: &Path) -> Vec<PathBuf> {
+    if !dir.is_dir() {
+        return Vec::new();
+    }
+
+    let mut files = Vec::new();
+    for entry in WalkDir::new(dir)
+        .into_iter()
+        .filter_entry(|e| {
+            let file_name = e.file_name().to_string_lossy();
+            !file_name.starts_with('.') && !file_name.starts_with('#')
+        })
+        .filter_map(|e| e.ok())
+    {
+        if entry.file_type().is_file() {
+            let path = entry.path();
+            if path.extension().map_or(false, |ext| ext == "sysml") {
+                files.push(path.to_path_buf());
+            }
+        }
+    }
+
+    files.sort();
+    files
+}
+
+/// Merge all AST definitions from `src` into `dest`.
+///
+/// Merges all element definitions (`imports`, `part_defs`, `port_defs`, `attribute_defs`,
+/// `action_defs`, `operation_defs`, `capability_defs`, `interaction_defs`, `constraint_defs`,
+/// `test_case_defs`, `requirement_defs`, `state_defs`, `use_case_defs`, `item_defs`, `hazard_defs`,
+/// `risk_defs`, `connection_defs`).
+/// For nested `packages`, if a child package with the same name already exists in
+/// `dest.packages`, it is recursively merged; otherwise, it is appended.
+pub fn merge_package_defs(dest: &mut PackageDef, src: PackageDef) {
+    if dest.doc.is_none() && src.doc.is_some() {
+        dest.doc = src.doc;
+    }
+    if dest.parent_package.is_none() && src.parent_package.is_some() {
+        dest.parent_package = src.parent_package;
+    }
+
+    for imp in src.imports {
+        if !dest.imports.iter().any(|existing| {
+            existing.path == imp.path
+                && existing.is_wildcard == imp.is_wildcard
+                && existing.is_recursive == imp.is_recursive
+        }) {
+            dest.imports.push(imp);
+        }
+    }
+
+    dest.part_defs.extend(src.part_defs);
+    dest.port_defs.extend(src.port_defs);
+    dest.attribute_defs.extend(src.attribute_defs);
+    dest.action_defs.extend(src.action_defs);
+    dest.operation_defs.extend(src.operation_defs);
+    dest.capability_defs.extend(src.capability_defs);
+    dest.interaction_defs.extend(src.interaction_defs);
+    dest.constraint_defs.extend(src.constraint_defs);
+    dest.test_case_defs.extend(src.test_case_defs);
+    dest.requirement_defs.extend(src.requirement_defs);
+    dest.state_defs.extend(src.state_defs);
+    dest.use_case_defs.extend(src.use_case_defs);
+    dest.item_defs.extend(src.item_defs);
+    dest.hazard_defs.extend(src.hazard_defs);
+    dest.risk_defs.extend(src.risk_defs);
+    dest.connection_defs.extend(src.connection_defs);
+
+    for src_child in src.packages {
+        if let Some(existing) = dest.packages.iter_mut().find(|p| p.name == src_child.name) {
+            merge_package_defs(existing, src_child);
+        } else {
+            dest.packages.push(src_child);
+        }
+    }
+}
+
+/// Parse multiple SysML files and merge their package definitions into a unified root `PackageDef`.
+pub fn parse_sysml_tree(files: &[PathBuf]) -> Result<PackageDef, ParseError> {
+    if files.is_empty() {
+        return Err(ParseError {
+            message: "No .sysml files provided for tree parsing".to_string(),
+            span: Span::default(),
+        });
+    }
+
+    let mut root = PackageDef {
+        name: "SysML_Model".to_string(),
+        ..Default::default()
+    };
+
+    for file in files {
+        let content = fs::read_to_string(file).map_err(|e| ParseError {
+            message: format!("Failed to read SysML file '{}': {}", file.display(), e),
+            span: Span::default(),
+        })?;
+
+        let parsed = SysmlParser::parse_source(&content, "SysML_Model")?;
+
+        if parsed.name == "SysML_Model" || parsed.name == root.name {
+            merge_package_defs(&mut root, parsed);
+        } else if let Some(existing) = root.packages.iter_mut().find(|p| p.name == parsed.name) {
+            merge_package_defs(existing, parsed);
+        } else {
+            root.packages.push(parsed);
+        }
+    }
+
+    Ok(root)
+}
+
+/// Discover all SysML files recursively in `dir` and parse them into a unified root `PackageDef`.
+pub fn parse_sysml_directory(dir: &Path) -> Result<PackageDef, ParseError> {
+    let files = discover_sysml_files(dir);
+    if files.is_empty() {
+        return Err(ParseError {
+            message: format!("No .sysml files found in directory '{}'", dir.display()),
+            span: Span::default(),
+        });
+    }
+    parse_sysml_tree(&files)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2024,6 +2154,122 @@ package Subsystem_2 {
         assert_eq!(pkg.packages[1].name, "Subsystem_2");
         assert_eq!(pkg.packages[1].part_defs.len(), 1);
         assert_eq!(pkg.packages[1].part_defs[0].name, "Controller");
+    }
+
+    #[test]
+    fn test_parse_multi_file_sysml_tree() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "test_sysml_tree_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let conops_dir = temp_dir.join("conops");
+        let sub1_dir = temp_dir.join("subsystems/sub1");
+        fs::create_dir_all(&conops_dir).unwrap();
+        fs::create_dir_all(&sub1_dir).unwrap();
+
+        // 1. conops/actors.sysml
+        fs::write(
+            conops_dir.join("actors.sysml"),
+            r#"
+package ConOps {
+    part def Operator;
+}
+"#,
+        )
+        .unwrap();
+
+        // 2. subsystems/sub1/requirements.sysml
+        fs::write(
+            sub1_dir.join("requirements.sysml"),
+            r#"
+package Subsystem_1 {
+    requirement def SubsystemSafetyReq {
+        doc /* Subsystem shall fail safe */
+    }
+}
+"#,
+        )
+        .unwrap();
+
+        // 3. subsystems/sub1/architecture.sysml
+        fs::write(
+            sub1_dir.join("architecture.sysml"),
+            r#"
+package Subsystem_1 {
+    part def SubsystemController;
+}
+"#,
+        )
+        .unwrap();
+
+        // 4. model.sysml
+        fs::write(
+            temp_dir.join("model.sysml"),
+            r#"
+package DEAP_Compiler_System {
+    import Subsystem_1::*;
+    part def MainSystem;
+}
+"#,
+        )
+        .unwrap();
+
+        // Add hidden and temporary files that should be filtered out
+        fs::write(temp_dir.join(".hidden.sysml"), "package Hidden {}").unwrap();
+        fs::write(temp_dir.join("#temp.sysml#"), "package Temp {}").unwrap();
+
+        // Test file discovery
+        let discovered = discover_sysml_files(&temp_dir);
+        assert_eq!(discovered.len(), 4);
+        assert!(!discovered.iter().any(|p| p.to_string_lossy().contains(".hidden")));
+        assert!(!discovered.iter().any(|p| p.to_string_lossy().contains("#temp")));
+
+        // Test parsing via parse_sysml_tree
+        let root = parse_sysml_tree(&discovered).expect("parse_sysml_tree should succeed");
+
+        // Asserts: unified root PackageDef contains all packages
+        assert_eq!(root.packages.len(), 3);
+
+        // 1. ConOps package
+        let conops = root
+            .packages
+            .iter()
+            .find(|p| p.name == "ConOps")
+            .expect("ConOps package found");
+        assert_eq!(conops.part_defs.len(), 1);
+        assert_eq!(conops.part_defs[0].name, "Operator");
+
+        // 2. Subsystem_1 package: merged from requirements.sysml and architecture.sysml
+        let sub1 = root
+            .packages
+            .iter()
+            .find(|p| p.name == "Subsystem_1")
+            .expect("Subsystem_1 package found");
+        assert_eq!(sub1.requirement_defs.len(), 1);
+        assert_eq!(sub1.requirement_defs[0].name, "SubsystemSafetyReq");
+        assert_eq!(sub1.part_defs.len(), 1);
+        assert_eq!(sub1.part_defs[0].name, "SubsystemController");
+
+        // 3. DEAP_Compiler_System package
+        let deap = root
+            .packages
+            .iter()
+            .find(|p| p.name == "DEAP_Compiler_System")
+            .expect("DEAP_Compiler_System package found");
+        assert_eq!(deap.imports.len(), 1);
+        assert_eq!(deap.imports[0].path, "Subsystem_1");
+        assert!(deap.imports[0].is_wildcard);
+        assert_eq!(deap.part_defs.len(), 1);
+        assert_eq!(deap.part_defs[0].name, "MainSystem");
+
+        // Test directory parsing via parse_sysml_directory
+        let root_from_dir = parse_sysml_directory(&temp_dir).expect("parse_sysml_directory should succeed");
+        assert_eq!(root_from_dir.packages.len(), 3);
+
+        let _ = fs::remove_dir_all(&temp_dir);
     }
 }
 
