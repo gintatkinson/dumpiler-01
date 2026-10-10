@@ -243,10 +243,142 @@ package Subsystem_2_Universal_Schema_Ingestion_Engine {
 
 ---
 
+## 5. Feature 2 Status: Completed & Resolved
+- **Commit**: `482aef4` (`feat(schema): formalize invariant constraints lowering, requirement derivations, and subsystem assertions (refs #2, refs #426)`)
+- **Remote Issues**: Downstream [#2](https://github.com/gintatkinson/dumpiler-01/issues/2) and Upstream [#426](https://github.com/gintatkinson/DEAP01-spec-core/issues/426) labeled `status:fixed-resolved` with empirical verification comments.
+- **Verification**: `cargo test --workspace` passed 100%, 531 formal invariants synthesized, 527 `require Invariant_` statements, 78 `derived from` derivations, 529 subsystem assertions, baseline verified 31/31 checks.
+
+---
+
+# Feature 3 Implementation Plan: Encapsulate Formal Invariant Constraints Directly Inside Requirement Definitions
+
+## 1. Problem Statement & User Findings
+Inspection of `schema/model.sysml` following Feature 2 revealed an architectural cohesion issue:
+1. **Unencapsulated Package-Level Constraints**: 531 `constraint def Invariant_REQ_XXXX_...` statements are declared at the subsystem package root level, outside of and preceding the `requirement def` blocks that define them.
+2. **Missing Owned Constraints in `RequirementDef` AST**: In `crates/deap-core/src/sysml_ast.rs`, `RequirementDef` lacks a `pub constraints: Vec<ConstraintDef>` field. Consequently, the ingestion engine routed all lowered formal invariants into `PackageDef.constraint_defs`.
+3. **Loss of Cohesion & Locality**: The mathematical invariant formula and its doc comment are physically detached from the requirement definition that governs them, cluttering each subsystem package with 40-50 top-level constraints before any requirements or structural parts appear.
+4. **Metamodel Alignment**: In OMG SysML v2 / KerML, a `requirement def` is a specialized classifier and can directly own its formal constraint definitions and assertions within its body.
+
+---
+
+## 2. Proposed Target SysML v2 Architecture
+Every formal invariant constraint will be owned and encapsulated directly within its parent `requirement def`:
+
+```sysml
+package Subsystem_1_System_Vision {
+    doc /* Universal System Vision Metamodel */
+
+    requirement def REQ_0001_Universal_Grounding_and_Deterministic_Synthesis {
+        id = "REQ-0001";
+        text = "The compiler shall accept a directory containing schema files...";
+
+        // Metadata & AC Attributes
+        attribute uuidv5 : String = "d4865863-718a-53a8-bcf6-e070e176378e";
+        attribute complexity_class : String = "Class P (O(N))";
+        attribute governing_standard : String = "IEEE 29148-2018 / RFC 2119 / RFC 4122";
+        attribute diagnostic_codes : String = "E0100, E0102";
+
+        // Acceptance Criteria
+        attribute ac_01_canonical_universal_grounding : String = "...";
+
+        // Encapsulated Formal Invariant Definitions (Owned directly by the requirement)
+        doc /* \forall \sigma \in \text{Symbols}(\mathcal{A}), \quad \sigma \in \text{Tokens}(\mathcal{S}) \cup \mathcal{K}_{\text{grammar}} \cup \text{Synthetic}(\mathcal{S}) */
+        constraint def Invariant_Universal_Symbol_Grounding;
+
+        doc /* \text{Synthetic}(\mathcal{S}) = \{ \text{UUIDv5}(\text{NS}_{\text{DEAP}}, p) \mid p \in \text{TopologicalPaths}(\mathcal{S}) \} */
+        constraint def Invariant_Synthetic_Identifier_RFC_4122_Bit;
+
+        doc /* \text{Symbols}(\mathcal{A}) \cap \mathcal{V}_{\text{domain\_hardcoded}} = \emptyset */
+        constraint def Invariant_Zero_Hardcoded_Domain_Concepts;
+
+        // Requirement Constraint Usages
+        require Invariant_Universal_Symbol_Grounding;
+        require Invariant_Synthetic_Identifier_RFC_4122_Bit;
+        require Invariant_Zero_Hardcoded_Domain_Concepts;
+
+        // Verification & Satisfaction
+        verify by AC_01_Canonical_Universal_Grounding;
+        satisfy by SystemVisionEngine;
+    }
+
+    // Subsystem package only contains the requirements and primary execution engines
+    part def SystemVisionEngine {
+        port in schema_in : RawSchemaStreamPort;
+        port out token_out : TokenStreamPort;
+    }
+}
+```
+
+---
+
+## 3. Work Packages & Subagent Decomposition
+
+### Phase 1: Adversarial Audit & Defect/Feature Dossier Creation & Filing
+- **Subagent**: Adversarial Code Auditor (`skills/adversarial-code-auditor/SKILL.md`)
+- **Pillar**: Semantic Traceability
+- **Tasks**:
+  1. Audit `schema/model.sysml`, `crates/deap-core/src/sysml_ast.rs`, `crates/compile-sysml/src/semantic/serializer.rs`, and `crates/ingest-sysml/src/translators/markdown.rs`.
+  2. Author a 7-section defect dossier at `.pipeline/defects/dossier_encapsulate_requirement_constraints.md`.
+  3. Validate dossier schema using `python3 scripts/file_defect.py --dry-run`.
+  4. Post defect/feature issue to downstream tracker (`gintatkinson/dumpiler-01`).
+  5. Post defect/feature issue to upstream compiler core (`gintatkinson/DEAP01-spec-core`).
+  6. Return issue numbers (`#<downstream_id>`, `#<upstream_id>`).
+
+### Phase 2: Feature-Driven Implementation (`skills/feature-driven-implementation/SKILL.md`)
+
+#### Work Package 3.1: AST, Parser & Serializer Extensions
+- **Subagent**: Rust Systems Engineer (Fresh private context)
+- **Target Files**:
+  - `crates/deap-core/src/sysml_ast.rs`
+  - `crates/compile-sysml/src/semantic/serializer.rs`
+  - `crates/compile-sysml/src/parser/grammar.rs`
+- **Deliverables**:
+  1. Add `pub constraints: Vec<ConstraintDef>` to `RequirementDef` in `crates/deap-core/src/sysml_ast.rs`.
+  2. Update `parse_requirement_defs()` in `sysml_ast.rs` to extract inner `constraint def` / `assert constraint` declarations into `RequirementDef.constraints`.
+  3. Update `SysmlSerializable for RequirementDef` in `serializer.rs` to serialize `self.constraints` indented inside `requirement def { ... }`.
+  4. Update `parse_requirement_decl()` in `grammar.rs` to parse inner `constraint def` declarations into `RequirementDef.constraints`.
+  5. Add driving unit tests in `deap-core` and `compile-sysml`.
+
+#### Work Package 3.2: Markdown Ingestion & Requirement Encapsulation
+- **Subagent**: Rust Systems Engineer (Fresh private context)
+- **Target Files**:
+  - `crates/ingest-sysml/src/translators/markdown.rs`
+- **Deliverables**:
+  1. In `translate()`:
+     - Attach the extracted formal `ConstraintDef`s directly to `RequirementDef.constraints`.
+     - Link `RequirementDef.requires` to the encapsulated invariant names.
+  2. In `translate_files()`:
+     - Clear/remove requirement-owned `constraint_defs` from top-level `PackageDef.constraint_defs`.
+     - Keep subsystem package root clean (containing only `requirement def`s and structural engine `part def`s).
+  3. Add driving unit tests in `ingest-sysml`.
+
+#### Work Package 3.3: Re-synthesis, Full Compilation & Verification
+- **Deliverables**:
+  1. Run `cargo test --workspace` (assert 100% green).
+  2. Re-synthesize model: `./target/release/ingest-sysml --schema schema/ --format markdown --out schema/model.sysml`.
+  3. Compile model: `./target/release/compile-sysml --compile --schema schema/model.sysml`.
+  4. Verify that `schema/model.sysml` contains 0 package-root `constraint def`s and that all formal invariants are located inside `requirement def` blocks.
+  5. Run baseline verifiers:
+     - `./target/release/verify-baseline . --no-domain`
+     - `python3 scripts/verify_downstream_baseline.py --no-domain`
+  6. Check for zero Unicode em dashes (`\u2014`).
+
+### Phase 3: Remote Synchronization, Issue Transition & Walkthrough
+- Stage and commit with neutral non-auto-closing message:
+  `git commit -m "feat(schema): encapsulate formal invariant constraints directly inside requirement definitions (refs #<downstream_id>, refs #<upstream_id>)"`
+- Push to remote: `git push origin main`.
+- Verify `git diff origin/main` is empty.
+- Transition downstream and upstream issues to `status:fixed-resolved` with verification evidence comments.
+- Inspect published live issue payloads (`gh issue view`).
+- Present final report to user.
+
+---
+
 ## 4. Strict Governance Invariants
 - **Zero Em Dashes**: Strict prohibition of `\u2014`.
-- **Pure Schema-Driven**: Invariants and derivations derived strictly from `schema/REQ-*.md`.
+- **Pure Schema-Driven**: All constraints derived strictly from `schema/REQ-*.md`.
 - **Coordinator Direct Writing Lock**: All code/spec modifications executed exclusively by subagents.
 - **Commit Message Non-Closure Invariant**: Neutral citations `(refs #<id>)` only.
 - **Remote Synchronization**: Verified push to `origin/main` before declaring completion.
+
 

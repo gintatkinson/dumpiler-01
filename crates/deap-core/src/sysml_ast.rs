@@ -182,6 +182,8 @@ pub struct RequirementDef {
     #[serde(default)]
     pub attributes: Vec<AttributeDef>,
     #[serde(default)]
+    pub constraints: Vec<ConstraintDef>,
+    #[serde(default)]
     pub assumes: Vec<String>,
     #[serde(default)]
     pub requires: Vec<String>,
@@ -630,6 +632,7 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
         let mut req_id = String::new();
         let mut text = String::new();
         let mut attributes = Vec::new();
+        let mut constraints = Vec::new();
         let mut assumes = Vec::new();
         let mut requires = Vec::new();
         let mut derived_from = Vec::new();
@@ -645,6 +648,7 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
                 text = txt_cap["text"].to_string();
             }
             attributes = parse_attribute_defs(body_str);
+            constraints = parse_constraint_defs(body_str);
 
             for a_cap in assume_re.captures_iter(body_str) {
                 assumes.push(a_cap["target"].trim().to_string());
@@ -669,6 +673,7 @@ pub fn parse_requirement_defs(content: &str) -> Vec<RequirementDef> {
             text,
             doc,
             attributes,
+            constraints,
             assumes,
             requires,
             derived_from,
@@ -1126,6 +1131,33 @@ part def VehicleSystem {
                 "REQ_0019_IdentifierSanitization"
             ]
         );
+    }
+
+    #[test]
+    fn test_parse_requirement_defs_with_encapsulated_constraints() {
+        let text = r#"
+            requirement def REQ_0001_Universal_Grounding {
+                id = "REQ-0001";
+                text = "Compiler shall accept schema directory.";
+                attribute uuidv5 : String = "d4865863-718a-53a8-bcf6-e070e176378e";
+                doc /* \forall \sigma \in Symbols(A), \sigma \in Tokens(S) */
+                constraint def Invariant_Universal_Symbol_Grounding;
+                assert constraint Invariant_Zero_Hardcoded_Domain_Concepts;
+                require Invariant_Universal_Symbol_Grounding;
+                require Invariant_Zero_Hardcoded_Domain_Concepts;
+            }
+        "#;
+        let reqs = parse_requirement_defs(text);
+        assert_eq!(reqs.len(), 1);
+        assert_eq!(reqs[0].constraints.len(), 2);
+        assert_eq!(reqs[0].constraints[0].name, "Invariant_Universal_Symbol_Grounding");
+        assert_eq!(
+            reqs[0].constraints[0].doc.as_deref(),
+            Some("\\forall \\sigma \\in Symbols(A), \\sigma \\in Tokens(S)")
+        );
+        assert!(!reqs[0].constraints[0].is_assertion);
+        assert_eq!(reqs[0].constraints[1].name, "Invariant_Zero_Hardcoded_Domain_Concepts");
+        assert!(reqs[0].constraints[1].is_assertion);
     }
 }
 

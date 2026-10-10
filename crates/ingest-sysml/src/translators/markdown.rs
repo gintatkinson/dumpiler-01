@@ -1055,9 +1055,6 @@ impl MarkdownTranslator {
                     if !requires.contains(&inv.name) {
                         requires.push(inv.name.clone());
                     }
-                    if !pkg.constraint_defs.iter().any(|c| c.name == inv.name) {
-                        pkg.constraint_defs.push(inv.clone());
-                    }
                 }
 
                 // Requirement cross-reference derivations
@@ -1069,6 +1066,7 @@ impl MarkdownTranslator {
                     text: normative_text,
                     doc: Some(doc_str),
                     attributes: req_attributes,
+                    constraints: formal_invariants,
                     requires,
                     derived_from,
                     verified_by,
@@ -1120,15 +1118,13 @@ impl MarkdownTranslator {
         let has_requirements = sub_packages.iter().any(|p| !p.requirement_defs.is_empty());
 
         if has_requirements {
-            // Group requirement definitions, constraints, and parts into the 12 canonical subsystems
+            // Group requirement definitions and parts into the 12 canonical subsystems
             let mut subsystem_reqs: BTreeMap<usize, Vec<RequirementDef>> = BTreeMap::new();
             let mut subsystem_parts: BTreeMap<usize, BTreeMap<String, PartDef>> = BTreeMap::new();
-            let mut subsystem_constraints: BTreeMap<usize, Vec<ConstraintDef>> = BTreeMap::new();
 
             for idx in 1..=12 {
                 subsystem_reqs.insert(idx, Vec::new());
                 subsystem_parts.insert(idx, BTreeMap::new());
-                subsystem_constraints.insert(idx, Vec::new());
             }
 
             for sub_pkg in sub_packages {
@@ -1143,15 +1139,6 @@ impl MarkdownTranslator {
                     for req in sub_pkg.requirement_defs {
                         if !req_list.iter().any(|r| r.req_id == req.req_id) {
                             req_list.push(req);
-                        }
-                    }
-                }
-
-                // Add constituent constraint definitions
-                if let Some(con_list) = subsystem_constraints.get_mut(&sub_idx) {
-                    for con in sub_pkg.constraint_defs {
-                        if !con_list.iter().any(|c| c.name == con.name) {
-                            con_list.push(con);
                         }
                     }
                 }
@@ -1177,25 +1164,12 @@ impl MarkdownTranslator {
                 let mut reqs = subsystem_reqs.remove(&idx).unwrap_or_default();
                 reqs.sort_by(|a, b| a.req_id.cmp(&b.req_id));
 
-                let constraints = subsystem_constraints.remove(&idx).unwrap_or_default();
-
-                // Create primary subsystem engine PartDef with ports and asserted invariant constraints
-                let mut engine_constraints = Vec::new();
-                for inv in &constraints {
-                    engine_constraints.push(ConstraintDef {
-                        name: inv.name.clone(),
-                        is_assertion: true,
-                        doc: None,
-                        ..Default::default()
-                    });
-                }
-
                 let engine_part = PartDef {
                     name: meta.engine_name.clone(),
                     doc: Some(format!("Primary execution engine for {}", meta.pkg_doc)),
                     is_def: true,
                     ports: meta.ports.clone(),
-                    constraints: engine_constraints,
+                    constraints: Vec::new(),
                     ..Default::default()
                 };
 
@@ -1216,7 +1190,7 @@ impl MarkdownTranslator {
                     doc: Some(meta.pkg_doc.clone()),
                     parent_package: Some("DEAP_Compiler_System".to_string()),
                     requirement_defs: reqs,
-                    constraint_defs: constraints,
+                    constraint_defs: Vec::new(),
                     part_defs: parts,
                     ..Default::default()
                 });
@@ -2626,8 +2600,15 @@ Complexity Class P.
         assert!(!req.derived_from.is_empty(), "Requirement derived_from must not be empty");
         assert!(req.derived_from.iter().any(|d| d.contains("0031")));
 
-        assert!(!pkg.constraint_defs.is_empty(), "Package constraint_defs must contain lowered invariants");
-        assert!(pkg.constraint_defs.iter().any(|c| c.name.contains("Strict_Total_Ordering")));
+        assert!(
+            !req.constraints.is_empty(),
+            "Requirement constraints must contain encapsulated invariants"
+        );
+        assert!(req.constraints.iter().any(|c| c.name.contains("Strict_Total_Ordering")));
+        assert!(
+            pkg.constraint_defs.is_empty(),
+            "Package constraint_defs must be clean when invariants are encapsulated in requirements"
+        );
     }
 
     #[test]
@@ -2641,11 +2622,20 @@ Complexity Class P.
         let combined = translator.translate_files(&files, "schema").expect("Failed translate_files");
 
         let sub2 = combined.packages.iter().find(|p| p.name.contains("Subsystem_2")).expect("Subsystem 2 missing");
-        assert!(!sub2.constraint_defs.is_empty(), "Subsystem 2 must contain constraint definitions");
-        let engine = sub2.part_defs.iter().find(|p| p.name == "UniversalIngestionEngine").expect("UniversalIngestionEngine missing");
-        assert!(!engine.constraints.is_empty(), "UniversalIngestionEngine must assert constraints");
-        assert!(engine.constraints.iter().all(|c| c.is_assertion));
-        assert!(engine.constraints.iter().any(|c| c.name.contains("Strict_Total_Ordering")));
+        assert!(sub2.constraint_defs.is_empty(), "Subsystem 2 constraint_defs must be clean");
+        let engine = sub2
+            .part_defs
+            .iter()
+            .find(|p| p.name == "UniversalIngestionEngine")
+            .expect("UniversalIngestionEngine missing");
+        assert!(
+            engine.constraints.is_empty(),
+            "UniversalIngestionEngine must not have top-level constraint assertions"
+        );
+        assert!(!sub2.requirement_defs.is_empty(), "Subsystem 2 must have requirement definitions");
+        let req32 = sub2.requirement_defs.iter().find(|r| r.req_id == "REQ-0032").expect("REQ-0032 missing");
+        assert!(!req32.constraints.is_empty(), "REQ-0032 must own its formal invariant constraints");
+        assert!(req32.constraints.iter().any(|c| c.name.contains("Strict_Total_Ordering")));
     }
 }
 

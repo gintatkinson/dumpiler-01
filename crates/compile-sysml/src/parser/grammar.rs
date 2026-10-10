@@ -669,6 +669,7 @@ impl<'a> SysmlParser<'a> {
         let mut verified_by = Vec::new();
         let mut satisfied_by = Vec::new();
         let mut attributes = Vec::new();
+        let mut constraints = Vec::new();
 
         if self.check(&TokenKind::OpenBrace) {
             self.advance();
@@ -689,11 +690,16 @@ impl<'a> SysmlParser<'a> {
                     }
                     text = self.expect_string_or_ident()?;
                     self.expect_semi()?;
-                } else if let Some(d) = sub_doc {
-                    text = d;
                 } else if self.check(&TokenKind::Attribute) {
                     let attr = self.parse_attribute_decl(sub_doc)?;
                     attributes.push(attr);
+                } else if self.check(&TokenKind::Constraint) || self.check(&TokenKind::Assert) {
+                    let con = self.parse_constraint_decl(sub_doc)?;
+                    constraints.push(con);
+                } else if let Some(d) = sub_doc {
+                    if text.is_empty() {
+                        text = d;
+                    }
                 } else if self.check(&TokenKind::Assume) {
                     self.advance();
                     assumes.push(self.read_until_semi());
@@ -739,6 +745,7 @@ impl<'a> SysmlParser<'a> {
             text,
             doc,
             attributes,
+            constraints,
             assumes,
             requires,
             verified_by,
@@ -1778,6 +1785,35 @@ package SubsystemPkg {
         assert!(engine.constraints[0].is_assertion);
         assert_eq!(engine.constraints[1].name, "Invariant_Beta");
         assert!(engine.constraints[1].is_assertion);
+    }
+
+    #[test]
+    fn test_parse_requirement_with_encapsulated_constraints() {
+        let source = r#"
+package ReqPkg {
+    requirement def REQ_0001_Test {
+        id = "REQ-0001";
+        text = "Requirement with inner constraints.";
+        doc /* Formula Alpha */
+        constraint def Invariant_Alpha;
+        assert constraint Invariant_Beta {
+            x > 0;
+        }
+        require Invariant_Alpha;
+        require Invariant_Beta;
+    }
+}
+"#;
+        let pkg = SysmlParser::parse_source(source, "Default").unwrap();
+        assert_eq!(pkg.requirement_defs.len(), 1);
+        let req = &pkg.requirement_defs[0];
+        assert_eq!(req.constraints.len(), 2);
+        assert_eq!(req.constraints[0].name, "Invariant_Alpha");
+        assert_eq!(req.constraints[0].doc.as_deref(), Some("Formula Alpha"));
+        assert!(!req.constraints[0].is_assertion);
+        assert_eq!(req.constraints[1].name, "Invariant_Beta");
+        assert!(req.constraints[1].is_assertion);
+        assert_eq!(req.constraints[1].expression, "x > 0");
     }
 }
 

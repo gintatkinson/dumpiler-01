@@ -197,6 +197,9 @@ impl SysmlSerializable for RequirementDef {
         for a in &self.attributes {
             lines.push(a.to_sysml(indent + 4));
         }
+        for c in &self.constraints {
+            lines.push(c.to_sysml(indent + 4));
+        }
         for a in &self.assumes {
             lines.push(format!("{}    assume {};", pad, a));
         }
@@ -597,6 +600,36 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(c2.to_sysml(0), "constraint def Invariant_Alpha;");
+    }
+
+    #[test]
+    fn test_serialize_requirement_def_with_encapsulated_constraints() {
+        let req = RequirementDef {
+            name: "REQ_0001_Test".to_string(),
+            req_id: "REQ-0001".to_string(),
+            text: "Testing constraints inside requirement def.".to_string(),
+            constraints: vec![
+                ConstraintDef {
+                    name: "Invariant_Alpha".to_string(),
+                    doc: Some("Formula Alpha".to_string()),
+                    is_assertion: false,
+                    ..Default::default()
+                },
+                ConstraintDef {
+                    name: "Invariant_Beta".to_string(),
+                    expression: "x > 0".to_string(),
+                    is_assertion: true,
+                    ..Default::default()
+                },
+            ],
+            requires: vec!["Invariant_Alpha".to_string()],
+            ..Default::default()
+        };
+        let sysml = req.to_sysml(0);
+        assert!(sysml.contains("requirement def REQ_0001_Test {"));
+        assert!(sysml.contains("    doc /* Formula Alpha */\n    constraint def Invariant_Alpha;"));
+        assert!(sysml.contains("    assert constraint Invariant_Beta {\n        x > 0;\n    }"));
+        assert!(sysml.contains("    require Invariant_Alpha;"));
     }
 }
 
