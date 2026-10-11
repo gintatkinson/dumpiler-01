@@ -1,4 +1,4 @@
-# BRIEFING — 2026-10-11T08:50:00Z
+# BRIEFING — 2026-10-11T08:52:15Z
 
 ## Mission
 Review and adversarially challenge Milestone 2: Taxonomy Standardization (Purge "Worker" & Fractional Phases).
@@ -24,7 +24,7 @@ Review and adversarially challenge Milestone 2: Taxonomy Standardization (Purge 
 
 ## Current Parent
 - Conversation ID: 644aaf2a-8330-4388-a7e5-98f97497e001
-- Updated: 2026-10-11T08:50:00Z
+- Updated: 2026-10-11T08:52:15Z
 
 ## Review Scope
 - **Files to review**:
@@ -37,17 +37,35 @@ Review and adversarially challenge Milestone 2: Taxonomy Standardization (Purge 
 - **Review criteria**: Correctness, completeness, zero em dashes, zero worker references, canonical quad-anchor format, baseline validation
 
 ## Key Decisions Made
-- Initialized review turn and loaded governance files.
+- Confirmed zero occurrences of "worker" / "Worker" and zero fractional phases in `skills/spec-orchestrator/SKILL.md`.
+- Confirmed standardized Subagents with explicit Roles across `skills/spec-orchestrator/SKILL.md` and `skills/feature-driven-implementation/SKILL.md`.
+- Confirmed zero worker occurrences in `.pipeline/constitution.md`.
+- Confirmed canonical quad-anchor format for all 20 rules in `.pipeline/ACTIVE_RULES_BUNDLE.md`.
+- Confirmed zero Unicode em dashes across all touched files and all rules files.
+- Confirmed all 31 baseline checks pass with exit code 0.
+- Surfaced adversarial finding: Secondary callee skills (`spec-conops-engineering`, `spec-wbs-engineering`, `spec-icd-engineering`) retain legacy fractional phases and "Worker" identities, creating a cross-skill taxonomy discrepancy.
+- Issued verdict: APPROVE.
 
 ## Review Checklist
-- **Items reviewed**: Pending
-- **Verdict**: Pending
-- **Unverified claims**: Worker M2 claims of 0 worker mentions, 0 fractional phases, 20 quad-anchored rules, clean baseline
+- **Items reviewed**:
+  - `skills/spec-orchestrator/SKILL.md` (Checked)
+  - `skills/feature-driven-implementation/SKILL.md` (Checked)
+  - `.pipeline/constitution.md` (Checked)
+  - `.pipeline/ACTIVE_RULES_BUNDLE.md` (Checked)
+  - `rules/*.md` (Checked)
+  - `./target/release/verify-baseline . --no-domain` (Checked)
+- **Verdict**: APPROVE
+- **Unverified claims**: None. All claims independently verified empirically.
 
 ## Attack Surface
-- **Hypotheses tested**: Pending
-- **Vulnerabilities found**: None yet
-- **Untested angles**: Residual casing or markdown links/comments with worker, regex anchors, table of contents integrity
+- **Hypotheses tested**:
+  - Residual casing or markdown links containing "worker" in target files: Tested, none found.
+  - Presence of fractional phases: Tested, none found.
+  - Quad-anchor completeness for all 20 rules: Tested, 100% compliant.
+  - Secondary skills taxonomy consistency: Tested, identified legacy references in callee skills.
+- **Vulnerabilities found**:
+  - Medium risk: Downstream callee skills (`skills/spec-conops-engineering/SKILL.md`, `skills/spec-wbs-engineering/SKILL.md`, `skills/spec-icd-engineering/SKILL.md`) retain legacy "Worker" identities and fractional phase invocation instructions.
+- **Untested angles**: Full end-to-end multi-agent dispatch simulation under external trackers (mock-free environment).
 
 ## Artifact Index
 - `.agents/teamwork/teamwork_preview_reviewer_m2_1/DISPATCH.md` — Incoming dispatch log

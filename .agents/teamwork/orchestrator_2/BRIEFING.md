@@ -65,12 +65,12 @@ Execute adversarial code audit on brittle shell scripts (>50 lines), publish 7-s
 | worker_m4_1 | teamwork_preview_worker | M4: verify-baseline extensions | completed | e0fc383e-7fbc-496c-8f75-b1d7bc19a202 |
 | worker_m5_1 | teamwork_preview_worker | M5: reconcile-backlog create-issue | completed | e624121f-1f1c-422c-a003-31e1c4b4a71d |
 | worker_m6_1 | teamwork_preview_worker | M6: Shell Script Reduction | completed | 3a76829b-8320-4721-8c86-91da41ce2c6f |
-| worker_m7_1 | teamwork_preview_worker | M7: Baseline Verification & Sync | in-progress | d907f005-d5dd-404a-8748-ee14b052273a |
+| worker_m7_1 | teamwork_preview_worker | M7: Baseline Verification & Sync | completed | d907f005-d5dd-404a-8748-ee14b052273a |
 
 ## Succession Status
 - Succession required: no
 - Spawn count: 7 / 16
-- Pending subagents: d907f005-d5dd-404a-8748-ee14b052273a
+- Pending subagents: none
 - Predecessor: none
 - Successor: not yet spawned
 

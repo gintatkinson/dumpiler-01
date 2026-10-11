@@ -23,7 +23,7 @@ Consolidate brittle bash scripts (>50 lines) into native Rust subcommands across
 | M4 | verify-baseline Rust Consolidation | Add check-commit-msg (lexical), output checks, defect validation | M3 | DONE |
 | M5 | reconcile-backlog Rust Consolidation | Add create-issue subcommand | M3 | DONE |
 | M6 | Shell Script Thinning | Replace/wrap shell scripts to <= 50 lines | M4, M5 | DONE |
-| M7 | Baseline Verification & Issue Resolution | Workspace build, script line count check, verify-baseline . --no-domain, update issue | M6 | IN_PROGRESS |
+| M7 | Baseline Verification & Issue Resolution | Workspace build, script line count check, verify-baseline . --no-domain, update issue | M6 | DONE |
 
 ## Code Layout
 - `docs/reports/defects/SHELL_SCRIPTS_SPRAWL_AUDIT.md`: 7-section defect report
