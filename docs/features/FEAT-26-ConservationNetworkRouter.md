@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class ConservationNetworkRouter
-    DEAPCompilerSystem --> ConservationNetworkRouter : contains
+    class ConservationNetworkRouter {
+        +ASTStreamPort ast_in (in)
+        +MetrologyFlowPort metrology_out (out)
+        +Integer max_hops
+    }
 ```
 
 ## Interface Requirements

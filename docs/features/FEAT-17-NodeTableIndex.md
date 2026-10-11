@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class NodeTableIndex
-    DEAPCompilerSystem --> NodeTableIndex : contains
+    class NodeTableIndex {
+        +TokenStreamPort token_in (in)
+        +ASTGraphPort ast_graph_out (out)
+        +Integer capacity
+    }
 ```
 
 ## Interface Requirements

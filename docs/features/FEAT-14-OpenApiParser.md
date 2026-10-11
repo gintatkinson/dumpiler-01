@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class OpenApiParser
-    DEAPCompilerSystem --> OpenApiParser : contains
+    class OpenApiParser {
+        +RawSchemaStreamPort raw_in (in)
+        +TokenStreamPort token_out (out)
+        +String spec_version
+    }
 ```
 
 ## Interface Requirements

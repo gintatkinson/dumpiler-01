@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class CodeArtifactFormatter
-    DEAPCompilerSystem --> CodeArtifactFormatter : contains
+    class CodeArtifactFormatter {
+        +SpecificationPort specs_in (in)
+        +CodeArtifactPort code_out (out)
+    }
 ```
 
 ## Interface Requirements

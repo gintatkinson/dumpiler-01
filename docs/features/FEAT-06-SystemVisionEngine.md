@@ -15,9 +15,12 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class SystemVisionEngine
-    DEAPCompilerSystem --> SystemVisionEngine : contains
+    class SystemVisionEngine {
+        +CompilerRulePort rules_out (out)
+    }
+    SystemVisionEngine --> InvariantBootstrapEngine : bootstrapper
+    SystemVisionEngine --> NamespaceUuidGenerator : uuidGen
+    SystemVisionEngine --> DomainVocabularyValidator : vocabValidator
 ```
 
 ## Interface Requirements

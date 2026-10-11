@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class InvariantBootstrapEngine
-    DEAPCompilerSystem --> InvariantBootstrapEngine : contains
+    class InvariantBootstrapEngine {
+        +CompilerRulePort rules_out (out)
+        +String compiler_namespace_uuid
+    }
 ```
 
 ## Interface Requirements

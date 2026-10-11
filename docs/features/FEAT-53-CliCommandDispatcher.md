@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class CliCommandDispatcher
-    DEAPCompilerSystem --> CliCommandDispatcher : contains
+    class CliCommandDispatcher {
+        +CLIPort cli_in (in)
+        +PerformanceMetricsPort metrics_out (out)
+    }
 ```
 
 ## Interface Requirements

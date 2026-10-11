@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class DiagnosticSentinelSink
-    DEAPCompilerSystem --> DiagnosticSentinelSink : contains
+    class DiagnosticSentinelSink {
+        +DiagnosticPort diag_in (in)
+        +SafetyPort safety_out (out)
+    }
 ```
 
 ## Interface Requirements

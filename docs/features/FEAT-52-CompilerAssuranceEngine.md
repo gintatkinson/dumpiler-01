@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class CompilerAssuranceEngine
-    DEAPCompilerSystem --> CompilerAssuranceEngine : contains
+    class CompilerAssuranceEngine {
+        +CLIPort cli_in (in)
+        +PerformanceMetricsPort metrics_out (out)
+    }
+    CompilerAssuranceEngine --> CliCommandDispatcher : cliDispatcher
+    CompilerAssuranceEngine --> PerformanceProfiler : perfProfiler
+    CompilerAssuranceEngine --> RegressionInoculationRunner : regressionRunner
 ```
 
 ## Interface Requirements

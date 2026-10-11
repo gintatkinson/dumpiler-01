@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class SourceLocationMapper
-    DEAPCompilerSystem --> SourceLocationMapper : contains
+    class SourceLocationMapper {
+        +DiagnosticPort diag_in (in)
+        +DiagnosticReportPort diag_out (out)
+    }
 ```
 
 ## Interface Requirements

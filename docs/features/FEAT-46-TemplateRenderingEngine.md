@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class TemplateRenderingEngine
-    DEAPCompilerSystem --> TemplateRenderingEngine : contains
+    class TemplateRenderingEngine {
+        +SpecificationPort specs_in (in)
+        +CodeArtifactPort code_out (out)
+    }
 ```
 
 ## Interface Requirements

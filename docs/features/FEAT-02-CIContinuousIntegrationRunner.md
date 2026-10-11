@@ -15,9 +15,7 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
     class CIContinuousIntegrationRunner
-    DEAPCompilerSystem --> CIContinuousIntegrationRunner : contains
 ```
 
 ## Interface Requirements

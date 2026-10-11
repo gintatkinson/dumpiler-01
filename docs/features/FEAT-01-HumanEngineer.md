@@ -15,9 +15,7 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
     class HumanEngineer
-    DEAPCompilerSystem --> HumanEngineer : contains
 ```
 
 ## Interface Requirements

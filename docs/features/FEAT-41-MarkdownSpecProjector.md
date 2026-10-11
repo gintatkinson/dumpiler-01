@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class MarkdownSpecProjector
-    DEAPCompilerSystem --> MarkdownSpecProjector : contains
+    class MarkdownSpecProjector {
+        +ICDInterconnectPort icd_in (in)
+        +SpecificationPort specs_out (out)
+    }
 ```
 
 ## Interface Requirements

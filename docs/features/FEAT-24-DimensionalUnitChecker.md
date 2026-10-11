@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class DimensionalUnitChecker
-    DEAPCompilerSystem --> DimensionalUnitChecker : contains
+    class DimensionalUnitChecker {
+        +ASTStreamPort ast_in (in)
+        +MetrologyFlowPort metrology_out (out)
+        +Boolean strict_si_mode
+    }
 ```
 
 ## Interface Requirements

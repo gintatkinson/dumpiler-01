@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class AgileProjectionEngine
-    DEAPCompilerSystem --> AgileProjectionEngine : contains
+    class AgileProjectionEngine {
+        +ICDInterconnectPort icd_in (in)
+        +SpecificationPort specs_out (out)
+    }
+    AgileProjectionEngine --> MarkdownSpecProjector : specProjector
+    AgileProjectionEngine --> FrontmatterIntegrityEncoder : fmEncoder
+    AgileProjectionEngine --> BacklogChecklistReconciler : checklistReconciler
 ```
 
 ## Interface Requirements

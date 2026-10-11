@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class DiagnosticReportFormatter
-    DEAPCompilerSystem --> DiagnosticReportFormatter : contains
+    class DiagnosticReportFormatter {
+        +DiagnosticPort diag_in (in)
+        +DiagnosticReportPort diag_out (out)
+    }
 ```
 
 ## Interface Requirements

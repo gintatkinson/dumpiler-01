@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class GrammarLoweringEngine
-    DEAPCompilerSystem --> GrammarLoweringEngine : contains
+    class GrammarLoweringEngine {
+        +ASTGraphPort ast_in (in)
+        +ASTStreamPort ast_out (out)
+    }
+    GrammarLoweringEngine --> KerMLTokenStream : tokenStream
+    GrammarLoweringEngine --> SysMLv2GrammarParser : grammarParser
+    GrammarLoweringEngine --> ASTLoweringEngine : loweringEngine
 ```
 
 ## Interface Requirements

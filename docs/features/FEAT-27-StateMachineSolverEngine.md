@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class StateMachineSolverEngine
-    DEAPCompilerSystem --> StateMachineSolverEngine : contains
+    class StateMachineSolverEngine {
+        +ASTStreamPort ast_in (in)
+        +StateSolverPort state_out (out)
+    }
+    StateMachineSolverEngine --> StateHierarchyFlattener : flattener
+    StateMachineSolverEngine --> DiscreteTransitionSolver : solver
+    StateMachineSolverEngine --> ReachabilityMatrixEvaluator : evaluator
 ```
 
 ## Interface Requirements

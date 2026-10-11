@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class AstInterner
-    DEAPCompilerSystem --> AstInterner : contains
+    class AstInterner {
+        +TokenStreamPort token_in (in)
+        +ASTGraphPort ast_graph_out (out)
+        +Boolean deduplication_enabled
+    }
 ```
 
 ## Interface Requirements

@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class ICDEngine
-    DEAPCompilerSystem --> ICDEngine : contains
+    class ICDEngine {
+        +SafetyPort safety_in (in)
+        +ICDInterconnectPort icd_out (out)
+    }
+    ICDEngine --> InterfaceMatrixBuilder : matrixBuilder
+    ICDEngine --> PortCompatibilityChecker : compatChecker
+    ICDEngine --> ContractSerializer : serializer
 ```
 
 ## Interface Requirements

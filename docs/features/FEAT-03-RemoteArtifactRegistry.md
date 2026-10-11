@@ -15,9 +15,7 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
     class RemoteArtifactRegistry
-    DEAPCompilerSystem --> RemoteArtifactRegistry : contains
 ```
 
 ## Interface Requirements

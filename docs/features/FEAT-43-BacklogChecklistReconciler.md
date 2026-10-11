@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class BacklogChecklistReconciler
-    DEAPCompilerSystem --> BacklogChecklistReconciler : contains
+    class BacklogChecklistReconciler {
+        +ICDInterconnectPort icd_in (in)
+        +SpecificationPort specs_out (out)
+    }
 ```
 
 ## Interface Requirements

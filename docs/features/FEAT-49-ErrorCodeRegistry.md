@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class ErrorCodeRegistry
-    DEAPCompilerSystem --> ErrorCodeRegistry : contains
+    class ErrorCodeRegistry {
+        +DiagnosticPort diag_in (in)
+        +DiagnosticReportPort diag_out (out)
+    }
 ```
 
 ## Interface Requirements

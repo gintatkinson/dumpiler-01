@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class CodeGenEngine
-    DEAPCompilerSystem --> CodeGenEngine : contains
+    class CodeGenEngine {
+        +SpecificationPort specs_in (in)
+        +CodeArtifactPort code_out (out)
+    }
+    CodeGenEngine --> TargetAstTranspiler : astTranspiler
+    CodeGenEngine --> TemplateRenderingEngine : templateEngine
+    CodeGenEngine --> CodeArtifactFormatter : formatter
 ```
 
 ## Interface Requirements

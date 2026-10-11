@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class FrontmatterIntegrityEncoder
-    DEAPCompilerSystem --> FrontmatterIntegrityEncoder : contains
+    class FrontmatterIntegrityEncoder {
+        +ICDInterconnectPort icd_in (in)
+        +SpecificationPort specs_out (out)
+    }
 ```
 
 ## Interface Requirements

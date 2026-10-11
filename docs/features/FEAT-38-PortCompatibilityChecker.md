@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class PortCompatibilityChecker
-    DEAPCompilerSystem --> PortCompatibilityChecker : contains
+    class PortCompatibilityChecker {
+        +SafetyPort safety_in (in)
+        +ICDInterconnectPort icd_out (out)
+    }
 ```
 
 ## Interface Requirements

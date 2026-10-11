@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class ProtobufParser
-    DEAPCompilerSystem --> ProtobufParser : contains
+    class ProtobufParser {
+        +RawSchemaStreamPort raw_in (in)
+        +TokenStreamPort token_out (out)
+        +Integer syntax_version
+    }
 ```
 
 ## Interface Requirements

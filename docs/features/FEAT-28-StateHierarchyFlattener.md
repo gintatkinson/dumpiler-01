@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class StateHierarchyFlattener
-    DEAPCompilerSystem --> StateHierarchyFlattener : contains
+    class StateHierarchyFlattener {
+        +ASTStreamPort ast_in (in)
+        +StateSolverPort state_out (out)
+        +Integer max_nesting_depth
+    }
 ```
 
 ## Interface Requirements

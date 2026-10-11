@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class FormatClassifier
-    DEAPCompilerSystem --> FormatClassifier : contains
+    class FormatClassifier {
+        +RawSchemaStreamPort raw_in (in)
+        +TokenStreamPort token_out (out)
+        +Boolean auto_detect
+    }
 ```
 
 ## Interface Requirements

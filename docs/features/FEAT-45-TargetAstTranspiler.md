@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class TargetAstTranspiler
-    DEAPCompilerSystem --> TargetAstTranspiler : contains
+    class TargetAstTranspiler {
+        +SpecificationPort specs_in (in)
+        +CodeArtifactPort code_out (out)
+    }
 ```
 
 ## Interface Requirements

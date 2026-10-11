@@ -387,10 +387,24 @@ pub fn validate_class_diagram(
 
         // 2. Verify member attributes and operations match SysML AST declarations
         if let Some(classifier) = index.classifiers.get(&c.name) {
+            let ast_has_members = !classifier.ports.is_empty()
+                || !classifier.attributes.is_empty()
+                || !classifier.operations.is_empty();
+            let diagram_has_members = !c.attributes.is_empty() || !c.operations.is_empty();
+
+            if ast_has_members && !diagram_has_members && diagram.relations.is_empty() {
+                errors.push(SpecAuditError::ValidationError(format!(
+                    "Class '{}' in class diagram at line {} is a vacuous stub omitting declared AST ports and attributes.",
+                    c.name, c.line
+                )));
+            }
+
             for attr in &c.attributes {
                 let attr_clean = extract_ident(&attr.name);
                 let matches_attr = classifier.attributes.contains(attr_clean)
-                    || index.attribute_names.contains(attr_clean);
+                    || index.attribute_names.contains(attr_clean)
+                    || classifier.ports.contains(attr_clean)
+                    || index.port_names.contains(attr_clean);
                 if !matches_attr {
                     errors.push(SpecAuditError::ValidationError(format!(
                         "Member attribute '{}' of class '{}' at line {} does not match any attribute declaration in SysML model.",
@@ -403,7 +417,9 @@ pub fn validate_class_diagram(
                 let op_clean = extract_ident(&op.name);
                 let matches_op = classifier.operations.contains(op_clean)
                     || classifier.actions.contains(op_clean)
-                    || index.action_names.contains(op_clean);
+                    || index.action_names.contains(op_clean)
+                    || classifier.ports.contains(op_clean)
+                    || index.port_names.contains(op_clean);
                 if !matches_op {
                     errors.push(SpecAuditError::ValidationError(format!(
                         "Member operation '{}' of class '{}' at line {} does not match any operation or action declaration in SysML model.",
@@ -907,6 +923,64 @@ mod tests {
         assert!(res.is_err());
         let errors = res.unwrap_err();
         assert!(errors[0].to_string().contains("Class 'PhantomPart' in class diagram"));
+    }
+
+    #[test]
+    fn test_vacuous_class_stub_fails_validation() {
+        let model = create_test_sysml_model();
+        let index = SysmlSymbolIndex::from_model(&model);
+
+        // FlightController has declared attributes and operations in the model
+        let vacuous_diag = ClassDiagramAst {
+            classes: vec![ClassDefAst {
+                name: "FlightController".to_string(),
+                annotations: Vec::new(),
+                attributes: Vec::new(),
+                operations: Vec::new(),
+                line: 1,
+            }],
+            relations: Vec::new(),
+        };
+
+        let res = validate_class_diagram(&vacuous_diag, &index);
+        assert!(res.is_err());
+        let errors = res.unwrap_err();
+        assert!(errors[0]
+            .to_string()
+            .contains("is a vacuous stub omitting declared AST ports and attributes"));
+    }
+
+    #[test]
+    fn test_class_diagram_with_port_passes() {
+        let mut model = create_test_sysml_model();
+        model.parts[0].ports.push(deap_core::sysml_ast::PortDef {
+            name: "telemetry_port".to_string(),
+            type_name: "TelemetryStream".to_string(),
+            direction: "out".to_string(),
+            ..Default::default()
+        });
+        let index = SysmlSymbolIndex::from_model(&model);
+
+        // Test port matching in operations (Mermaid parsed with direction parentheses)
+        let class_diag = ClassDiagramAst {
+            classes: vec![ClassDefAst {
+                name: "FlightController".to_string(),
+                annotations: Vec::new(),
+                attributes: Vec::new(),
+                operations: vec![ClassOperationAst {
+                    visibility: Some(Visibility::Public),
+                    name: "telemetry_port".to_string(),
+                    parameters: vec!["out".to_string()],
+                    return_type: Some("TelemetryStream".to_string()),
+                    raw: "+TelemetryStream telemetry_port (out)".to_string(),
+                    line: 2,
+                }],
+                line: 1,
+            }],
+            relations: Vec::new(),
+        };
+
+        assert!(validate_class_diagram(&class_diag, &index).is_ok());
     }
 
     #[test]

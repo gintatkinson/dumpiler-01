@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class BidirectionalSweepEngine
-    DEAPCompilerSystem --> BidirectionalSweepEngine : contains
+    class BidirectionalSweepEngine {
+        +ASTStreamPort ast_stream (in)
+        +SafetyPort safety_out (out)
+    }
 ```
 
 ## Interface Requirements

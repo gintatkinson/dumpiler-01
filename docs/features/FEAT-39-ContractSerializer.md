@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class ContractSerializer
-    DEAPCompilerSystem --> ContractSerializer : contains
+    class ContractSerializer {
+        +SafetyPort safety_in (in)
+        +ICDInterconnectPort icd_out (out)
+    }
 ```
 
 ## Interface Requirements

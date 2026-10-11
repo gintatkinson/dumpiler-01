@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class DiscreteTransitionSolver
-    DEAPCompilerSystem --> DiscreteTransitionSolver : contains
+    class DiscreteTransitionSolver {
+        +ASTStreamPort ast_in (in)
+        +StateSolverPort state_out (out)
+        +String guard_evaluation_mode
+    }
 ```
 
 ## Interface Requirements

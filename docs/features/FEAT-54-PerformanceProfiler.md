@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class PerformanceProfiler
-    DEAPCompilerSystem --> PerformanceProfiler : contains
+    class PerformanceProfiler {
+        +CLIPort cli_in (in)
+        +PerformanceMetricsPort metrics_out (out)
+    }
 ```
 
 ## Interface Requirements

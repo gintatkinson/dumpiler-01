@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class DomainVocabularyValidator
-    DEAPCompilerSystem --> DomainVocabularyValidator : contains
+    class DomainVocabularyValidator {
+        +TokenStreamPort token_in (in)
+        +DiagnosticPort diag_out (out)
+        +Integer max_violations
+    }
 ```
 
 ## Interface Requirements

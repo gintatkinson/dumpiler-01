@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class DiagnosticErrorCatalogEngine
-    DEAPCompilerSystem --> DiagnosticErrorCatalogEngine : contains
+    class DiagnosticErrorCatalogEngine {
+        +DiagnosticPort diag_in (in)
+        +DiagnosticReportPort diag_out (out)
+    }
+    DiagnosticErrorCatalogEngine --> ErrorCodeRegistry : registry
+    DiagnosticErrorCatalogEngine --> SourceLocationMapper : locMapper
+    DiagnosticErrorCatalogEngine --> DiagnosticReportFormatter : reportFormatter
 ```
 
 ## Interface Requirements

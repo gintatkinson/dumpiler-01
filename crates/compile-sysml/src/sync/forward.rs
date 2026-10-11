@@ -236,6 +236,51 @@ fn generate_feature_bdd(part: &PartDef, _reqs: &[&RequirementDef]) -> String {
     )
 }
 
+/// Generates a valid Mermaid class diagram dynamically lowered from PartDef members and subparts.
+fn generate_class_diagram(part: &PartDef) -> String {
+    let mut lines = Vec::new();
+    lines.push("classDiagram".to_string());
+
+    let has_members = !part.ports.is_empty() || !part.attributes.is_empty() || !part.operations.is_empty();
+
+    if has_members {
+        lines.push(format!("    class {} {{", part.name));
+
+        for port in &part.ports {
+            let dir_prefix = if port.direction == "in" {
+                "in"
+            } else if port.direction == "out" {
+                "out"
+            } else {
+                "inout"
+            };
+            let p_type = if port.type_name.is_empty() { "Port" } else { &port.type_name };
+            lines.push(format!("        +{} {} ({})", p_type, port.name, dir_prefix));
+        }
+
+        for attr in &part.attributes {
+            let a_type = if attr.type_name.is_empty() { "String" } else { &attr.type_name };
+            lines.push(format!("        +{} {}", a_type, attr.name));
+        }
+
+        for op in &part.operations {
+            let ret = op.return_type.as_deref().unwrap_or("void");
+            lines.push(format!("        +{}() {}", op.name, ret));
+        }
+
+        lines.push("    }".to_string());
+    } else {
+        lines.push(format!("    class {}", part.name));
+    }
+
+    for subpart in &part.parts {
+        let target_type = subpart.type_name.as_deref().unwrap_or(&subpart.name);
+        lines.push(format!("    {} --> {} : {}", part.name, target_type, subpart.name));
+    }
+
+    lines.join("\n")
+}
+
 /// Structured use case sections parsed from doc comments.
 #[derive(Debug, Default)]
 struct ParsedUseCaseDoc {
@@ -748,20 +793,7 @@ stateDiagram-v2
         let feat_issue_id = resolve_issue_id(&target_out_dir, &rel_path, f_num + 9);
         let title = format!("Feature {:02}: [{}] {}", f_num, ctx.subsys_display, part_name);
 
-        let class_diagram_block = if part_name == "DEAPCompilerSystem" {
-            r#"classDiagram
-    class DEAPCompilerSystem
-    class SystemVisionEngine
-    DEAPCompilerSystem --> SystemVisionEngine : contains"#
-                .to_string()
-        } else {
-            format!(
-                r#"classDiagram
-    class DEAPCompilerSystem
-    class {part_name}
-    DEAPCompilerSystem --> {part_name} : contains"#
-            )
-        };
+        let class_diagram_block = generate_class_diagram(ctx.part);
 
         let json_schema = generate_json_schema(ctx.part);
 

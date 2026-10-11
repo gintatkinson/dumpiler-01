@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class FlowConservationSolver
-    DEAPCompilerSystem --> FlowConservationSolver : contains
+    class FlowConservationSolver {
+        +ASTStreamPort ast_in (in)
+        +MetrologyFlowPort metrology_out (out)
+        +Real tolerance_epsilon
+    }
 ```
 
 ## Interface Requirements

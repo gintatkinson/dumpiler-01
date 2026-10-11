@@ -15,9 +15,7 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
     class DownstreamApplicationHost
-    DEAPCompilerSystem --> DownstreamApplicationHost : contains
 ```
 
 ## Interface Requirements

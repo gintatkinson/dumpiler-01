@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class NamespaceUuidGenerator
-    DEAPCompilerSystem --> NamespaceUuidGenerator : contains
+    class NamespaceUuidGenerator {
+        +ASTGraphPort path_in (in)
+        +CompilerRulePort uuid_out (out)
+        +Integer uuid_version
+    }
 ```
 
 ## Interface Requirements

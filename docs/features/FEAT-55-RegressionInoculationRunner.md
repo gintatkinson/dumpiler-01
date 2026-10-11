@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class RegressionInoculationRunner
-    DEAPCompilerSystem --> RegressionInoculationRunner : contains
+    class RegressionInoculationRunner {
+        +CLIPort cli_in (in)
+        +PerformanceMetricsPort metrics_out (out)
+    }
 ```
 
 ## Interface Requirements

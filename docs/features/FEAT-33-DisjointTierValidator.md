@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class DisjointTierValidator
-    DEAPCompilerSystem --> DisjointTierValidator : contains
+    class DisjointTierValidator {
+        +ASTStreamPort ast_stream (in)
+        +SafetyPort safety_out (out)
+    }
 ```
 
 ## Interface Requirements

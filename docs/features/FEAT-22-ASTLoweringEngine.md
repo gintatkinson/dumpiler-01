@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class ASTLoweringEngine
-    DEAPCompilerSystem --> ASTLoweringEngine : contains
+    class ASTLoweringEngine {
+        +ASTGraphPort ast_in (in)
+        +ASTStreamPort ast_out (out)
+        +Integer pass_count
+    }
 ```
 
 ## Interface Requirements

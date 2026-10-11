@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class KerMLTokenStream
-    DEAPCompilerSystem --> KerMLTokenStream : contains
+    class KerMLTokenStream {
+        +ASTGraphPort ast_in (in)
+        +ASTStreamPort ast_out (out)
+        +Integer buffer_size
+    }
 ```
 
 ## Interface Requirements

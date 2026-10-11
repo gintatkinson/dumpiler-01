@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class MetrologyFlowEngine
-    DEAPCompilerSystem --> MetrologyFlowEngine : contains
+    class MetrologyFlowEngine {
+        +ASTStreamPort ast_in (in)
+        +MetrologyFlowPort metrology_out (out)
+    }
+    MetrologyFlowEngine --> DimensionalUnitChecker : unitChecker
+    MetrologyFlowEngine --> FlowConservationSolver : flowSolver
+    MetrologyFlowEngine --> ConservationNetworkRouter : networkRouter
 ```
 
 ## Interface Requirements

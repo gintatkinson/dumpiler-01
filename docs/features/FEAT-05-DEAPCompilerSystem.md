@@ -15,9 +15,25 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class SystemVisionEngine
-    DEAPCompilerSystem --> SystemVisionEngine : contains
+    class DEAPCompilerSystem {
+        +CLIPort cli_in (in)
+        +RawSchemaStreamPort schema_in (in)
+        +CodeArtifactPort code_out (out)
+        +DiagnosticReportPort diag_out (out)
+        +PerformanceMetricsPort metrics_out (out)
+    }
+    DEAPCompilerSystem --> SystemVisionEngine : systemVision
+    DEAPCompilerSystem --> UniversalIngestionEngine : universalIngestion
+    DEAPCompilerSystem --> NodeArenaASTGraphEngine : nodeArenaASTGraph
+    DEAPCompilerSystem --> GrammarLoweringEngine : grammarLowering
+    DEAPCompilerSystem --> MetrologyFlowEngine : metrologyFlow
+    DEAPCompilerSystem --> StateMachineSolverEngine : stateMachineSolver
+    DEAPCompilerSystem --> SafetyAssuranceEngine : safetyAssurance
+    DEAPCompilerSystem --> ICDEngine : icdEngine
+    DEAPCompilerSystem --> AgileProjectionEngine : agileProjection
+    DEAPCompilerSystem --> CodeGenEngine : codeGen
+    DEAPCompilerSystem --> DiagnosticErrorCatalogEngine : diagnosticCatalog
+    DEAPCompilerSystem --> CompilerAssuranceEngine : compilerAssurance
 ```
 
 ## Interface Requirements

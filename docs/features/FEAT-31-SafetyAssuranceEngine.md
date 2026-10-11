@@ -15,9 +15,15 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class SafetyAssuranceEngine
-    DEAPCompilerSystem --> SafetyAssuranceEngine : contains
+    class SafetyAssuranceEngine {
+        +MetrologyFlowPort metrology_in (in)
+        +StateSolverPort state_in (in)
+        +SafetyPort safety_out (out)
+    }
+    SafetyAssuranceEngine --> BipartiteGraphBuilder : graphBuilder
+    SafetyAssuranceEngine --> DisjointTierValidator : tierValidator
+    SafetyAssuranceEngine --> BidirectionalSweepEngine : sweepEngine
+    SafetyAssuranceEngine --> DiagnosticSentinelSink : diagSink
 ```
 
 ## Interface Requirements

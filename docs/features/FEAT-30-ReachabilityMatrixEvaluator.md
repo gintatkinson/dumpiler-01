@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class ReachabilityMatrixEvaluator
-    DEAPCompilerSystem --> ReachabilityMatrixEvaluator : contains
+    class ReachabilityMatrixEvaluator {
+        +ASTStreamPort ast_in (in)
+        +StateSolverPort state_out (out)
+        +Boolean deadlock_detection
+    }
 ```
 
 ## Interface Requirements

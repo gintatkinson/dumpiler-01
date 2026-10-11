@@ -15,9 +15,13 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class NodeArenaASTGraphEngine
-    DEAPCompilerSystem --> NodeArenaASTGraphEngine : contains
+    class NodeArenaASTGraphEngine {
+        +TokenStreamPort token_in (in)
+        +ASTGraphPort ast_graph_out (out)
+    }
+    NodeArenaASTGraphEngine --> ArenaAllocator : allocator
+    NodeArenaASTGraphEngine --> NodeTableIndex : indexer
+    NodeArenaASTGraphEngine --> AstInterner : interner
 ```
 
 ## Interface Requirements

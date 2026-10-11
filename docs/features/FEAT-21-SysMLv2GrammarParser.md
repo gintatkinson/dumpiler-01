@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class SysMLv2GrammarParser
-    DEAPCompilerSystem --> SysMLv2GrammarParser : contains
+    class SysMLv2GrammarParser {
+        +ASTGraphPort ast_in (in)
+        +ASTStreamPort ast_out (out)
+        +Integer recursion_limit
+    }
 ```
 
 ## Interface Requirements

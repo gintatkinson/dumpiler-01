@@ -15,9 +15,12 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class ArenaAllocator
-    DEAPCompilerSystem --> ArenaAllocator : contains
+    class ArenaAllocator {
+        +TokenStreamPort token_in (in)
+        +ASTGraphPort ast_graph_out (out)
+        +Integer slot_size_bytes
+        +Integer alignment_bytes
+    }
 ```
 
 ## Interface Requirements

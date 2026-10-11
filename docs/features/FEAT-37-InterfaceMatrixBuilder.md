@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class InterfaceMatrixBuilder
-    DEAPCompilerSystem --> InterfaceMatrixBuilder : contains
+    class InterfaceMatrixBuilder {
+        +SafetyPort safety_in (in)
+        +ICDInterconnectPort icd_out (out)
+    }
 ```
 
 ## Interface Requirements

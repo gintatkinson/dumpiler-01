@@ -15,9 +15,10 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class BipartiteGraphBuilder
-    DEAPCompilerSystem --> BipartiteGraphBuilder : contains
+    class BipartiteGraphBuilder {
+        +ASTStreamPort ast_stream (in)
+        +SafetyPort safety_out (out)
+    }
 ```
 
 ## Interface Requirements

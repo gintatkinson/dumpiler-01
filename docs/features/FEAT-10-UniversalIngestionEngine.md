@@ -15,9 +15,16 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class UniversalIngestionEngine
-    DEAPCompilerSystem --> UniversalIngestionEngine : contains
+    class UniversalIngestionEngine {
+        +RawSchemaStreamPort schema_in (in)
+        +CompilerRulePort rules_in (in)
+        +TokenStreamPort token_out (out)
+        +DiagnosticPort diag_out (out)
+    }
+    UniversalIngestionEngine --> FormatClassifier : classifier
+    UniversalIngestionEngine --> CommonMarkTableLexer : mdLexer
+    UniversalIngestionEngine --> ProtobufParser : protoParser
+    UniversalIngestionEngine --> OpenApiParser : openapiParser
 ```
 
 ## Interface Requirements

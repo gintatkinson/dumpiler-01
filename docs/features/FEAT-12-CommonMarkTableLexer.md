@@ -15,9 +15,11 @@
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class CommonMarkTableLexer
-    DEAPCompilerSystem --> CommonMarkTableLexer : contains
+    class CommonMarkTableLexer {
+        +RawSchemaStreamPort raw_in (in)
+        +TokenStreamPort token_out (out)
+        +String table_delimiter
+    }
 ```
 
 ## Interface Requirements
