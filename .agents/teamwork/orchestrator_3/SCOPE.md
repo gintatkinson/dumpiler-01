@@ -21,4 +21,4 @@
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | M1: Shell Script Eradication & Rust Toolchain Consolidation | R1, R2, R3, R4, R5 | none | IN_PROGRESS |
+| 1 | M1: Shell Script Eradication & Rust Toolchain Consolidation | R1, R2, R3, R4, R5 | none | DONE |
