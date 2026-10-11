@@ -301,3 +301,142 @@ Advance automatically to the next open defect issue in the queue without interme
 - [ ] Pushed to `origin/main` and verified `git diff origin/main` is empty.
 
 PROCEED
+
+
+## 2026-10-11T17:00:47Z
+
+Full multi-stage team: FIRST, execute the autonomous Ralph repair loop on THIS project (`dumpiler-01`) until it compiles, synchronizes, and projects to clean, perfect GitHub output with all 32 quality gates passing. First, fix the projection engine in `crates/reconcile-backlog` so that it parses native CommonMark 2-column metadata tables. Run the entire pipeline from Ground 0 across all stages (ingestion, compilation, STPA safety transpilation, full forward specification synchronization, and GitHub projection via `reconcile-backlog --sync-bodies`). Inspect and validate every single projected document one-by-one at the final delivery location (GitHub and `docs/`) for format, content, and bidirectional semantic traceability back to `schema/`. For every defect, broken reference, dropped field, or quality gate failure, automatically formulate a 7-section defect dossier, file an issue on GitHub with `--label bug`, execute the autonomous Ralph repair loop to surgically fix the compiler logic upstream, re-execute from Ground 0, and continuously iterate until THIS project is 100% clean, verified against all 32 quality gates, and fully projected to GitHub. THEN, execute Phase 2: ingest the reference schema from `https://github.com/gintatkinson/3dgs-039/tree/main/schema` as an external test run, execute a document-by-document 1:1 differential comparison against `3dgs-039/docs/`, catalog discrepancies into a structured Discrepancy Matrix, and run the Ralph loop until both projects achieve 100% convergence.
+
+Working directory: /Users/perkunas/jail/dumpiler-01
+Integrity mode: development
+
+## Problem & Context
+
+1. **First Priority -- Ralph THIS Project (`dumpiler-01`)**: Prior repair loops made isolated patches, but `dumpiler-01` was never rerun end-to-end through to live GitHub projection. This project must be completely repaired, compiled from Ground 0, and projected to GitHub until all outputs are 100% clean.
+2. **Broken Projection Pipe**: `crates/reconcile-backlog/src/frontmatter.rs` was never updated to parse CommonMark 2-column metadata tables (`| Attribute | Specification Detail |`), causing `reconcile-backlog` to scan 0 specs and preventing GitHub projection from running.
+3. **Terminal Delivery Boundary**: The output of everything before implementation ends at the **projected documents** on GitHub. The pipeline is incomplete until all specifications are projected and verified live on the issue tracker.
+4. **Second Stage -- Multi-Domain Reference Validation (`3dgs-039`)**: Once `dumpiler-01` is ralphed to perfection, external schema from `https://github.com/gintatkinson/3dgs-039/tree/main/schema` is compiled to verify that the repaired compiler generalizes across target domains without regression.
+
+---
+
+## Requirements -- Phase 1: Ralph THIS Project (`dumpiler-01`)
+
+### R1. Unify Projection Tooling (`crates/reconcile-backlog`)
+- Port the native CommonMark 2-column table parser (`| Attribute | Specification Detail |`) from `crates/compile-sysml/src/sync/reverse.rs` into `crates/reconcile-backlog/src/frontmatter.rs`.
+- Update `update_frontmatter_issue_id` to update or inject `| **Issue ID** | #<id> |` directly in the lines 1-10 table without legacy YAML fences.
+- Rebuild with `cargo build --release --workspace` and test `./target/release/reconcile-backlog --dry-run` to confirm all 94 specification files are discovered and parsed.
+
+### R2. Ground 0 Pipeline Execution on `dumpiler-01`
+Execute the complete compilation sequence from scratch:
+1. **Pipeline 0 Compilation**: `./target/release/compile-sysml --compile` (parse all schemas in `schema/`, validate semantic topology, emit `.pipeline/schema.sysml` and `.pipeline/schema-digest.json`).
+2. **Safety Suite Transpilation**: `./target/release/compile-sysml --stpa-transpile` (transpile 10-pillar safety suite into `docs/safety/`).
+3. **Full Forward Synchronization**: `./target/release/compile-sysml --forward-sync --force` (regenerate all 94 specification files across `docs/epics/`, `docs/features/`, `docs/user-stories/`, and `docs/use-cases/`).
+4. **ConOps Assembly**: `./target/release/assemble-conops .` if ConOps units are present.
+
+### R3. Projection to Delivery Location (GitHub Issue Tracker)
+- Run `./target/release/reconcile-backlog --sync-bodies` to project 100% of local specification bodies, titles, and checklist states to GitHub issues.
+- For all resolved defect issues, post verification evidence comments via `gh issue comment <ID>` and transition labels to `status:fixed-resolved`. Do not set issues to `Closed`.
+
+### R4. One-by-One Specification Delivery Audit on `dumpiler-01`
+- Read all projected outputs at the final delivery location (GitHub issue tracker and local `docs/`).
+- Audit every single specification document individually:
+  - **Format**: Native CommonMark table at lines 1-10, valid Mermaid syntax (closed fences, zero unescaped semicolons or curly braces), Given-When-Then BDD formatting, zero Unicode em dashes (`\u2014`).
+  - **Content & Integrity**:
+    - Epics: Valid package and subsystem references.
+    - Features: Genuine AST class members (zero synthetic stubs), positive and negative constraint BDD criteria.
+    - User Stories: Interaction/action linkages, Given-When-Then format.
+    - Use Cases: **Realization Matrices** (empirically confirm zero cross-wiring or broken issue links).
+    - Safety: 10-pillar hazard topology covering 100% of decomposed operational activities.
+  - **Reverse Traceability Analysis**: Trace every specification element back to its source AST node in `schema/` (zero hallucinated requirements).
+  - **Forward Model Parity**: Verify 100% of declared AST nodes map into downstream specifications with zero dropped concepts.
+
+### R5. Autonomous Ralph Convergence Loop on `dumpiler-01`
+- For every defect, broken reference, or formatting error discovered:
+  - Formulate a 7-section defect dossier adhering to `skills/adversarial-code-auditor/SKILL.md` and file a GitHub issue with `--label bug`.
+  - Dispatch a context-isolated subagent (`Role: Defect Repair Specialist`) to implement the minimal upstream fix in compiler lowering logic, schema AST definitions, or synchronization templates.
+  - **Strict Prohibition of Unit Tests**: Creating or executing unit test suites (`tests/`, `pytest`, `test_*.py`) is strictly forbidden across this repository. Verification must be performed exclusively via end-to-end semantic acceptance testing and compiler passes.
+  - Maintain zero-regex monotonic scanning (REQ-0015): all syntax scanners and linters must use pure lexical token scanning or scalar substring checks without regex crates.
+  - Re-execute pipeline from Ground 0 (`compile`, `stpa-transpile`, `forward-sync --force`, `reconcile-backlog --sync-bodies`).
+  - Continuously iterate until independent victory judges evaluate all outputs and confirm 100% convergence and clean GitHub output on `dumpiler-01`.
+
+---
+
+## Requirements -- Phase 2: Multi-Domain Reference Validation & Differential Convergence (`3dgs-039`)
+
+### R6. Reference Staging & Workspace Isolation (`3dgs-039`)
+- Fetch/clone `https://github.com/gintatkinson/3dgs-039` into an isolated staging directory: `target/reference/3dgs-039/`.
+- Isolate the input schema corpus (`target/reference/3dgs-039/schema/`, containing YANG models including `ietf-inet-types.yang`, `ietf-yang-types.yang`, and `ietf-geo-location.yang`).
+- Configure an isolated compilation output directory for generated artifacts: `target/reference/3dgs-039_generated/docs/`.
+
+### R7. Multi-Domain Ground 0 Ingestion & Compilation Pass
+- Execute Ground 0 ingestion and compilation on `3dgs-039` schemas using `dumpiler-01` release binaries:
+  1. `./target/release/ingest-sysml --schema target/reference/3dgs-039/schema --out target/reference/3dgs-039_generated/model.sysml` (or direct schema parsing pass).
+  2. `./target/release/compile-sysml --compile --schema target/reference/3dgs-039/schema`.
+  3. `./target/release/compile-sysml --forward-sync --force` emitting specifications into `target/reference/3dgs-039_generated/docs/`.
+  4. Assert zero compiler crashes, panics, or unhandled token errors.
+
+### R8. Document-by-Document 1:1 Differential Specification Comparison
+Perform an exhaustive pairwise diff of every generated specification against its counterpart in `target/reference/3dgs-039/docs/`:
+- **Epics Diff (`docs/epics/`)**:
+  - Compare CommonMark metadata tables: Package names, Issue IDs, Titles, and Generation Modes.
+  - Compare constituent feature checklists and module boundary scopes.
+- **Features Diff (`docs/features/`)**:
+  - Compare Class Diagrams: verify exact parity of AST properties, types, multiplicities, visibility, and operations without synthetic stubs.
+  - Compare BDD Scenarios: verify Given-When-Then criteria match constraint definitions, range bounds, and error conditions.
+- **User Stories Diff (`docs/user-stories/`)**:
+  - Compare actor-action formulations and BDD scenario coverage.
+- **Use Cases Diff (`docs/use-cases/`)**:
+  - Compare formal preconditions, numbered flows, and **Realization Matrices** (assert zero phantom references or cross-wired links).
+- **Discrepancy Matrix Synthesis**:
+  - Output an exhaustive `target/reference/3DGS_DISCREPANCY_MATRIX.md` categorizing all deltas into:
+    - *Type A: Dropped Schema Attributes* (AST definitions present in schema but omitted from specs).
+    - *Type B: Syntax/Format Drift* (Mermaid syntax, unescaped characters, table delimiters).
+    - *Type C: Traceability/Link Disparities* (broken relative references, mismatched issue numbers).
+
+### R9. Ralph Convergence Loop on P2 Discrepancies
+- For every Type A, B, or C discrepancy identified in the Discrepancy Matrix:
+  - Formulate a 7-section defect dossier adhering to `skills/adversarial-code-auditor/SKILL.md` and file a GitHub issue with `--label bug`.
+  - Dispatch a context-isolated subagent (`Role: Defect Repair Specialist`) to implement the minimal upstream fix in compiler lowering logic (`crates/compile-sysml`, `crates/ingest-sysml`, or `crates/deap-core`) in `dumpiler-01`.
+  - Strictly enforce the prohibition of unit test suites (`tests/`, `pytest`, `test_*.py` are forbidden).
+  - Recompile `dumpiler-01`, re-run compilation on `3dgs-039/schema`, and re-execute the 1:1 differential comparison.
+  - **Continuously iterate until the Discrepancy Matrix reaches zero discrepancies, confirming that the compiler generalizes across target domains without regression.**
+
+---
+
+## Requirements -- Phase 3: Final Parity & Remote Synchronization
+
+### R10. Baseline Conformance, Victory Judges & Remote Push
+- Execute `./target/release/verify-baseline . --no-domain` on `dumpiler-01` (all 32 mechanical quality gates pass).
+- Execute `./target/release/verify-baseline . --spec-only` on `dumpiler-01` (all 94 specification files pass with 0 findings).
+- Independent victory judges perform the final validation of reverse traceability, GitHub projection parity, and multi-domain reference convergence.
+- Clean up temporary reference checkouts and reproducer files in `target/reference/`.
+- Commit all changes with neutral citations `(refs #<ID>)`, push to `origin/main`, and verify `git diff origin/main` is 0 bytes.
+
+---
+
+## Acceptance Criteria
+
+### Phase 1: Tooling & dumpiler-01 Ralph Convergence
+- [ ] `crates/reconcile-backlog` natively parses CommonMark 2-column tables; `reconcile-backlog --dry-run` discovers all 94 specification files.
+- [ ] Ground 0 pipeline compiles, transpiles, and forward-syncs cleanly with exit code 0 on `dumpiler-01`.
+- [ ] 100% of specification bodies projected to GitHub issues via `reconcile-backlog --sync-bodies`.
+- [ ] 100% of specifications in `dumpiler-01` audited one-by-one for format, content, and reverse AST traceability.
+- [ ] All defects on `dumpiler-01` repaired through the Ralph loop until victory judges confirm 100% clean output.
+
+### Phase 2: 3dgs-039 Reference Differential Convergence
+- [ ] Golden reference `3dgs-039` fetched and staged in `target/reference/3dgs-039/`.
+- [ ] Compiler executes against `3dgs-039/schema` without crashes or dropped AST nodes.
+- [ ] Document-by-document pairwise diff executed across all Epics, Features, Stories, and Use Cases against `3dgs-039/docs/`.
+- [ ] Discrepancy Matrix produced at `target/reference/3DGS_DISCREPANCY_MATRIX.md`.
+- [ ] All discrepancies filed as GitHub issues (`--label bug`) and repaired upstream in `dumpiler-01`.
+- [ ] Output specifications achieve 100% convergence against reference contracts (Discrepancy Matrix reaches 0).
+
+### Phase 3: Mechanical Baseline Conformance & Remote Parity
+- [ ] `cargo check --workspace` and `cargo build --release --workspace` pass with 0 errors.
+- [ ] `./target/release/verify-baseline . --no-domain` passes all 32 quality gates with 0 findings.
+- [ ] `./target/release/verify-baseline . --spec-only` passes all specification files with 0 findings.
+- [ ] Zero unit test files (`tests/`, `pytest`, `test_*.py`) created or committed.
+- [ ] Zero shell scripts (`.sh`) exist on disk (Check 32 verified).
+- [ ] Working tree clean, pushed to `origin/main` (`git diff origin/main` is 0 bytes).
+
+PROCEED
