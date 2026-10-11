@@ -26,7 +26,7 @@
 |---|------|-------|-------------|--------|
 | M1 | Unified Metadata Contract | `crates/compile-sysml/src/sync/forward.rs`, `.pipeline/constitution.md` (line 94), `crates/verify-baseline/src/spec_audit/` | none | DONE |
 | M2 | Taxonomy Standardization | `skills/spec-orchestrator/SKILL.md`, `skills/feature-driven-implementation/SKILL.md`, `.pipeline/constitution.md`, `.pipeline/ACTIVE_RULES_BUNDLE.md` | M1 | DONE |
-| M3 | Closed-Loop Execution & Sync | Build, forward-sync 94 specs, verify-baseline, git commit & push | M1, M2 | IN_PROGRESS |
+| M3 | Closed-Loop Execution & Sync | Build, forward-sync 94 specs, verify-baseline, git commit & push | M1, M2 | DONE |
 
 ## Interface Contracts
 ### `compile-sysml` ↔ `verify-baseline`
