@@ -72,6 +72,9 @@ pub fn detect_format(schema_path: &str, content: &str) -> Result<String, String>
     if ext == ".sysml" {
         return Ok("sysml".to_string());
     }
+    if ext == ".yang" {
+        return Ok("yang".to_string());
+    }
     if ext == ".idl" {
         return Ok("idl".to_string());
     }
@@ -93,6 +96,15 @@ pub fn detect_format(schema_path: &str, content: &str) -> Result<String, String>
     {
         return Ok("sysml".to_string());
     }
+    if path.ends_with(".yang")
+        || content.contains("yang-version")
+        || content.contains("namespace ")
+        || content.contains("prefix ")
+        || content.contains("typedef ")
+        || content.contains("grouping ")
+    {
+        return Ok("yang".to_string());
+    }
     if content.contains("module ") || content.contains("interface ") || content.contains("struct ") {
         return Ok("idl".to_string());
     }
@@ -107,7 +119,7 @@ pub fn detect_format(schema_path: &str, content: &str) -> Result<String, String>
     }
 
     Err(format!(
-        "Unsupported schema format for '{}'. Supported formats: .sysml, .idl, .arxml/.xml, .proto, .json/.yaml/.yml, markdown (.md).",
+        "Unsupported schema format for '{}'. Supported formats: .sysml, .yang, .idl, .arxml/.xml, .proto, .json/.yaml/.yml, markdown (.md).",
         schema_path
     ))
 }
@@ -174,6 +186,7 @@ pub fn discover_schema_targets(
                 match hint.as_str() {
                     "markdown" | "md" => "markdown".to_string(),
                     "sysml" => "sysml".to_string(),
+                    "yang" => "yang".to_string(),
                     "idl" => "idl".to_string(),
                     "autosar" | "arxml" => "autosar".to_string(),
                     "protobuf" | "proto" => "protobuf".to_string(),
@@ -203,6 +216,7 @@ pub fn discover_schema_targets(
         let canonical_fmt = match hint.as_str() {
             "markdown" | "md" => "markdown",
             "sysml" => "sysml",
+            "yang" => "yang",
             "idl" => "idl",
             "autosar" | "arxml" => "autosar",
             "protobuf" | "proto" => "protobuf",
@@ -218,6 +232,7 @@ pub fn discover_schema_targets(
 
         let exts: &[&str] = match canonical_fmt {
             "sysml" => &["sysml"],
+            "yang" => &["yang"],
             "idl" => &["idl"],
             "autosar" => &["arxml", "xml"],
             "protobuf" => &["proto"],
@@ -263,8 +278,9 @@ pub fn discover_schema_targets(
         return Ok(("markdown".to_string(), md_files));
     }
 
-    // 3. Check for other schema types (IDL, ARXML, Protobuf, OpenAPI)
+    // 3. Check for other schema types (YANG, IDL, ARXML, Protobuf, OpenAPI)
     let format_exts = [
+        ("yang", "yang"),
         ("idl", "idl"),
         ("arxml", "autosar"),
         ("xml", "autosar"),
@@ -323,6 +339,7 @@ mod tests {
     fn test_detect_format_by_extension() {
         assert_eq!(detect_format("schema.md", "").unwrap(), "markdown");
         assert_eq!(detect_format("model.sysml", "").unwrap(), "sysml");
+        assert_eq!(detect_format("interface.yang", "").unwrap(), "yang");
         assert_eq!(detect_format("interface.idl", "").unwrap(), "idl");
         assert_eq!(detect_format("system.arxml", "").unwrap(), "autosar");
         assert_eq!(detect_format("messages.proto", "").unwrap(), "protobuf");
@@ -336,6 +353,10 @@ mod tests {
         assert_eq!(
             detect_format("unknown_file", "package Package_0 { part def Classifier_Alpha; }").unwrap(),
             "sysml"
+        );
+        assert_eq!(
+            detect_format("unknown_file", "module ietf-geo-location { yang-version 1.1; namespace \"urn:ietf\"; prefix geo; }").unwrap(),
+            "yang"
         );
         assert_eq!(
             detect_format("unknown_file", "module Module_0 { struct Struct_1 { long id; }; };").unwrap(),

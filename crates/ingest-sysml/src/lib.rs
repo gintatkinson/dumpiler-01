@@ -18,6 +18,7 @@
 //!   - Level 0 OEM Markdown with YAML frontmatter, BDD acceptance criteria, and GFM tables ([`translators::markdown`]).
 //!   - OMG IDL 3.x / 4.x specifications for interface and payload definitions ([`translators::idl`]).
 //!   - OpenAPI 3.0 / 3.1 RESTful interface specifications ([`translators::openapi`]).
+//!   - IETF RFC 6020 / RFC 7950 YANG data models ([`translators::yang`]).
 //! - **Scope Filtering & Negative Invariant Enforcement**:
 //!   [`filter_ast_to_target_scope`] strictly prunes phantom entities and projects negative exclusion
 //!   assertions (`assert_exclusion_<entity>`) to ensure strict closed-world semantics.
@@ -49,6 +50,24 @@ use regex::Regex;
 /// - Returns `Ok(PackageDef)` on success, or an explanatory error string on parsing failure.
 pub fn translate_markdown(content: &str, file_name: &str) -> Result<PackageDef, String> {
     translators::markdown::MarkdownTranslator::new().translate(content, file_name)
+}
+
+/// Translates a single YANG model into a canonical SysML v2 `PackageDef`.
+///
+/// /// Realises: [REQ-SYSML-INGEST-CORE/translate_yang]
+///
+/// ### Safety Intent:
+/// Provides the primary convenience entrypoint for ingesting RFC 6020/7950 YANG models,
+/// invoking [`translators::yang::YangTranslator::translate`] in a bounded execution context.
+///
+/// ### Preconditions:
+/// - `content` is a valid UTF-8 string slice containing YANG specification text.
+/// - `file_name` is a non-empty fallback package identifier.
+///
+/// ### Postconditions:
+/// - Returns `Ok(PackageDef)` on success, or an explanatory error string on parsing failure.
+pub fn translate_yang(content: &str, file_name: &str) -> Result<PackageDef, String> {
+    translators::yang::YangTranslator::new().translate(content, file_name)
 }
 
 /// Filters AST nodes to target metamodel scope and projects negative invariants.

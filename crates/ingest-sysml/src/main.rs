@@ -40,6 +40,7 @@ use ingest_sysml::detectors::discover_schema_targets;
 use ingest_sysml::filter_ast_to_target_scope;
 use ingest_sysml::translators::{
     idl::IDLTranslator, markdown::MarkdownTranslator, openapi::OpenAPITranslator,
+    yang::YangTranslator,
 };
 
 /// Ground 0.0 SysML v2 Universal Ingestion Engine Command-Line Arguments.
@@ -53,7 +54,7 @@ pub struct CliArgs {
     #[arg(short, long)]
     pub schema: Option<PathBuf>,
 
-    /// Schema format specification (auto, sysml, idl, openapi, markdown, autosar, protobuf)
+    /// Schema format specification (auto, sysml, idl, openapi, markdown, yang, autosar, protobuf)
     #[arg(short, long, default_value = "auto")]
     pub format: String,
 
@@ -144,6 +145,27 @@ pub fn run_ingestion(args: CliArgs) -> Result<(), String> {
             disc_files.len(),
             args.out.display()
         );
+    } else if fmt == "yang" && (disc_files.len() > 1 || is_dir) {
+        // Multi-file YANG batch translation
+        let def_name = if is_dir {
+            args.schema
+                .as_ref()
+                .and_then(|p| p.file_name())
+                .and_then(|s| s.to_str())
+                .unwrap_or("YangModel")
+        } else {
+            "YangModel"
+        };
+
+        let file_strs: Vec<String> = disc_files.iter().map(|p| p.to_string_lossy().to_string()).collect();
+        let translator = YangTranslator::new();
+        pkg = translator.translate_files(&file_strs, def_name)?;
+
+        println!(
+            "[SysML v2 Ingestion] Successfully ingested {} yang files -> {}",
+            disc_files.len(),
+            args.out.display()
+        );
     } else {
         // Single file translation path
         let target_file = &disc_files[0];
@@ -160,6 +182,7 @@ pub fn run_ingestion(args: CliArgs) -> Result<(), String> {
             "idl" => IDLTranslator::new().translate(&content, basename)?,
             "openapi" => OpenAPITranslator::new().translate(&content, basename)?,
             "markdown" => MarkdownTranslator::new().translate(&content, basename)?,
+            "yang" => YangTranslator::new().translate(&content, basename)?,
             "raw" => {
                 return Err("AST translation is required for raw document formats. SSOT ingestion failed.".to_string());
             }
