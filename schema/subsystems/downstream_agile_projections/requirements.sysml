@@ -44,24 +44,24 @@ package DownstreamAgileProjections {
         verify by AC_04_Missing_Prerequisite_and_Delimiter_Recovery;
         satisfy by AgileProjectionEngine;
     }
-    doc /* UUIDv5: 62138c24-7491-5944-9c0b-c5775216cd2d | Complexity: Class P (O( | Standard: IEEE 29148-2018 §8.4 / RFC 2119 / Downstream Projection Contract | Diagnostics: E0199, E0300, E0303 */
+    doc /* UUIDv5: 62138c24-7491-5944-9c0b-c5775216cd2d | Complexity: Class P (O(|C| + |S|)) | Standard: OMG SysML v2 / INCOSE SE Handbook v5.0 / SAFe 6.0 | Diagnostics: E0199, E0300, E0303 */
     requirement def REQ_0161_Epics_Projection {
         id = "REQ-0161";
-        text = "The projection engine of Subsystem 9 SHALL synthesize Epic specifications by partitioning models along top-level subsystem boundaries and projecting capability allocations.";
+        text = "The projection engine of Subsystem 9 SHALL synthesize Epic specifications by projecting capability allocations across architectural subsystems under an M:N allocation model pursuant to OMG SysML v2 and INCOSE SE Handbook v5.0.";
         attribute uuidv5 : String = "62138c24-7491-5944-9c0b-c5775216cd2d";
-        attribute complexity_class : String = "Class P (O(";
-        attribute governing_standard : String = "IEEE 29148-2018 §8.4 / RFC 2119 / Downstream Projection Contract";
+        attribute complexity_class : String = "Class P (O(|C| + |S|))";
+        attribute governing_standard : String = "OMG SysML v2 / INCOSE SE Handbook v5.0 / SAFe 6.0";
         attribute diagnostic_codes : String = "E0199, E0300, E0303";
         attribute ac_01_structural_decomposition_and_capability_projection : String = "Given: Subsystem Subsystem_0 with Part_0, Port_0 (D = 3), and Capability_0. When: Lowering Epic Epic_Alpha. Then: Emits Epic_Alpha with structural tree, capability table, and UUIDv5 anchors. Diagnostic: Diagnostic sink remains empty.";
-        attribute ac_02_partition_completeness_and_disjointness : String = "Given: Model with 5 subsystems and 50 capabilities (10 per subsystem). When: Partitioning capabilities across Epics. Then: Confirms _{k=0}^4 E_k = M_{capabilities} and i j, E_i E_j = . Diagnostic: Diagnostic sink remains empty.";
-        attribute ac_03_allocation_violation_rejection : String = "Given: Capability Capability_Alpha unallocated or mapped to Subsystem_0 and Subsystem_1. When: Validating allocation partitions. Then: Rejects model, emits E0303, and binds sentinel _{epic}. Diagnostic: E0303 (CapabilityAllocationViolation).";
+        attribute ac_02_multi_subsystem_capability_allocation : String = "Given: Capabilities mapped across one or more subsystems under an M:N allocation model. When: Projecting capability allocations across subsystems into Epics. Then: Confirms capabilities allocate across multiple subsystems (|AllocatedSubsystems(c)| >= 1) without disjoint partition rejection, synthesizing valid cross-cutting Epics. Diagnostic: Diagnostic sink remains empty.";
+        attribute ac_03_dangling_capability_allocation_rejection : String = "Given: Capability Capability_Alpha unallocated (|AllocatedSubsystems(c)| = 0) or allocated to non-existent subsystem S not in S. When: Validating capability allocation integrity. Then: Rejects model, emits E0303, and binds sentinel _{epic}. Diagnostic: E0303 (CapabilityAllocationViolation).";
         attribute ac_04_decomposition_cycle_and_delimiter_recovery : String = "Given: Subsystem Subsystem_0 with cyclic nesting (> D) and undeclared targets, separated by ;. When: Delimiter recovery processes faults. Then: Emits E0300 and E0303, recovers on ;, and halts at C_{max_errors}} with E0199. Diagnostic: E0300, E0303, E0199.";
-        doc /* \begin{aligned} E_k&=\{c\in\mathcal{M}_{\text{capabilities}}\mid\text{Alloc}(c)=S_k\},\quad k\in\{1,\dots,m\} \\ \bigcup_{k=1}^m E_k&=\mathcal{M}_{\text{capabilities}}\land(\forall i\ne j,\,E_i\cap E_j=\emptyset) \\ \text{Allocation}(c)&=\langle\text{name}(c),\text{FQN}(\text{Alloc}(c)),\text{doc}(c)\rangle \\ \text{Hierarchy}(S_k)&=\text{TreeDecomp}(S_k,D)=\langle V_k,E_k,\text{depth}\le D\rangle \\ (\exists c:\text{Alloc}(c)=\bot\lor\text{Alloc}(c)\notin\mathcal{S}&\lor\exists i\ne j:c\in E_i\cap E_j)\implies\text{Diagnostic}(c,\text{E0303})\in\mathcal{D}_{\text{sink}}\land c\gets\bot_{\text{epic}} \\ (\text{HasCycle}(\text{Hierarchy}(S_k))&\lor\text{depth}(S_k)\gt D)\implies\text{Diagnostic}(S_k,\text{E0300})\in\mathcal{D}_{\text{sink}}\land S_k\gets\bot_{\text{epic}} \\ |\mathcal{D}_{\text{sink}}|\ge C_{\text{max\_errors}}&\implies\text{Diagnostic}(\text{E0199})\in\mathcal{D}_{\text{sink}},\quad\Delta_x=\text{UUIDv5}(\text{OID}_{\text{DEAP}},\text{FQN}(x)) \end{aligned} */
+        doc /* \begin{aligned} \mathcal{S}&=\{S_1,\dots,S_m\},\quad\mathcal{M}_{\text{capabilities}}=\{c_1,\dots,c_n\} \\ \mathcal{A}&\subseteq\mathcal{M}_{\text{capabilities}}\times\mathcal{S} \\ \text{AllocatedSubsystems}(c)&=\{S\in\mathcal{S}\mid(c,S)\in\mathcal{A}\} \\ \text{SubsystemCapabilities}(S_k)&=\{c\in\mathcal{M}_{\text{capabilities}}\mid(c,S_k)\in\mathcal{A}\} \\ \text{Epic}(c)&=\langle\text{name}(c),\text{FQN}(c),\text{AllocatedSubsystems}(c)\rangle,\quad\forall c\in\mathcal{M}_{\text{capabilities}} \\ \forall c\in\mathcal{M}_{\text{capabilities}},&\quad|\text{AllocatedSubsystems}(c)|\ge 1 \\ (\text{AllocatedSubsystems}(c)=\emptyset&\lor\exists S\in\text{AllocatedSubsystems}(c):S\notin\mathcal{S})\implies\text{Diagnostic}(c,\text{E0303})\in\mathcal{D}_{\text{sink}}\land c\gets\bot_{\text{epic}} \\ (\text{HasCycle}(\text{Hierarchy}(S_k))&\lor\text{depth}(S_k)\gt D)\implies\text{Diagnostic}(S_k,\text{E0300})\in\mathcal{D}_{\text{sink}}\land S_k\gets\bot_{\text{epic}} \\ |\mathcal{D}_{\text{sink}}|\ge C_{\text{max\_errors}}&\implies\text{Diagnostic}(\text{E0199})\in\mathcal{D}_{\text{sink}},\quad\Delta_x=\text{UUIDv5}(\text{OID}_{\text{DEAP}},\text{FQN}(x)) \end{aligned} */
         constraint def Invariant_REQ_0161_FormalInvariant;
         require Invariant_REQ_0161_FormalInvariant;
         verify by AC_01_Structural_Decomposition_and_Capability_Projection;
-        verify by AC_02_Partition_Completeness_and_Disjointness;
-        verify by AC_03_Allocation_Violation_Rejection;
+        verify by AC_02_Multi_Subsystem_Capability_Allocation;
+        verify by AC_03_Dangling_Capability_Allocation_Rejection;
         verify by AC_04_Decomposition_Cycle_and_Delimiter_Recovery;
         satisfy by AgileProjectionEngine;
     }
