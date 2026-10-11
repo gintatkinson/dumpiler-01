@@ -1,65 +1,81 @@
-# Implementation Plan -- Total Shell Script Eradication, Native Rust Rewiring & Check 32 Zero-Shell Invariant
+# Implementation Plan -- Mermaid Diagram Visual Verification & Screenshot Proof
 
-**Objective**: Permanently eradicate 100% of `.sh` shell scripts across the repository, port all remaining peripheral scripts (hook installer, secret leak scanner) to native Rust subcommands in `crates/verify-baseline`, rewire all call-sites and documentation to compiled binaries, and establish Check 32 (Zero-Shell Invariant) in `verify-baseline` to guarantee zero shell scripts on disk.
-
----
-
-## 1. Problem Statement & Audit Targets
-
-A previous migration ported core verification and issue management logic to Rust (`crates/verify-baseline` and `crates/reconcile-backlog`), but left 9 shell scripts as forwarding wrappers. Shell scripts introduce line ending (`CRLF`), execution flag (`chmod +x`), and environment fragmentation across macOS, Linux, and native Windows.
-
-### Deletion Audit Targets (`git rm`):
-- [x] `skills/spec-orchestrator/scripts/create_issue.sh`
-- [x] `scripts/file_defect.sh`
-- [x] `scripts/verify_commit_messages.sh`
-- [x] `scripts/verify_subagent_output.sh`
-- [x] `scripts/reconcile_backlog.sh`
-- [x] `scripts/setup_git_hooks.sh`
-- [x] `.pipeline/scripts/verify_secret_leak.sh`
-- [x] `scripts/generate_wbs_suite.sh`
-- [x] `scripts/install_pipeline.sh`
+**Objective**: Verify and prove that every single non-requirement issue on GitHub (`gintatkinson/dumpiler-01`) containing Mermaid diagrams renders correctly without syntax or parser errors, by capturing visual screenshot proofs using headless browser testing tools and compiling a definitive verification report.
 
 ---
 
-## 2. Requirements & Architecture
+## 1. Problem Statement & Scope
 
-### R1. Complete Shell Script Eradication (`git rm`)
-- [x] Permanently remove all 9 `.sh` files from the repository via `git rm`.
-- [x] Invariant: `find . -name "*.sh" -not -path "*/target/*" -not -path "*/.git/*"` returns exactly 0 files.
-
-### R2. Port Remaining Peripheral Functions to Native Rust
-- [x] **Native Hook Installer (`crates/verify-baseline setup-hooks`)**:
-  - Added `setup-hooks` subcommand to `crates/verify-baseline` to configure Git hooks natively in pure Rust.
-  - Installed `.git/hooks/commit-msg` executes `./target/release/verify-baseline check-commit-msg` directly with fallback to `target/debug/` or `cargo run`.
-- [x] **Native Secret Leak Scanner (`crates/verify-baseline check-secrets`)**:
-  - Implemented native token and credential pattern scanning in `crates/verify-baseline` as a standalone subcommand and integrated check with zero regex crates.
-
-### R3. Rewire All Call-Sites, Skills, and Documentation
-- [x] Grepped entire repository for `.sh` references (`git grep "\.sh"`).
-- [x] Rewired all references in `skills/`, `rules/`, `.pipeline/`, `README.md`, and `AGENTS.md` directly to compiled release binaries:
-  - `skills/spec-orchestrator/scripts/create_issue.sh` -> `./target/release/reconcile-backlog create-issue`
-  - `scripts/file_defect.sh` -> `./target/release/reconcile-backlog create-issue --label bug`
-  - `scripts/verify_commit_messages.sh` -> `./target/release/verify-baseline check-commit-msg`
-  - `scripts/verify_subagent_output.sh` -> `./target/release/verify-baseline check-output`
-  - `scripts/reconcile_backlog.sh` -> `./target/release/reconcile-backlog`
-- [x] Verified zero dangling references to `.sh` files remain in active documentation or skills.
-
-### R4. Mechanical Gate Enforcement (Check 32: Zero-Shell Invariant)
-- [x] Added **Check 32: Zero Shell Scripts Invariant** to `crates/verify-baseline`.
-- [x] Scans working tree (excluding `target/` and `.git/`) and fails closed with exit code 1 if ANY `.sh` file exists on disk.
-
-### R5. Verification, Issue Closure & Remote Synchronization
-- [x] Clean compilation: `cargo check --workspace` and `cargo build --release --workspace` pass (exit code 0).
-- [x] Baseline conformance: `./target/release/verify-baseline . --no-domain` passes all 32 checks (exit code 0).
-- [x] GitHub Issue #122 updated with empirical evidence and marked `status:fixed-resolved`.
-- [x] Committed with neutral citation: `refactor(toolchain): total elimination of shell scripts in favor of pure cross-platform rust (refs #122)` (`e6c6db1`).
-- [x] Synchronized with remote tracking branch (`git diff origin/main` returns 0 bytes).
+The user requested empirical, visual proof that every non-requirement issue on GitHub renders its Mermaid diagram(s) correctly:
+- **Target Repository**: `gintatkinson/dumpiler-01`
+- **Scope Filter**: All issues in the repository, strictly **excluding** requirements (i.e. excluding `Feature *`, `Epic *`, `User Story *`, `Use Case *`, `REQ-*`).
+- **Target Selection**: Every non-requirement issue containing ```` ```mermaid ```` code blocks.
+- **Verification Standard**: Visual rendering via headless browser testing tools (Google Chrome Headless), capturing full-resolution screenshots of each rendered diagram.
 
 ---
 
-## 3. Teamwork Multi-Agent Verification Status
+## 2. Proposed Deliverables
 
-- **Reviewer**: `teamwork_preview_reviewer_m1_3` -> **APPROVE**
-- **Challenger**: `teamwork_preview_challenger_m1_3` -> **APPROVE** (stress-tested Check 32 fail-closed behavior)
-- **Forensic Auditor**: `teamwork_preview_auditor_m1_3` -> **CLEAN**
-- **Victory Auditor**: `victory_auditor_2` -> **VICTORY CONFIRMED**
+### Deliverable 1: Visual Screenshot Proofs (`docs/reports/mermaid_proofs/`)
+- Directory dedicated to storing rendered PNG screenshots for each verified issue.
+- Naming convention: `issue_<NUMBER>_mermaid_<INDEX>.png` (e.g., `issue_1_mermaid_1.png`, `issue_124_mermaid_1.png`).
+
+### Deliverable 2: Visual Verification Dossier (`docs/reports/MERMAID_RENDERING_VERIFICATION.md`)
+A comprehensive, publication-grade markdown report including:
+1. **Executive Summary Table**:
+   - Issue Number & Title
+   - Diagram Type (`sequenceDiagram`, `classDiagram`, `stateDiagram-v2`, `flowchart`, etc.)
+   - Render Status (`PASS` / `FAIL`)
+   - Relative link to the captured PNG screenshot
+2. **Per-Issue Verification Gallery**:
+   - Issue URL and metadata
+   - Raw Mermaid diagram source code
+   - Embedded screenshot proof (`![Issue #N Mermaid Proof](mermaid_proofs/issue_N_mermaid_1.png)`)
+   - Syntax validation notes (conformance to semicolon, bracket, and brace invariants from `rules/platform-independence.md`)
+
+---
+
+## 3. Subagent Execution Strategy
+
+Per repository rules (`AGENTS.md` § *Strict Coordinator Tool Locking*, *Mandatory Teamwork Preview Gate*, and Teamwork Delegation Protocol):
+- The coordinator does not perform task implementation or authoring directly.
+- Upon human approval of this preview, the coordinator will dispatch the teamwork multi-agent system:
+  * **Role**: `Mermaid Visual Verification Team`
+  * **TypeName**: `teamwork_preview`
+  * **Workspace**: `inherit`
+  * **Prompt Payload**: Verbatim task prompt preserved without modification.
+- **Subagent Execution Steps**:
+  1. **Step 1 (Ingest Governance)**: Subagent reads `.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md`.
+  2. **Step 2 (Issue Discovery & Extraction)**: Query GitHub via `gh issue list --repo gintatkinson/dumpiler-01 --state all --limit 300 --json number,title,body`, filter out requirement titles, extract all non-requirement issues containing Mermaid diagrams, and save the raw diagram blocks.
+  3. **Step 3 (Offline Headless Rendering & Screenshot Harness)**:
+     - Utilize a local HTML harness embedding Mermaid.js and the extracted diagram.
+     - Invoke `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --headless --screenshot=... --window-size=1280,800` to capture visual PNG screenshots.
+     - Inspect the browser console / DOM output to confirm zero SVG rendering errors or syntax error markers.
+  4. **Step 4 (Report Synthesis)**: Author `docs/reports/MERMAID_RENDERING_VERIFICATION.md` and commit screenshots under `docs/reports/mermaid_proofs/`.
+  5. **Step 5 (Quality Gate Verification)**:
+     - Run `./target/release/verify-baseline . --no-domain` to ensure 32/32 repository quality gates pass.
+     - Verify zero Unicode em dashes across all created files.
+  6. **Step 6 (Commit & Remote Sync)**:
+     - Commit changes with neutral citation: `docs(reports): add visual mermaid screenshot verification dossier (refs #124, refs #125)`.
+     - Push to `origin/main` and verify `git diff origin/main` is empty.
+
+---
+
+## 4. Acceptance Criteria
+
+- [ ] All non-requirement issues on `gintatkinson/dumpiler-01` are identified and cataloged.
+- [ ] Every Mermaid diagram from every non-requirement issue is extracted and rendered.
+- [ ] PNG screenshot captured for each diagram and saved to `docs/reports/mermaid_proofs/`.
+- [ ] Zero rendering or syntax failures across all diagrams.
+- [ ] `docs/reports/MERMAID_RENDERING_VERIFICATION.md` generated with full table, embedded screenshots, and issue links.
+- [ ] `./target/release/verify-baseline . --no-domain` passes all 32 checks with 0 findings.
+- [ ] Zero Unicode em dashes in newly created files.
+- [ ] Committed with neutral issue citations and pushed cleanly to `origin/main`.
+
+---
+
+## 5. Human Approval Gate
+
+Per `AGENTS.md` § Strict Planning Gate:
+The coordinator is halted and awaiting your explicit approval.
+To authorize execution of this plan and dispatch the verification subagent, reply with **PROCEED**.

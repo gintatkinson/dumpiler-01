@@ -24,6 +24,7 @@ This platform explicitly declares **MATLAB / Simulink / Stateflow / Embedded Cod
 
 - `AGENTS.md`: Agent behavior rules, role boundaries, and subagent dispatch protocols.
 - `CLAUDE.md`: Claude Code guidelines and verification gates.
+- `docs/USER_MANUAL.md`: Authoritative operations and user manual covering quick start, the zero-shell cross-platform policy, complete CLI tooling reference, Git conventions, and troubleshooting.
 - `.pipeline/`: Constitution (`constitution.md`), active governance rules bundle (`ACTIVE_RULES_BUNDLE.md`), domain specifications, and execution profiles (`profiles/<platform>.md`).
 - `rules/` & `skills/`: Platform engineering rules and agent workflow skills.
 - `schema/`: Contract definitions and SysML v2 schemas.
@@ -41,7 +42,7 @@ The repository embeds a compiled, high-performance native Rust toolchain (`Cargo
 | `crates/compile-sysml` | `./target/release/compile-sysml` | **SysML v2 / KerML Compiler & STPA Transpiler**: Deterministic SysML v2 compilation, semantic validation, bidirectional AST synchronization (`--reverse-sync`, `--forward-sync`), and formal STPA / FMECA constraint transpilation. |
 | `crates/assemble-conops` | `./target/release/assemble-conops` | **ConOps & Mission Intent Assembly Engine**: High-throughput deterministic assembly of modular ConOps and Mission Intent units into canonical master specifications with parameter binding and TOC generation. |
 | `crates/reconcile-backlog` | `./target/release/reconcile-backlog` | **Backlog Reconciliation Engine**: High-performance bidirectional synchronization of local Markdown specifications, frontmatter metadata, and issue tracker checklists. |
-| `crates/verify-baseline` | `./target/release/verify-baseline` | **Checks 10-31 Quality Gate Verifier**: Ultra-fast baseline conformance, KaTeX math parsing, Mermaid diagram validation, and semantic diagram-to-AST parity auditor. |
+| `crates/verify-baseline` | `./target/release/verify-baseline` | **Checks 10-32 Quality Gate Verifier**: Ultra-fast baseline conformance, KaTeX math parsing, Mermaid diagram validation, and semantic diagram-to-AST parity auditor. |
 | `crates/deap-core` | `libdeap_core.rlib` | **Shared Core Foundation**: Shared AST representations, Markdown & KaTeX lexer/scanner, diagnostic reporting, defect dossier synthesis, and repository rule engines. |
 
 ### Toolchain Build & Verification Commands
@@ -500,7 +501,7 @@ Execute backlog reconciliation and model parity verification across your target 
 # Offline backlog checklist and status synchronization
 ./target/release/reconcile-backlog --offline
 
-# Baseline conformance verification (Checks 10-31 quality gate verifier)
+# Baseline conformance verification (Checks 10-32 quality gate verifier)
 ./target/release/verify-baseline . --no-domain
 
 # 23-Gate Model Coverage & UML Compliance Lock
