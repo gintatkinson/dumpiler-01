@@ -23,7 +23,7 @@ Immediately following installation and on EVERY new session startup, before acce
 1. **Read Governance Constitution**: Execute `view_file` on `.pipeline/constitution.md` to ingest the platform-independent functional governance layer and zero-mocking persistence mandates.
 2. **Load Project Skills**: Execute `view_file` on `skills/feature-driven-implementation/SKILL.md` (and active skills under `skills/`) to initialize feature-driven implementation protocols and review gates.
 3. **Load Governance Rules**: Execute `view_file` on `.pipeline/ACTIVE_RULES_BUNDLE.md` to ingest the complete, consolidated suite of active governance rules in a single read.
-4. **Load Platform Profile**: Read the target platform execution profile (e.g., `.pipeline/profiles/flutter.md`, `.pipeline/profiles/react.md`, `.pipeline/profiles/ros2_cpp.md`, or `.pipeline/profiles/px4_module.md`) to establish platform-specific constraints.
+4. **Verify Compiler Toolchain Baseline**: Verify that the compiler workspace builds cleanly by executing cargo check --workspace. (In downstream customer application workspaces executing feature-driven implementation, load the project's designated platform profile).
 5. **Bootstrap Tracker Labels & Verify Baseline**: Verify that repository issue tracker labels and baseline conformance pass by running `./target/release/verify-baseline . --no-domain`.
 
 ## Strict Planning Gate (No Execution Without Approved Plan)
@@ -100,7 +100,6 @@ Immediately following installation and on EVERY new session startup, before acce
 
 ## Mandatory Directory Constraints (No Root Writes)
 - Creating or modifying source code or project configuration files at the repository root is strictly forbidden (except `implementation_plan.md`, `.gitignore`, or approved configurations).
-- Flutter application code resides under `app_flutter/`; React application code resides under `web_react/`.
 
 ## Strict Context Isolation & Skill Fidelity (No Cross-Talk)
 - **No Cross-Talk**: Referencing logs, transcripts, artifacts, or files from other projects or conversation IDs under the App Data Directory is strictly forbidden.
