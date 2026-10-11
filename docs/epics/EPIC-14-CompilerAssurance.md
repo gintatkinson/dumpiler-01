@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 12 Compiler Performance CLI Assurance
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #106 - [Use Case 12: UC 12 Compiler Performance Assurance Workflow](../use-cases/UC-12-UC_12_Compiler_Performance_Assurance_Workflow.md)
+- [ ] #106 - [Use Case 12: Compiler Performance Assurance Workflow](../use-cases/UC-12-Compiler_Performance_Assurance_Workflow.md)
 
 #### Associated User Stories
 - [ ] #100 - [User Story 12: Verify Compiler Assurance Action](../user-stories/US-12-VerifyCompilerAssuranceAction.md)

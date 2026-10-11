@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 1 System Vision
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #95 - [Use Case 01: UC 01 System Vision and Foundational Invariants](../use-cases/UC-01-UC_01_System_Vision_and_Foundational_Invariants.md)
+- [ ] #95 - [Use Case 01: System Vision and Foundational Invariants](../use-cases/UC-01-System_Vision_and_Foundational_Invariants.md)
 
 #### Associated User Stories
 - [ ] #89 - [User Story 01: Bootstrap System Vision Action](../user-stories/US-01-BootstrapSystemVisionAction.md)

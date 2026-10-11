@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 11 Standardized Diagnostic Error Catalog
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #105 - [Use Case 11: UC 11 Diagnostic Catalog Triage Workflow](../use-cases/UC-11-UC_11_Diagnostic_Catalog_Triage_Workflow.md)
+- [ ] #105 - [Use Case 11: Diagnostic Catalog Triage Workflow](../use-cases/UC-11-Diagnostic_Catalog_Triage_Workflow.md)
 
 #### Associated User Stories
 - [ ] #99 - [User Story 11: Triage Diagnostic Action](../user-stories/US-11-TriageDiagnosticAction.md)

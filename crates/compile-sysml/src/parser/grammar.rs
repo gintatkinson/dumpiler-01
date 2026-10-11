@@ -1097,12 +1097,68 @@ impl<'a> SysmlParser<'a> {
         let mut actors = Vec::new();
         let mut objective = None;
         let mut steps = Vec::new();
+        let mut includes = Vec::new();
+        let mut extends = Vec::new();
+        let mut preconditions = Vec::new();
+        let mut postconditions = Vec::new();
+        let mut uc_doc = doc;
 
         if self.check(&TokenKind::OpenBrace) {
             self.advance();
             while !self.check(&TokenKind::CloseBrace) && !self.is_at_end() {
                 self.skip_trivia();
-                if self.check(&TokenKind::Subject) {
+                if self.check(&TokenKind::Doc) {
+                    self.advance();
+                    self.skip_trivia();
+                    if self.check(&TokenKind::Eq) || self.check(&TokenKind::Colon) {
+                        self.advance();
+                        self.skip_trivia();
+                    }
+                    let inner = if let Some(d) = self.take_doc_comment() {
+                        Some(d)
+                    } else if let TokenKind::StringLit(s) = self.peek_kind().clone() {
+                        self.advance();
+                        Some(s)
+                    } else if let TokenKind::Ident(s) = self.peek_kind().clone() {
+                        self.advance();
+                        Some(s)
+                    } else {
+                        None
+                    };
+                    if let Some(inner_text) = inner {
+                        if !inner_text.trim().is_empty() {
+                            match &mut uc_doc {
+                                Some(existing) => {
+                                    if !existing.trim().is_empty() {
+                                        existing.push_str("\n\n");
+                                    }
+                                    existing.push_str(&inner_text);
+                                }
+                                None => {
+                                    uc_doc = Some(inner_text);
+                                }
+                            }
+                        }
+                    }
+                    self.skip_trivia();
+                    continue;
+                } else if let Some(inner_text) = self.take_doc_comment() {
+                    if !inner_text.trim().is_empty() {
+                        match &mut uc_doc {
+                            Some(existing) => {
+                                if !existing.trim().is_empty() {
+                                    existing.push_str("\n\n");
+                                }
+                                existing.push_str(&inner_text);
+                            }
+                            None => {
+                                uc_doc = Some(inner_text);
+                            }
+                        }
+                    }
+                    self.skip_trivia();
+                    continue;
+                } else if self.check(&TokenKind::Subject) {
                     self.advance();
                     subject = Some(self.read_until_semi());
                 } else if self.check(&TokenKind::Actor) {
@@ -1118,6 +1174,18 @@ impl<'a> SysmlParser<'a> {
                 } else if self.check(&TokenKind::Step) {
                     self.advance();
                     steps.push(self.read_until_semi());
+                } else if self.check(&TokenKind::Include) {
+                    self.advance();
+                    includes.push(self.read_until_semi());
+                } else if self.check(&TokenKind::Extend) {
+                    self.advance();
+                    extends.push(self.read_until_semi());
+                } else if self.check(&TokenKind::Precondition) {
+                    self.advance();
+                    preconditions.push(self.read_until_semi());
+                } else if self.check(&TokenKind::Postcondition) {
+                    self.advance();
+                    postconditions.push(self.read_until_semi());
                 } else {
                     self.skip_until_semi_or_brace();
                 }
@@ -1129,16 +1197,16 @@ impl<'a> SysmlParser<'a> {
 
         Ok(UseCaseDef {
             name,
-            doc,
+            doc: uc_doc,
             subject,
             actor,
             actors,
             objective,
-            includes: Vec::new(),
-            extends: Vec::new(),
+            includes,
+            extends,
             steps,
-            preconditions: Vec::new(),
-            postconditions: Vec::new(),
+            preconditions,
+            postconditions,
         })
     }
 
@@ -2302,6 +2370,98 @@ package DEAP_Compiler_System {
         assert_eq!(root_from_dir.packages.len(), 3);
 
         let _ = fs::remove_dir_all(&temp_dir);
+    }
+
+    #[test]
+    fn test_parse_use_case_def_preserves_inner_doc_comments() {
+        let source = r#"
+package TestPackage {
+    use case def UC_01_Vision {
+        doc /*
+        Actors: HumanEngineer, CIContinuousIntegrationRunner
+        Subject: SystemVisionEngine
+        Preconditions: Compiler runtime environment is initialized with valid configuration flags.
+        Trigger: Compilation pipeline startup command dispatched by operator or CI runner.
+        Main Success Scenario:
+        1. Operator dispatches compilation command with workspace schema root.
+        2. SystemVisionEngine initializes compiler namespace UUID constant NS_DEAP.
+        3. InvariantBootstrapEngine asserts zero hardcoded domain concept rules across runtime context.
+        4. NamespaceUuidGenerator pre-computes topological UUIDv5 namespace roots.
+        5. DomainVocabularyValidator inspects grammar vocabulary tokens against prohibited domain ontologies.
+        6. SystemVisionEngine emits immutable CompilerRulePort descriptor to downstream ingestion engines.
+        Alternate and Exception Flows:
+        5a. Prohibited domain term detected: SystemVisionEngine halts pipeline and emits diagnostic E0100.
+        5b. Namespace UUID collision: SystemVisionEngine regenerates topological anchor with depth offset and emits E0101.
+        5c. Malformed configuration flags: Compiler logs invalid argument diagnostics and falls back to safe defaults.
+        5d. File permission error on workspace: Execution halts safely emitting file access diagnostic.
+        5e. Invariant verification timeout: Watchdog timer triggers and logs diagnostic E0199 before graceful termination.
+        5f. Non-deterministic execution detected: Checksum validation fails and emits reproducibility diagnostic E0102.
+        5g. Memory allocation failure during bootstrap: Engine triggers emergency page compaction.
+        5h. Missing root namespace configuration: Fallback to fixed RFC 4122 compiler constant.
+        5i. Incompatible schema revision requested: Compiler warns and falls back to backwards-compatible parser mode.
+        5j. Circular dependency detected in rule definitions: Rule topological sorter breaks cycle and reports E0103.
+        Postconditions: Foundational compiler invariants and UUIDv5 namespaces are established deterministically.
+        */
+    }
+}
+"#;
+        let pkg = SysmlParser::parse_source(source, "TestModel").unwrap();
+        assert_eq!(pkg.use_case_defs.len(), 1);
+        let uc = &pkg.use_case_defs[0];
+        assert_eq!(uc.name, "UC_01_Vision");
+        assert!(uc.doc.is_some());
+        let doc = uc.doc.as_ref().unwrap();
+        assert!(doc.contains("Actors: HumanEngineer, CIContinuousIntegrationRunner"));
+        assert!(doc.contains("Subject: SystemVisionEngine"));
+        assert!(doc.contains("Preconditions: Compiler runtime environment is initialized"));
+        assert!(doc.contains("Trigger: Compilation pipeline startup command"));
+        assert!(doc.contains("Main Success Scenario:"));
+        assert!(doc.contains("1. Operator dispatches compilation command"));
+        assert!(doc.contains("Alternate and Exception Flows:"));
+        assert!(doc.contains("5a. Prohibited domain term detected"));
+        assert!(doc.contains("5j. Circular dependency detected"));
+        assert!(doc.contains("Postconditions: Foundational compiler invariants"));
+    }
+
+    #[test]
+    fn test_parse_use_case_def_outer_and_inner_doc_concatenation() {
+        let source = r#"
+doc /* Package doc */
+package TestPackage {
+    doc /* Outer summary for UC_05 */
+    use case def UC_05_Physical_Metrology {
+        doc /*
+        Actors: CIContinuousIntegrationRunner, HumanEngineer
+        Subject: MetrologyFlowEngine
+        Preconditions: AST stream is available.
+        Trigger: Metrology flow verification command.
+        Main Success Scenario:
+        1. GrammarLoweringEngine passes AST stream.
+        Alternate and Exception Flows:
+        5a. SI unit dimension mismatch.
+        Postconditions: Units verified.
+        */
+        subject MetrologyFlowEngine;
+        actor CIContinuousIntegrationRunner;
+        step GrammarLoweringEngine;
+    }
+}
+"#;
+        let pkg = SysmlParser::parse_source(source, "TestModel").unwrap();
+        assert_eq!(pkg.use_case_defs.len(), 1);
+        let uc = &pkg.use_case_defs[0];
+        assert_eq!(uc.name, "UC_05_Physical_Metrology");
+        assert_eq!(uc.subject.as_deref(), Some("MetrologyFlowEngine"));
+        assert_eq!(uc.actors.len(), 1);
+        assert_eq!(uc.actors[0], "CIContinuousIntegrationRunner");
+        assert_eq!(uc.steps.len(), 1);
+        assert_eq!(uc.steps[0], "GrammarLoweringEngine");
+        assert!(uc.doc.is_some());
+        let doc = uc.doc.as_ref().unwrap();
+        assert!(doc.contains("Outer summary for UC_05"));
+        assert!(doc.contains("Actors: CIContinuousIntegrationRunner, HumanEngineer"));
+        assert!(doc.contains("Main Success Scenario:"));
+        assert!(doc.contains("5a. SI unit dimension mismatch."));
     }
 }
 

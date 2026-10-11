@@ -334,7 +334,31 @@ package SysML_Model {
             transition RegressionToAggregation first RegressionExecution then MetricsAggregation;
             transition AggregationToEmission first MetricsAggregation then AssuranceEmission;
         }
-        doc /* Comprehensive use case for compiler performance profiling and regression assurance */
+        doc /* Comprehensive use case for compiler performance profiling and regression assurance
+               
+               Actors: HumanEngineer, ContinuousIntegrationOrchestrator
+                       Subject: CompilerAssuranceEngine
+                       Preconditions: Compiler CLI binary is built and test suites/schemas are present in workspace.
+                       Trigger: Headless CLI command invocation or automated CI regression test trigger.
+                       Main Success Scenario:
+                       1. HumanEngineer or CI runner invokes compiler CLI entry point via cli_in port.
+                       2. CliCommandDispatcher parses CLI arguments and flags into structured execution request.
+                       3. PerformanceProfiler starts execution timers and tracks memory heap allocation rates.
+                       4. RegressionInoculationRunner executes compilation passes across authoritative schemas.
+                       5. PerformanceProfiler aggregates throughput, CPU time, and peak memory figures.
+                       6. CompilerAssuranceEngine emits formatted performance report and verification status via metrics_out.
+                       Alternate and Exception Flows:
+                       5a. Invalid CLI flag specified: Dispatcher prints usage help and terminates with exit code 2.
+                       5b. Schema path does not exist: Dispatcher emits E0300 invalid path diagnostic.
+                       5c. Performance threshold violated: Profiler records latency regression warning in report.
+                       5d. Non-zero exit code in compilation pass: Engine halts regression sequence and returns failure status.
+                       5e. Environment variable overrides configured: Dispatcher incorporates flags into configuration profile.
+                       5f. Unicode em dash in CLI parameter: Dispatcher sanitizes string to ASCII double hyphen.
+                       5g. Memory budget exceeded: Profiler issues memory pressure alert and triggers arena compaction.
+                       5h. JSON output format requested: Dispatcher serializes metrics as structured JSON telemetry payload.
+                       5i. Dry-run mode specified: Dispatcher validates command parameters without invoking full build.
+                       5j. Benchmark baseline missing: Engine establishes current run as initial performance reference point.
+                       Postconditions: Headless CLI command terminates cleanly and assurance metrics are verified. */
         use case def UC_12_Compiler_Performance_Assurance_Workflow {
         }
         doc /* Primary execution engine for compiler performance profiling, CLI orchestration, and regression assurance */
@@ -1111,7 +1135,31 @@ package SysML_Model {
             transition CompactingToActive first Compacting then ActiveSlotMapping;
             transition ActiveToDealloc first ActiveSlotMapping then Deallocated;
         }
-        doc /* Comprehensive use case for node arena allocation and memory management */
+        doc /* Comprehensive use case for node arena allocation and memory management
+               
+               Actors: CIContinuousIntegrationRunner, HumanEngineer
+                       Subject: NodeArenaASTGraphEngine
+                       Preconditions: Token stream is available from UniversalIngestionEngine.
+                       Trigger: Ingestion stream arrives at token_in port.
+                       Main Success Scenario:
+                       1. UniversalIngestionEngine sends token stream to NodeArenaASTGraphEngine.
+                       2. ArenaAllocator calculates required node slot count and memory page boundaries.
+                       3. ArenaAllocator allocates uniform 64-bit aligned node slots in contiguous chunks.
+                       4. AstInterner deduplicates repeated identifier strings and literal expressions.
+                       5. NodeTableIndex records scalar handles and assigns monotonic NodeIndex values.
+                       6. NodeArenaASTGraphEngine emits indexed ASTGraphPort to GrammarLoweringEngine.
+                       Alternate and Exception Flows:
+                       5a. Memory chunk exhaustion: ArenaAllocator allocates new contiguous page chunk with exponential growth.
+                       5b. Slot alignment fault: ArenaAllocator re-aligns slot offset to 8-byte boundary and logs diagnostic.
+                       5c. String interner hash table collision: AstInterner resolves collision via linear probing.
+                       5d. NodeIndex scalar handle overflow: Arena expands integer width and logs capacity warning.
+                       5e. Fragmented page detected: Compacting state executes in-place slot defragmentation.
+                       5f. Invalid token sequence: ArenaAllocator drops partial node and recovers to previous checkpoint.
+                       5g. OOM condition encountered: Engine triggers emergency garbage compaction before reporting E0102.
+                       5h. Circular parent-child containment handle: Graph indexer rejects cyclic handle and emits E0103.
+                       5i. Zero-sized AST token payload: Engine constructs minimal root package placeholder node.
+                       5j. Concurrent read-write contention: Lock-free arena page indexer resolves contention deterministically.
+                       Postconditions: All AST nodes and containment hierarchies are stored in contiguous memory with O(1) slot access. */
         use case def UC_03_Node_Arena_Memory_Management_Workflow {
         }
         doc /* Primary execution engine for contiguous memory arena allocation and AST graph indexing */
@@ -1265,7 +1313,31 @@ package SysML_Model {
             transition MappingToFormatting first LocationMapping then ReportFormatting;
             transition FormattingToEmission first ReportFormatting then DiagnosticEmission;
         }
-        doc /* Comprehensive use case for diagnostic catalog triage and reporting */
+        doc /* Comprehensive use case for diagnostic catalog triage and reporting
+               
+               Actors: HumanEngineer, CompilerAssuranceEngine
+                       Subject: DiagnosticErrorCatalogEngine
+                       Preconditions: Compiler pipeline encounters warning, error, or fatal validation condition.
+                       Trigger: Diagnostic signal emitted on diag_in port during compilation run.
+                       Main Success Scenario:
+                       1. DiagnosticErrorCatalogEngine ingests raw diagnostic event via diag_in port.
+                       2. ErrorCodeRegistry resolves canonical error code (E-code), severity level, and guidance.
+                       3. SourceLocationMapper resolves byte offsets to exact 1-indexed line and column numbers.
+                       4. DiagnosticReportFormatter builds structured diagnostic record with code span highlights.
+                       5. Formatter emits rendered diagnostic to terminal stderr or JSON/SARIF diagnostic stream.
+                       6. CompilerAssuranceEngine records error tally in performance and compliance metrics.
+                       Alternate and Exception Flows:
+                       5a. Unknown error code encountered: Registry assigns fallback E0999 generic diagnostic code.
+                       5b. Source file location out of range: Mapper marks location as synthetic end-of-file.
+                       5c. Maximum error limit reached: Engine suppresses further errors and emits fatal E0199 limit notice.
+                       5d. Non-UTF8 source character in span: Mapper renders sanitization placeholder for byte offset.
+                       5e. Terminal lacks color support: Formatter strips ANSI escape sequences automatically.
+                       5f. Em dash detected in diagnostic message: Formatter replaces with ASCII double hyphen.
+                       5g. Cascading error suppression active: Engine suppresses follow-on errors on same AST node.
+                       5h. SARIF output mode requested: Formatter emits OASIS SARIF v2.1.0 compliant JSON schema payload.
+                       5i. Warning treated as error (-Werror): Registry elevates severity from Warning to Error.
+                       5j. Quiet mode active: Formatter filters non-fatal warnings and outputs only fatal errors.
+                       Postconditions: All compiler diagnostic records are classified, formatted, and delivered deterministically. */
         use case def UC_11_Diagnostic_Catalog_Triage_Workflow {
         }
         doc /* Primary execution engine for standardized compiler diagnostic error cataloging and triage */
@@ -1651,7 +1723,31 @@ package SysML_Model {
             transition FeatureToStory first FeatureProjection then StoryProjection;
             transition StoryToReconcile first StoryProjection then ReconciliationComplete;
         }
-        doc /* Comprehensive use case for agile specification projection and backlog synchronization */
+        doc /* Comprehensive use case for agile specification projection and backlog synchronization
+               
+               Actors: HumanEngineer, CIContinuousIntegrationRunner
+                       Subject: AgileProjectionEngine
+                       Preconditions: Authoritative SysML model and ICD interconnects are compiled and verified.
+                       Trigger: Forward specification synchronization command dispatched by compiler CLI.
+                       Main Success Scenario:
+                       1. AgileProjectionEngine ingests compiled AST and ICD contracts.
+                       2. MarkdownSpecProjector synthesizes Epics from top-level PackageDef nodes.
+                       3. MarkdownSpecProjector synthesizes Features from structural PartDef nodes with dynamic JSON Schemas.
+                       4. MarkdownSpecProjector synthesizes User Stories from InteractionDef and ActionDef nodes.
+                       5. MarkdownSpecProjector synthesizes Use Cases with AST-anchored Realization Matrices.
+                       6. FrontmatterIntegrityEncoder binds metadata and emits specification files to docs/ directories.
+                       Alternate and Exception Flows:
+                       5a. Output directory not writable: Engine reports filesystem permission error and halts safely.
+                       5b. Frontmatter metadata schema validation failure: Encoder repairs missing attributes with safe defaults.
+                       5c. Broken cross-reference link detected: Projector verifies target file exists before writing link.
+                       5d. Unicode em dash detected in text stream: Projector sanitizes character to ASCII double hyphen.
+                       5e. Mermaid diagram syntax error in generated block: Formatter validates fence syntax and escapes labels.
+                       5f. Orphan feature detected without parent epic: Projector assigns feature to system root epic.
+                       5g. Missing acceptance criteria in requirement: Projector extracts BDD scenario from requirement docstring.
+                       5h. Duplicate spec title detected: Metadata validator appends unique subsystem qualifier to title.
+                       5i. Dry-run mode enabled: Projector logs simulated file writes without altering disk.
+                       5j. Specification cardinality bounds exceeded: Projector emits advisory note for epic feature count.
+                       Postconditions: Full Agile specification hierarchy is projected to docs/ conforming to all quality gates. */
         use case def UC_09_Agile_Specification_Projection_Workflow {
         }
         doc /* Primary execution engine for projecting SysML AST into Agile specification markdown hierarchies */
@@ -2056,7 +2152,31 @@ package SysML_Model {
             transition ForwardToBackward first ForwardReachabilitySweep then BackwardReachabilitySweep;
             transition BackwardToVerified first BackwardReachabilitySweep then TraceabilityVerified;
         }
-        doc /* Comprehensive use case for safety assurance and formal traceability verification */
+        doc /* Comprehensive use case for safety assurance and formal traceability verification
+               
+               Actors: CIContinuousIntegrationRunner, HumanEngineer
+                       Subject: SafetyAssuranceEngine
+                       Preconditions: Metrology flows and state models are verified.
+                       Trigger: Safety verification pass initiated by compiler pipeline.
+                       Main Success Scenario:
+                       1. SafetyAssuranceEngine ingests metrology and state solver outputs.
+                       2. BipartiteGraphBuilder builds the 7-tier traceability directed acyclic graph.
+                       3. DisjointTierValidator verifies that edges connect strictly adjacent or permitted tiers.
+                       4. BidirectionalSweepEngine performs forward reachability sweeps from requirements to code.
+                       5. BidirectionalSweepEngine performs backward reachability sweeps from code to hazards.
+                       6. SafetyAssuranceEngine verifies 100 percent closure of STPA, FMECA, and safety invariants.
+                       Alternate and Exception Flows:
+                       5a. Traceability gap detected: Bipartite graph builder flags unlinked requirement and emits E0400.
+                       5b. Cross-tier violation detected: Tier validator rejects illegal edge crossing multiple tiers.
+                       5c. Unmitigated hazard identified: Safety engine emits critical hazard warning and binds failsafe constraint.
+                       5d. Cyclic traceability edge detected: Graph builder halts traversal, breaks cycle, and reports E0402.
+                       5e. Orphan design element found: Backward sweep detects element without upstream parent requirement.
+                       5f. Missing FMECA failure mode: Component failure mode matrix reports unanalyzed failure mode.
+                       5g. UCA guide word omitted: Generator synthesizes default guide word and logs coverage advisory.
+                       5h. Safety constraint violation in code mapping: Engine reports verification mismatch.
+                       5i. RPN calculation overflow: Criticality calculator saturates at maximum RPN 1000.
+                       5j. Incomplete regulatory objective coverage: Audit engine lists missing regulatory clause citations.
+                       Postconditions: 7-tier traceability DAG is complete, bipartite, and closed with zero dangling elements. */
         use case def UC_07_Safety_Assurance_and_Traceability_Workflow {
         }
         doc /* Primary execution engine for Formal Safety, Traceability & Regulatory Verification */
@@ -2402,7 +2522,31 @@ package SysML_Model {
             transition ValidationToSerialization first PortValidation then ContractSerialization;
             transition SerializationToComplete first ContractSerialization then Complete;
         }
-        doc /* Comprehensive use case for Level 1C ICD interconnect contracts */
+        doc /* Comprehensive use case for Level 1C ICD interconnect contracts
+               
+               Actors: CIContinuousIntegrationRunner, HumanEngineer
+                       Subject: ICDEngine
+                       Preconditions: Formal safety and architectural model elements are verified.
+                       Trigger: ICD generation command dispatched by compilation pipeline.
+                       Main Success Scenario:
+                       1. SafetyAssuranceEngine passes verified architectural model to ICDEngine.
+                       2. InterfaceMatrixBuilder constructs the N x N subsystem interface connectivity matrix.
+                       3. InterfaceMatrixBuilder sorts subsystems lexicographically and assigns deterministic coordinates.
+                       4. PortCompatibilityChecker verifies electrical, timing, and protocol compatibility for each channel.
+                       5. ContractSerializer formats formal interface agreements and signal dictionaries.
+                       6. ICDEngine outputs ICDInterconnectPort payload to downstream agile projection engine.
+                       Alternate and Exception Flows:
+                       5a. Interface matrix dimension mismatch: Matrix builder detects missing subsystem index and reports error.
+                       5b. Incompatible protocol pairing on interconnect: Port checker reports protocol mismatch diagnostic.
+                       5c. Unrouted signal detected in dictionary: Serializer flags dangling signal without source or sink.
+                       5d. Duplicate channel coordinate assignment: Indexer re-sorts subsystem list and eliminates collision.
+                       5e. Bandwidth limit exceeded on channel: Port checker emits warning for bus saturation.
+                       5f. Missing electrical interface attributes: Contract serializer binds standard TTL/CMOS defaults.
+                       5g. Asymmetric port definitions without conjugate flag: Checker emits port directionality warning.
+                       5h. Latency envelope violated on contract: Checker flags propagation delay exceeding threshold.
+                       5i. ICD serialization formatting error: Serializer re-encodes markdown table with canonical fences.
+                       5j. Circular contract dependency loop: ICDEngine analyzes loop and emits contract sequencing note.
+                       Postconditions: Level 1C ICD matrices and signal dictionaries are generated with 100 percent port contract parity. */
         use case def UC_08_ICD_Interconnect_Contract_Generation_Workflow {
         }
         doc /* Primary execution engine for Level 1C Interface Control Document (ICD) contracts */
@@ -2762,7 +2906,31 @@ package SysML_Model {
             transition RenderingToFormatting first TemplateRendering then CodeFormatting;
             transition FormattingToEmission first CodeFormatting then ArtifactEmission;
         }
-        doc /* Comprehensive use case for multi-target code generation and simulation runtime bindings */
+        doc /* Comprehensive use case for multi-target code generation and simulation runtime bindings
+               
+               Actors: HumanEngineer, BuildAutomationBot
+                       Subject: CodeGenEngine
+                       Preconditions: Agile specifications and structural classifiers are loaded and verified.
+                       Trigger: Code generation command dispatched by user or automated build pipeline.
+                       Main Success Scenario:
+                       1. CodeGenEngine receives specifications from AgileProjectionEngine via specs_in port.
+                       2. TargetAstTranspiler maps abstract SysML classifiers into language-specific AST structures.
+                       3. TemplateRenderingEngine renders deterministic source code using target language templates.
+                       4. CodeArtifactFormatter runs language-specific formatters and linter checks.
+                       5. CodeGenEngine emits formatted code artifacts to designated workspace target directories.
+                       6. CompilerAssuranceEngine verifies artifact compilation and records performance metrics.
+                       Alternate and Exception Flows:
+                       5a. Target language template missing: Engine reports missing template diagnostic and aborts target.
+                       5b. Target syntax violation in rendered code: Transpiler flags invalid token and emits diagnostic.
+                       5c. Destination file path read-only: Engine logs permission error and halts execution.
+                       5d. Unsupported target architecture requested: Engine falls back to reference C++ or Rust implementation.
+                       5e. Transpilation timeout: Engine aborts code generation unit and logs timeout diagnostic.
+                       5f. Unicode em dash detected in target comments: Formatter replaces with ASCII double hyphen.
+                       5g. External linter tool unavailable: Formatter proceeds with built-in AST canonical printer.
+                       5h. Circular dependency in target modules: Transpiler topologically sorts dependencies or emits error.
+                       5i. Dry-run mode specified: Formatter emits artifact diff to stdout without touching disk.
+                       5j. Generation cache hit: Engine skips re-rendering unchanged modules to optimize throughput.
+                       Postconditions: Validated multi-target code artifacts are written to disk cleanly. */
         use case def UC_10_Multi_Target_CodeGen_Workflow {
         }
         doc /* Primary execution engine for multi-target code generation and simulation runtime bindings */
@@ -3143,7 +3311,31 @@ package SysML_Model {
             transition BalanceToRouting first KirchhoffBalanceCheck then FlowRouting;
             transition RoutingToConverged first FlowRouting then Converged;
         }
-        doc /* Comprehensive use case for 7D physical metrology and flow conservation verification */
+        doc /* Comprehensive use case for 7D physical metrology and flow conservation verification
+               
+               Actors: CIContinuousIntegrationRunner, HumanEngineer
+                       Subject: MetrologyFlowEngine
+                       Preconditions: AST stream containing port definitions and flow definitions is available.
+                       Trigger: Metrology flow verification command dispatched by compiler pipeline.
+                       Main Success Scenario:
+                       1. GrammarLoweringEngine passes AST stream to MetrologyFlowEngine.
+                       2. DimensionalUnitChecker verifies SI unit coherence across feature types (length, mass, time, current, temp, amount, luminous).
+                       3. FlowConservationSolver inspects connection networks and verifies conservation of mass, energy, and data rates.
+                       4. ConservationNetworkRouter checks that total inward flow equals total outward flow across intermediate nodes.
+                       5. MetrologyFlowEngine calculates margin bounds and validates nominal operational tolerances.
+                       6. MetrologyFlowEngine outputs verified MetrologyFlowPort payload to downstream safety engine.
+                       Alternate and Exception Flows:
+                       5a. Dimensional incompatibility detected: Unit checker emits diagnostic E0201 for dimension mismatch.
+                       5b. Flow conservation violation: Kirchhoff balance solver reports residual flow leak diagnostic.
+                       5c. Unrecognized engineering unit: Metrology engine emits unrecognized unit warning and defaults to scalar.
+                       5d. Negative flow rate specified on unidirectional port: Router flags illegal direction and reports E0202.
+                       5e. Floating-point tolerance divergence: Solver adjusts iterative step size and re-evaluates balance.
+                       5f. Missing unit on numeric parameter: Unit checker assigns default SI base unit and logs advisory.
+                       5g. Over-constrained flow loop: Solver detects algebraic loop and applies loop-breaking heuristic.
+                       5h. Flow capacity overflow: Router flags exceedance of maximum rated port capacity.
+                       5i. Zero-flow deadlock condition: Engine identifies dormant branch and warns operator.
+                       5j. Non-linear flow curve singularity: Solver activates boundary clipping and logs numerical warning.
+                       Postconditions: All physical flows, dimensional units, and conservation laws are formally verified. */
         use case def UC_05_Physical_Metrology_and_Flow_Conservation_Workflow {
         }
         doc /* Primary execution engine for physical unit metrology and flow conservation verification */
@@ -3484,7 +3676,31 @@ package SysML_Model {
             transition SolveToEvaluate first SolvingTransitions then EvaluatingReachability;
             transition EvaluateToSolved first EvaluatingReachability then Solved;
         }
-        doc /* Comprehensive use case for state machine analysis and reachability proving */
+        doc /* Comprehensive use case for state machine analysis and reachability proving
+               
+               Actors: CIContinuousIntegrationRunner, HumanEngineer
+                       Subject: StateMachineSolverEngine
+                       Preconditions: AST stream containing state definitions and transitions is available.
+                       Trigger: State machine verification trigger dispatched by compilation pipeline.
+                       Main Success Scenario:
+                       1. GrammarLoweringEngine streams state definitions to StateMachineSolverEngine.
+                       2. StateHierarchyFlattener transforms composite states into equivalent flat automata.
+                       3. DiscreteTransitionSolver verifies determinism across transition guards and events.
+                       4. ReachabilityMatrixEvaluator computes transitive closure of reachability graph.
+                       5. ReachabilityMatrixEvaluator confirms zero unreachable states and zero deadlocks.
+                       6. StateMachineSolverEngine emits verified StateSolverPort to downstream safety assurance.
+                       Alternate and Exception Flows:
+                       5a. Deadlock state identified: Reachability evaluator flags terminal sink without exit and reports E0203.
+                       5b. Unreachable state detected: Solver logs warning for orphan state unreachable from initial state.
+                       5c. Non-deterministic transition guards: Solver flags overlapping boolean guards on same trigger.
+                       5d. Cyclic state transition without termination: Livelock detection heuristic logs warning note.
+                       5e. Deep statechart nesting exceeds bound: Flattener halts and reports excessive recursion depth.
+                       5f. Missing initial transition in region: Solver inserts default entry transition to first state.
+                       5g. Undeclared event trigger referenced: Solver logs unresolved signal diagnostic.
+                       5h. Conflicting concurrent orthostate transitions: Flattener applies priority ordering.
+                       5i. State timeout value missing physical unit: Engine binds default millisecond timing unit.
+                       5j. State machine graph size exceeds solver capacity: Evaluator switches to bounded depth search.
+                       Postconditions: State machine dynamics, transition determinism, and reachability are formally verified. */
         use case def UC_06_State_Machine_Solver_Workflow {
         }
         doc /* Primary execution engine for discrete state machines and temporal transition reachability */
@@ -4695,7 +4911,31 @@ package SysML_Model {
             transition ConjugationToTypeCheck first ConjugationResolution then TypeChecking;
             transition TypeCheckToComplete first TypeChecking then Complete;
         }
-        doc /* Comprehensive use case for SysML v2 grammar lowering and type validation */
+        doc /* Comprehensive use case for SysML v2 grammar lowering and type validation
+               
+               Actors: CIContinuousIntegrationRunner, HumanEngineer
+                       Subject: GrammarLoweringEngine
+                       Preconditions: Node arena contains populated AST graph nodes.
+                       Trigger: Grammar lowering trigger dispatched after successful node allocation.
+                       Main Success Scenario:
+                       1. NodeArenaASTGraphEngine passes AST graph handle to GrammarLoweringEngine.
+                       2. KerMLTokenStream streams tokens into SysMLv2GrammarParser.
+                       3. SysMLv2GrammarParser parses package hierarchies, part defs, and port defs.
+                       4. ASTLoweringEngine resolves feature usage directionality and port conjugation (~).
+                       5. ASTLoweringEngine validates classifier inheritance and type compatibility.
+                       6. GrammarLoweringEngine emits lowered ASTStreamPort to downstream semantic engines.
+                       Alternate and Exception Flows:
+                       5a. Incompatible conjugate port pairing: Engine detects type mismatch and emits diagnostic E0200.
+                       5b. Undeclared classifier referenced in part usage: Parser logs missing symbol diagnostic and binds unresolved stub.
+                       5c. Grammar syntax error in expression: Parser emits precise source line/column error and recovers on semicolon.
+                       5d. Cyclic classifier inheritance detected: Lowering engine rejects cyclic hierarchy and reports E0201.
+                       5e. Port direction inversion violation: Compiler flags illegal directed connection and reports E0202.
+                       5f. Missing mandatory classifier attribute: Engine populates default value and logs informational note.
+                       5g. Deep recursion in nested grammar blocks: Parser enforces recursion bound and returns syntax error.
+                       5h. Ambiguous symbol resolution: Scoping rules apply lexical shadowing and report disambiguation note.
+                       5i. Unsupported KerML construct encountered: Engine safely skips unhandled construct and warns operator.
+                       5j. Multiplicity constraint violation: Multiplicity interval check fails and logs E0203.
+                       Postconditions: Strongly-typed, normalized SysML v2 / KerML AST stream is emitted. */
         use case def UC_04_SysML_Grammar_Lowering_Workflow {
         }
         doc /* Primary execution engine for OMG SysML v2 / KerML grammar parsing and semantic lowering */
@@ -5190,7 +5430,31 @@ package SysML_Model {
             transition HashingToMonitoring first NamespaceHashing then ActiveMonitoring;
             transition VerifyToFault first InvariantVerification then FaultTerminated;
         }
-        doc /* Comprehensive use case for foundational invariant verification */
+        doc /* Comprehensive use case for foundational invariant verification
+               
+               Actors: HumanEngineer, CIContinuousIntegrationRunner
+                       Subject: SystemVisionEngine
+                       Preconditions: Compiler runtime environment is initialized with valid configuration flags.
+                       Trigger: Compilation pipeline startup command dispatched by operator or CI runner.
+                       Main Success Scenario:
+                       1. Operator dispatches compilation command with workspace schema root.
+                       2. SystemVisionEngine initializes compiler namespace UUID constant NS_DEAP.
+                       3. InvariantBootstrapEngine asserts zero hardcoded domain concept rules across runtime context.
+                       4. NamespaceUuidGenerator pre-computes topological UUIDv5 namespace roots.
+                       5. DomainVocabularyValidator inspects grammar vocabulary tokens against prohibited domain ontologies.
+                       6. SystemVisionEngine emits immutable CompilerRulePort descriptor to downstream ingestion engines.
+                       Alternate and Exception Flows:
+                       5a. Prohibited domain term detected: SystemVisionEngine halts pipeline and emits diagnostic E0100.
+                       5b. Namespace UUID collision: SystemVisionEngine regenerates topological anchor with depth offset and emits E0101.
+                       5c. Malformed configuration flags: Compiler logs invalid argument diagnostics and falls back to safe defaults.
+                       5d. File permission error on workspace: Execution halts safely emitting file access diagnostic.
+                       5e. Invariant verification timeout: Watchdog timer triggers and logs diagnostic E0199 before graceful termination.
+                       5f. Non-deterministic execution detected: Checksum validation fails and emits reproducibility diagnostic E0102.
+                       5g. Memory allocation failure during bootstrap: Engine triggers emergency page compaction.
+                       5h. Missing root namespace configuration: Fallback to fixed RFC 4122 compiler constant.
+                       5i. Incompatible schema revision requested: Compiler warns and falls back to backwards-compatible parser mode.
+                       5j. Circular dependency detected in rule definitions: Rule topological sorter breaks cycle and reports E0103.
+                       Postconditions: Foundational compiler invariants and UUIDv5 namespaces are established deterministically. */
         use case def UC_01_System_Vision_and_Foundational_Invariants {
         }
         doc /* Primary execution engine for System Vision, Bootstrapping & Foundational Invariants */
@@ -5999,7 +6263,31 @@ package SysML_Model {
             transition EscapeToCell first EscapeState accept EscapedCharToken then CellState;
             transition CellToHalt first CellState accept EofToken then HaltState;
         }
-        doc /* Comprehensive use case for universal schema ingestion */
+        doc /* Comprehensive use case for universal schema ingestion
+               
+               Actors: HumanEngineer, CIContinuousIntegrationRunner
+                       Subject: UniversalIngestionEngine
+                       Preconditions: Raw schema files exist on filesystem with read permissions.
+                       Trigger: Ingestion command dispatched with path to target schema artifact.
+                       Main Success Scenario:
+                       1. Client submits raw schema file path through schema_in port.
+                       2. FormatClassifier inspects magic bytes and file extensions to identify source type.
+                       3. UniversalIngestionEngine selects corresponding parser engine (CommonMark, Protobuf, OpenAPI, SysML).
+                       4. Selected parser converts structural declarations, tables, and interfaces into typed token representations.
+                       5. Parser verifies token well-formedness and balances container delimiters.
+                       6. UniversalIngestionEngine streams normalized token stream through token_out port to node arena.
+                       Alternate and Exception Flows:
+                       5a. Unrecognized schema format: FormatClassifier fails identification and emits diagnostic E0101.
+                       5b. Unterminated table cell in CommonMark: Lexer transitions to EscapeState, reports warning, and closes cell safely.
+                       5c. Malformed Protobuf descriptor syntax: ProtobufParser recovers on message boundary and emits E0102.
+                       5d. Invalid OpenAPI YAML/JSON syntax: OpenApiParser emits line-col syntax diagnostic and halts processing.
+                       5e. Empty input file provided: Ingestion engine emits warning and produces empty token stream.
+                       5f. Premature EOF encountered: Parser closes open container scopes and logs diagnostic E0103.
+                       5g. Character encoding invalid (non-UTF8): Lexer rejects binary input with encoding diagnostic.
+                       5h. Extreme token stream depth (> 1024 nested scopes): Parser halts with recursion depth limit error.
+                       5i. Ingestion buffer overflow: Engine applies backpressure to raw schema input stream.
+                       5j. Circular schema file include: Ingestion preprocessor breaks circular loop and emits cycle diagnostic.
+                       Postconditions: Raw schema artifacts are converted into normalized, strongly-typed token streams. */
         use case def UC_02_Universal_Schema_Ingestion_Workflow {
         }
         doc /* Primary execution engine for multi-format schema ingestion and normalization */

@@ -23,7 +23,7 @@ Structural Architecture for Subsystem 7 Formal Safety Traceability Verification
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #101 - [Use Case 07: UC 07 Safety Assurance and Traceability Workflow](../use-cases/UC-07-UC_07_Safety_Assurance_and_Traceability_Workflow.md)
+- [ ] #101 - [Use Case 07: Safety Assurance and Traceability Workflow](../use-cases/UC-07-Safety_Assurance_and_Traceability_Workflow.md)
 
 #### Associated User Stories
 - [ ] #95 - [User Story 07: Verify Safety Traceability Action](../user-stories/US-07-VerifySafetyTraceabilityAction.md)

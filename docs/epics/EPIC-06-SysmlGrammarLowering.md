@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 4 Complete SysMLv2 KerML Grammar
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #98 - [Use Case 04: UC 04 Sys ML Grammar Lowering Workflow](../use-cases/UC-04-UC_04_SysML_Grammar_Lowering_Workflow.md)
+- [ ] #98 - [Use Case 04: Sys ML Grammar Lowering Workflow](../use-cases/UC-04-SysML_Grammar_Lowering_Workflow.md)
 
 #### Associated User Stories
 - [ ] #92 - [User Story 04: Lower Sys MLAction](../user-stories/US-04-LowerSysMLAction.md)

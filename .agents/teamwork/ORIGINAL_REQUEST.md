@@ -440,3 +440,110 @@ Perform an exhaustive pairwise diff of every generated specification against its
 - [ ] Working tree clean, pushed to `origin/main` (`git diff origin/main` is 0 bytes).
 
 PROCEED
+
+
+## 2026-10-11T19:55:46Z
+
+Execute the autonomous Ralph repair and convergence loop on `dumpiler-01` to eliminate specification hollow stubs, redundant stuttering naming, canned diagrams, and cross-tier disconnects, achieving 100% semantic convergence with `3dgs-039` and passing all 32 quality gates through to clean GitHub projection.
+
+Working directory: `/Users/perkunas/jail/dumpiler-01`
+Integrity mode: development
+
+## Requirements
+
+### R1. Grammar Parser Fix (`crates/compile-sysml/src/parser/grammar.rs`)
+In `parse_use_case_decl`, handle `TokenKind::Doc` and `TokenKind::DocComment` inside `use case def { ... }` bodies so that inner doc blocks containing multi-actor roles, triggers, preconditions, numbered scenarios, and `5a`..`5j` exception flows are preserved on `UseCaseDef.doc` rather than silently skipped.
+
+### R2. Compiler Generator Overhaul for Full Model Fidelity (`crates/compile-sysml/src/sync/forward.rs`)
+- **Use Case Clean Naming & Paths**: Strip redundant `UC_XX_`, `UC-XX-`, or `UCXX_` prefixes. Generate clean titles (`Use Case 01: System Vision and Foundational Invariants`) and clean filenames (`use-cases/UC-01-System_Vision_and_Foundational_Invariants.md`). Update Epic checklist links in `forward.rs` and update `resolve_issue_id` to maintain existing issue IDs (#95--#106) across renames.
+- **Rich Use Case Lowering**: Lower all 6+ numbered main scenario steps and `5a`..`5j` exception flows directly from the parsed doc block.
+- **Valid UML Use Case Diagrams**: Replace the dummy 2-node flowchart (`Actor --> Target`) with a compliant UML Use Case diagram conforming to `rules/uml-model-integrity.md`: system boundary subgraph, external actors outside the boundary, stadium-shaped use case nodes `(["..."])`, and undirected associations `---`.
+- **Dynamic Specification Sources**: Bind `Specification Source` to `[schema/subsystems/{subsys_dir}/behavior.sysml]` instead of hardcoded `activities.sysml`.
+- **Epic Model Parity**: Lower genuine subsystem `state def` from `behavior.sysml` (e.g. `StateSolverExecutionStatechart`) into Epic statecharts instead of the canned `Bootstrapping -> Ingesting -> Compiling -> Verifying`. Expand Epic class diagrams to include all constituent `part def`, `port def`, and attributes from `architecture.sysml`.
+- **User Story Model Parity**: Lower genuine `interaction def` lifelines and messages from `behavior.sysml` into sequence diagrams. Bind `Parent Epic` to the declaring subsystem Epic instead of hardcoded `[EPIC-02-ConOps]`.
+
+### R3. Arm `verify-baseline` with Semantic Quality Gates (`crates/verify-baseline`)
+- Add **Anti-Stutter Gate**: Mechanically fail if a specification title or filename contains stuttering prefixes (e.g. `Use Case 01: UC 01` or `UC-01-UC_01_`).
+- Add **Anti-Boilerplate Gate**: Mechanically fail if Use Cases contain canned fallback strings (`"initiates workflow execution"`, `"processes structural elements and validates semantic constraints"`), if Main Success Scenario has fewer than 5 steps, or if Alternate and Exception Flows have fewer than 3 exception cases.
+- Add **Use Case Diagram Compliance Gate**: Mechanically fail if Use Case diagrams lack a system boundary subgraph, use directed arrows to actors, use non-stadium nodes, or consist of trivial 2-node flows.
+- Add **Epic Statechart Heterogeneity Gate**: Mechanically fail if Epics share identical canned statecharts.
+- Add **Parent Epic Alignment Gate**: Mechanically fail if User Stories link to a mismatching parent Epic.
+
+### R4. Ground 0 Compilation & File Purge
+- Rebuild workspace release binaries: `cargo build --release --workspace`.
+- Purge legacy misnamed files: `git rm docs/use-cases/UC-*-UC_*.md`.
+- Re-execute pipeline from Ground 0:
+  - `./target/release/compile-sysml --compile`
+  - `./target/release/compile-sysml --stpa-transpile`
+  - `./target/release/compile-sysml --forward-sync --force`
+- Run differential comparison against reference in `target/reference/3dgs-039/docs/use-cases/` to confirm structural depth and visual standard convergence.
+
+### R5. Verification, Delivery Projection & Remote Sync
+- Run `./target/release/verify-baseline . --spec-only` (assert 0 findings across all 93 specs).
+- Run `./target/release/verify-baseline . --no-domain` (assert all 32 quality gates pass).
+- Project clean specifications to GitHub: `./target/release/reconcile-backlog --sync-bodies`.
+- Commit all changes using neutral citations: `(refs #115)`. Strictly zero em dashes (`--`).
+- Push to `origin/main` and verify `git diff origin/main` is empty.
+
+## Acceptance Criteria
+
+### AST and Parser Integrity
+- [ ] `UseCaseDef.doc` preserves inner doc comments inside `use case def` blocks in `crates/compile-sysml/src/parser/grammar.rs`.
+- [ ] No regression in AST parsing across all schema files in `schema/`.
+
+### Spec Generator Compliance
+- [ ] Use Case markdown files have clean filenames without stuttering prefixes (`UC-01-System_Vision_and_Foundational_Invariants.md`).
+- [ ] Use Case markdown files have clean titles (`# Use Case 01: System Vision and Foundational Invariants`).
+- [ ] All 12 Use Cases contain full numbered scenario steps ($\ge 6$) and comprehensive alternate/exception flows (`5a`..`5j`).
+- [ ] Use Case diagrams render compliant UML with system boundary subgraph, stadium nodes, external actors, and undirected associations (`---`).
+- [ ] Epics render genuine subsystem statecharts and comprehensive class diagrams from `behavior.sysml` and `architecture.sysml`.
+- [ ] User Stories bind to their true parent Epics and feature genuine sequence diagrams from `behavior.sysml`.
+
+### Baseline Verification & Quality Gates
+- [ ] `verify-baseline` fails mechanically when run against legacy canned/stuttering specs.
+- [ ] `./target/release/verify-baseline . --spec-only` passes with 0 findings across all 93 specification files.
+- [ ] `./target/release/verify-baseline . --no-domain` passes with all 32 quality gates verified.
+
+### Sync & Delivery Projection
+- [ ] All specifications synchronized with GitHub issues via `./target/release/reconcile-backlog --sync-bodies`.
+- [ ] Clean git status, changes committed with neutral citations `(refs #115)`, and pushed to `origin/main` with empty `git diff origin/main`.
+
+PROCEED
+
+## 2026-10-11T19:56:33Z
+
+Eliminate the redundant repeating string prefix in Use Case titles and filenames (e.g. `Use Case 01: UC 01 ...` -> `Use Case 01: System Vision and Foundational Invariants`), fix the compiler parser bug in `crates/compile-sysml/src/parser/grammar.rs` that discards inner `doc /* ... */` blocks inside `use case def` bodies, regenerate all 12 Use Cases with their full schema-defined scenarios and exception flows, verify all 32 quality gates, and project clean updates to GitHub.
+
+Working directory: /Users/perkunas/jail/dumpiler-01
+Integrity mode: development
+
+## Requirements
+
+### R1. Compiler Parser Fix (`crates/compile-sysml/src/parser/grammar.rs`)
+In `parse_use_case_decl`, handle `TokenKind::Doc` and `TokenKind::DocComment` inside `use case def` braces so that structured specification sections (`Actors:`, `Preconditions:`, `Trigger:`, `Main Success Scenario:`, `Alternate and Exception Flows:`, `Postconditions:`) are retained on the `UseCaseDef` rather than discarded.
+
+### R2. Use Case Name Normalization & Path Resolution (`crates/compile-sysml/src/sync/forward.rs`)
+Strip redundant leading prefixes (`UC_XX_`, `UC-XX-`, `UCXX_`) from Use Case identifiers when generating display titles (`Use Case 01: <Clean Name>`), slugified file paths (`use-cases/UC-01-<Clean_Slug>.md`), and Epic checklist links. Preserve issue IDs across file renames, and dynamically link the subsystem behavior file as the `Specification Source`.
+
+### R3. Toolchain Rebuild, Legacy File Purge & Ground 0 Regeneration
+Rebuild the compiler release binaries with `cargo build --release --workspace`, remove legacy duplicated files (`git rm docs/use-cases/UC-*-UC_*.md`), and regenerate all specifications via `./target/release/compile-sysml --compile` and `./target/release/compile-sysml --forward-sync --force`.
+
+### R4. Quality Gate Auditing & Repository Synchronization
+Verify that `./target/release/verify-baseline . --spec-only` passes with 0 findings, verify all 32 quality gates via `./target/release/verify-baseline . --no-domain`, synchronize issue bodies and titles to GitHub with `./target/release/reconcile-backlog --sync-bodies`, and commit all changes using neutral citations `(refs #115)`.
+
+## Acceptance Criteria
+
+### Compiler & Parser Fidelity
+- [ ] Parser preserves inner `doc /* ... */` blocks inside `use case def` in `crates/compile-sysml/src/parser/grammar.rs`.
+- [ ] Redundant `UC 01` string eliminated from all 12 Use Case titles and filenames.
+- [ ] Epic checklists in `docs/epics/` link to normalized Use Case paths and titles.
+- [ ] All 12 Use Cases in `docs/use-cases/` contain full schema-defined scenarios and exception flows (`5a` through `5j`).
+
+### Baseline Verification & Quality Gates
+- [ ] `cargo check --workspace` and `cargo build --release --workspace` compile cleanly with exit code 0.
+- [ ] `./target/release/verify-baseline . --spec-only` passes with 0 findings across all specifications.
+- [ ] `./target/release/verify-baseline . --no-domain` passes all 32 quality gates with exit code 0.
+- [ ] `./target/release/reconcile-backlog --sync-bodies` successfully synchronizes updated titles and bodies to GitHub issues.
+- [ ] All commits use neutral citations `(refs #115)` with zero auto-closing keywords, and working tree diff against tracking branch is clean (`git diff origin/main` is empty).
+
+PROCEED

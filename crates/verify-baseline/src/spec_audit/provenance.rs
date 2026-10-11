@@ -201,8 +201,23 @@ pub fn find_naked_numeric_quantities(line: &str) -> Vec<(String, usize)> {
             if !is_id_token && start < end {
                 let num_str = &line[start..end];
 
-                // Skip version strings, ISO dates, section numbers like 1.2 or 3.4.1, or labels like 02:
+                // Skip version strings, ISO dates, section numbers like 1.2 or 3.4.1, labels like 02:,
+                // or outline sub-step labels like 5a., 5e., 5i., 5d., 5a)
+                let is_outline_label = if end < len && bytes[end].is_ascii_alphabetic() {
+                    let mut letter_end = end;
+                    while letter_end < len && bytes[letter_end].is_ascii_alphabetic() {
+                        letter_end += 1;
+                    }
+                    (letter_end - end <= 2)
+                        && letter_end < len
+                        && (bytes[letter_end] == b'.' || bytes[letter_end] == b')' || bytes[letter_end] == b':')
+                } else {
+                    false
+                };
+
                 let is_section_or_label = if end < len && (bytes[end] == b'.' || bytes[end] == b')' || bytes[end] == b':') {
+                    true
+                } else if is_outline_label {
                     true
                 } else if start > 0 && (bytes[start - 1] == b'.' || bytes[start - 1] == b'v' || bytes[start - 1] == b'V') {
                     true

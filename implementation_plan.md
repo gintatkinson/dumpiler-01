@@ -1,193 +1,138 @@
-# Implementation Plan -- Serial Adversarial Code Audits & Upstream Defect Filings (`gintatkinson/deap-compiler`)
+# Implementation Plan -- Deep Ralph Semantic Convergence & Quality Gate Arming
 
-**Objective**: Execute serial adversarial code audits, offline Check 7 validations, upstream defect filings to `gintatkinson/deap-compiler`, and remote repository synchronization for four pipeline tooling defects uncovered in the compiler workspace.
+**Objective**: Completely eliminate specification hollow stubs, redundant stuttering naming, canned diagrams, and cross-tier disconnects. Restore full SysML v2 AST behavioral fidelity (matching `3dgs-039` standard), arm `crates/verify-baseline` with non-bypassable semantic quality gates, regenerate all specifications from Ground 0, and project clean verified outputs to GitHub.
 
 ---
 
-## 1. Architectural Topology & Governance Flow
+## 1. Problem Statement & Root Cause Analysis
 
-```mermaid
-flowchart TD
-    subgraph WP1["Work Package 1: Blind Linter Bypass"]
-        Audit1["Subagent: Adversarial Code Auditor<br/>(crates/verify-baseline/src/runner.rs)"]
-        Check1["Offline Check 7 Validation"]
-        Save1[".pipeline/defects/dossier_blind_linter_bypass.md"]
-        File1["gh issue create --repo gintatkinson/deap-compiler --label bug"]
-        Verify1["gh issue view verification"]
-        Audit1 --> Check1 --> Save1 --> File1 --> Verify1
-    end
+### A. The "Bad Code" in the Compiler Toolchain (`crates/compile-sysml`)
+1. **Grammar Parser Silently Discards Inner Doc Blocks** (`crates/compile-sysml/src/parser/grammar.rs:1101-1126`):
+   - In `parse_use_case_decl`, the parser checks for `Subject`, `Actor`, `Objective`, `Step`.
+   - When `doc /* ... */` is encountered inside `use case def { ... }`, it falls through to `else { self.skip_until_semi_or_brace(); }` and is **silently discarded**.
+   - Result: All 12 rich Use Case specifications in `schema/subsystems/*/behavior.sysml` (containing multi-actor roles, triggers, preconditions, 6-step scenarios, and `5a`..`5j` exception flows) are completely lost during parsing.
+2. **Canned Fallback Generator in `forward.rs`** (`crates/compile-sysml/src/sync/forward.rs:1151-1182`, `1243-1246`):
+   - When `parsed_doc` is empty due to the parser bug, `forward.rs` falls back to canned 4-line boilerplate (`"Actor HumanEngineer initiates workflow..."`) and a dummy 2-node flowchart (`Actor["HumanEngineer"] --> Target["..."]`).
+   - Violates `rules/uml-model-integrity.md` (missing system boundary subgraph, directed arrows instead of undirected associations, rectangle nodes instead of stadium shape `(["..."])`).
+3. **Hardcoded Canned Epics** (`crates/compile-sysml/src/sync/forward.rs:835-868`):
+   - Class diagrams hardcoded to only `DEAPCompilerSystem --> {primary_engine} : contains` (omitting all other constituent parts, ports, and attributes).
+   - State machine diagrams hardcoded to identical `Bootstrapping -> Ingesting -> Compiling -> Verifying` across all 14 Epics, completely ignoring real subsystem FSMs in `behavior.sysml` (e.g. `StateSolverExecutionStatechart`).
+4. **Hardcoded User Story Parent Epic & Canned Lifelines** (`crates/compile-sysml/src/sync/forward.rs:1061`):
+   - All 12 User Stories hardcode `| **Parent Epic** | [EPIC-02-ConOps] |`, disconnecting stories from their actual subsystem Epics.
+   - Ignores `interaction def` in `behavior.sysml` and generates fake lifelines `HumanEngineer -> DEAPCompilerSystem -> Engine`.
+5. **Redundant Stuttering Titles & Filenames** (`crates/compile-sysml/src/sync/forward.rs:1107-1110`):
+   - `format!("Use Case {:02}: {}", u_num, to_display_name(&uc_m.uc.name))` turns `UC_01_...` into `Use Case 01: UC 01 System Vision and Foundational Invariants`.
+   - `format!("use-cases/UC-{:02}-{}.md", u_num, uc_slug)` turns into `UC-01-UC_01_...md`.
+6. **Hardcoded Source References** (`crates/compile-sysml/src/sync/forward.rs:1237`):
+   - Hardcoded `[schema/conops/activities.sysml]` for all use cases, even when defined in `schema/subsystems/<subsystem>/behavior.sysml`.
 
-    subgraph WP2["Work Package 2: Broken Cross-Tier Link Propagation"]
-        Audit2["Subagent: Adversarial Code Auditor<br/>(crates/compile-sysml/src/sync/forward.rs)"]
-        Check2["Offline Check 7 Validation"]
-        Save2[".pipeline/defects/dossier_cross_tier_link_propagation.md"]
-        File2["gh issue create --repo gintatkinson/deap-compiler --label bug"]
-        Verify2["gh issue view verification"]
-        Audit2 --> Check2 --> Save2 --> File2 --> Verify2
-    end
+### B. Why `verify-baseline` Passed ("Checkbox Compliance")
+- `crates/verify-baseline/src/spec_audit/sections.rs:365-374` only checked whether heading text tokens existed in the document.
+- It never checked:
+  - Title/filename stuttering (e.g., `Use Case 01: UC 01`).
+  - Content word count or presence of canned fallback strings (`"initiates workflow"`, `"validates the operation"`).
+  - Minimum scenario steps ($\ge 5$) or alternate flows ($\ge 3$).
+  - Diagram topology: Use case flowcharts were never parsed or validated in `uml_validator.rs` (it only checked sequence and class diagrams).
+  - Epic statechart variety: Never checked if all Epics have the identical dummy statechart.
+  - Parent Epic parity: Never verified that a User Story's `Parent Epic` matches its subsystem package.
 
-    subgraph WP3["Work Package 3: Decoupled Safety Transpilation"]
-        Audit3["Subagent: Adversarial Code Auditor<br/>(crates/compile-sysml/src/main.rs)"]
-        Check3["Offline Check 7 Validation"]
-        Save3[".pipeline/defects/dossier_decoupled_safety_transpilation.md"]
-        File3["gh issue create --repo gintatkinson/deap-compiler --label bug"]
-        Verify3["gh issue view verification"]
-        Audit3 --> Check3 --> Save3 --> File3 --> Verify3
-    end
-
-    subgraph WP4["Work Package 4: Title Normalization Collision"]
-        Audit4["Subagent: Adversarial Code Auditor<br/>(crates/reconcile-backlog/src/tracker.rs)"]
-        Check4["Offline Check 7 Validation"]
-        Save4[".pipeline/defects/dossier_title_normalization_collision.md"]
-        File4["gh issue create --repo gintatkinson/deap-compiler --label bug"]
-        Verify4["gh issue view verification"]
-        Audit4 --> Check4 --> Save4 --> File4 --> Verify4
-    end
-
-    subgraph WP5["Work Package 5: Synthesis, Commit & Remote Sync"]
-        VerifyAll["1. Closed-Loop Payload Verification (All 4 Issues)"]
-        CommitAll["2. Git Commit: Neutral Citation (#id1, #id2, #id3, #id4)"]
-        PushAll["3. Git Push to origin/main"]
-        SyncAssert["4. Assert git diff origin/main is 0 bytes"]
-        ReportAll["5. Walkthrough & Defect Summary Dossier"]
-        VerifyAll --> CommitAll --> PushAll --> SyncAssert --> ReportAll
-    end
-
-    WP1 --> WP2 --> WP3 --> WP4 --> WP5
-```
+### C. Where the SysML and UML Semantic Requirements Reside
+- `.pipeline/constitution.md`:
+  - **Universal Model Consistency Rules** (lines 77-83): Dynamic-to-Static Alignment; every lifeline must resolve to a defined classifier; every message must map to an active Operation; every transition trigger must be defined in the metamodel.
+  - **Quality Gates** (lines 181-204): Gate 1 (UML Model Integrity), Gate 21 (Semantic Diagram-to-AST Topology Parity), Gate 23 (Factual Grounding), Gate 30 (Architecture Viewpoint & Diagram Completeness).
+- `rules/sysml-ssot-completeness.md` (lines 1185-1250 of `.pipeline/ACTIVE_RULES_BUNDLE.md`):
+  - SysML v2 AST is 100% SSOT; formal mappings of `part def`, `item def`, `action def`, `state def`, `use case def`.
+  - Zero heuristic prose parsing; pure token AST lowering.
+- `rules/uml-model-integrity.md` (lines 1501-1680 of `.pipeline/ACTIVE_RULES_BUNDLE.md`):
+  - Use Cases Must Declare A System Boundary Subgraph.
+  - Actors Must Sit Outside The System Boundary.
+  - Use Case Nodes Must Sit Inside The System Boundary using Stadium Shape `(["..."])`.
+  - Actor Associations Must Be Undirected (`---`).
+  - Use Cases Must Carry Detailed Alternate and Exception Flows.
+  - Statecharts Must Form Deterministic Automata with Triggers and Bracketed Guards.
 
 ---
 
 ## 2. Work Packages Decomposition
 
-### Work Package 1: Audit & File Defect 1 (Blind Linter Bypass in `verify-baseline`)
-- **Target Component**: `crates/verify-baseline/src/runner.rs`
-- **Audit Pillar**: Test Integrity
-- **Target Repository**: `gintatkinson/deap-compiler`
-- **Symptom**: `verify-baseline` audits static markdown files on disk without asserting dynamic compiler output freshness or checking if `compile-sysml --forward-sync` produces zero diff against the declared AST. This allows stale specifications on disk to pass baseline verification even when compiler regeneration would produce massive diffs or fail.
-- **Subagent Role**: `Adversarial Code Auditor`
-- **Dispatch Prompt Payload**:
-  ```text
-  Execute adversarial-code-auditor skill.
-  Read skills/adversarial-code-auditor/SKILL.md in full. Follow the Protocol (Section 3) exactly -- Read, Audit, Write, Verify, File.
-  FILE_PATH: crates/verify-baseline/src/runner.rs PILLAR: Test Integrity MODE: audit REPO: gintatkinson/deap-compiler
-  Return issue URLs with severities. PROCEED
-  ```
-- **Deliverables**:
-  1. Complete 7-section defect dossier adhering character-for-character to Section 2 skeleton.
-  2. Mandatory offline Check 7 Mermaid syntax validation executed and passed.
-  3. Verified dossier saved to `.pipeline/defects/dossier_blind_linter_bypass.md`.
-  4. Issue filed to `gintatkinson/deap-compiler` with `--label bug`.
-  5. Closed-loop verification of live published payload via `gh issue view --repo gintatkinson/deap-compiler <ID>`.
+### Work Package 1: Compiler Parser Fix (`crates/compile-sysml/src/parser/grammar.rs`)
+- In `parse_use_case_decl`, handle `TokenKind::Doc` and `TokenKind::DocComment` inside `use case def { ... }` braces.
+- Store inner doc comments on `UseCaseDef.doc` so that structured sections (`Actors:`, `Subject:`, `Preconditions:`, `Trigger:`, `Main Success Scenario:`, `Alternate and Exception Flows:`, `Postconditions:`) are retained in the AST.
 
-### Work Package 2: Audit & File Defect 2 (Broken Cross-Tier Link Propagation)
-- **Target Component**: `crates/compile-sysml/src/sync/forward.rs`
-- **Audit Pillar**: Semantic Traceability
-- **Target Repository**: `gintatkinson/deap-compiler`
-- **Symptom**: When a behavioral action or model element is renamed in the schema AST, `compile-sysml --forward-sync` generates the new User Story file, but fails to propagate link updates to parent Epics (`docs/epics/`) and constituent Use Cases (`docs/use-cases/`), leaving broken markdown links, stale references, and desynchronized realization matrices.
-- **Subagent Role**: `Adversarial Code Auditor`
-- **Dispatch Prompt Payload**:
-  ```text
-  Execute adversarial-code-auditor skill.
-  Read skills/adversarial-code-auditor/SKILL.md in full. Follow the Protocol (Section 3) exactly -- Read, Audit, Write, Verify, File.
-  FILE_PATH: crates/compile-sysml/src/sync/forward.rs PILLAR: Semantic Traceability MODE: audit REPO: gintatkinson/deap-compiler
-  Return issue URLs with severities. PROCEED
-  ```
-- **Deliverables**:
-  1. Complete 7-section defect dossier adhering character-for-character to Section 2 skeleton.
-  2. Mandatory offline Check 7 Mermaid syntax validation executed and passed.
-  3. Verified dossier saved to `.pipeline/defects/dossier_cross_tier_link_propagation.md`.
-  4. Issue filed to `gintatkinson/deap-compiler` with `--label bug`.
-  5. Closed-loop verification of live published payload via `gh issue view --repo gintatkinson/deap-compiler <ID>`.
+### Work Package 2: Generator Overhaul for Full Model Fidelity (`crates/compile-sysml/src/sync/forward.rs`)
+1. **Use Case Clean Naming & Paths**:
+   - Implement `clean_use_case_name(name: &str) -> &str` stripping leading `UC_XX_`, `UC-XX-`, or `UCXX_`.
+   - Emit clean titles (`Use Case {:02}: {}`) and clean filenames (`use-cases/UC-{:02}-{}.md`).
+   - Update Epic checklists in `forward.rs:748-756` to link to clean titles and filenames.
+   - Update `resolve_issue_id` to resolve IDs across renames.
+2. **Use Case UML Diagram Compliance**:
+   - Replace the dummy 2-node flowchart with a valid UML Use Case diagram conforming to `rules/uml-model-integrity.md`:
+     - System boundary subgraph enclosing use case nodes in stadium shape `(["..."])`.
+     - Primary and secondary actors outside the boundary using `((Actor))` or `["Actor"]`.
+     - Undirected associations (`---`) between actors and use cases.
+     - Include/extend dependency connectors where applicable.
+3. **Dynamic Source References & Full Doc Lowering**:
+   - Bind `Specification Source` to `[schema/subsystems/{subsys_dir}/behavior.sysml](../../schema/subsystems/{subsys_dir}/behavior.sysml)`.
+   - Lower all 6+ numbered main scenario steps and `5a`..`5j` exception flows directly from the parsed doc block.
+4. **Epic Model Parity**:
+   - Replace canned state machine with genuine subsystem `state def` from `behavior.sysml` (e.g. `StateSolverExecutionStatechart`).
+   - Expand class diagrams to include all constituent `part def`, `port def`, and attributes from `architecture.sysml`.
+5. **User Story Model Parity**:
+   - Lower genuine `interaction def` lifelines and messages from `behavior.sysml` into sequence diagrams.
+   - Bind `Parent Epic` to the declaring subsystem Epic instead of hardcoded `[EPIC-02-ConOps]`.
 
-### Work Package 3: Audit & File Defect 3 (Decoupled Safety Transpilation Architecture)
-- **Target Component**: `crates/compile-sysml/src/main.rs`
-- **Audit Pillar**: Resource Lifecycle
-- **Target Repository**: `gintatkinson/deap-compiler`
-- **Symptom**: `compile-sysml --forward-sync` is decoupled from `--stpa-transpile`. As a result, when ConOps operational activities or system hazards are updated or decomposed, forward-sync leaves `docs/safety/` frozen with stale hazard mappings (e.g. only 6 hazards instead of 28+) unless an operator manually invokes the separate `--stpa-transpile` flag.
-- **Subagent Role**: `Adversarial Code Auditor`
-- **Dispatch Prompt Payload**:
-  ```text
-  Execute adversarial-code-auditor skill.
-  Read skills/adversarial-code-auditor/SKILL.md in full. Follow the Protocol (Section 3) exactly -- Read, Audit, Write, Verify, File.
-  FILE_PATH: crates/compile-sysml/src/main.rs PILLAR: Resource Lifecycle MODE: audit REPO: gintatkinson/deap-compiler
-  Return issue URLs with severities. PROCEED
-  ```
-- **Deliverables**:
-  1. Complete 7-section defect dossier adhering character-for-character to Section 2 skeleton.
-  2. Mandatory offline Check 7 Mermaid syntax validation executed and passed.
-  3. Verified dossier saved to `.pipeline/defects/dossier_decoupled_safety_transpilation.md`.
-  4. Issue filed to `gintatkinson/deap-compiler` with `--label bug`.
-  5. Closed-loop verification of live published payload via `gh issue view --repo gintatkinson/deap-compiler <ID>`.
+### Work Package 3: Arming `verify-baseline` with Semantic Quality Gates (`crates/verify-baseline`)
+1. **Anti-Stutter Gate**:
+   - In `spec_audit/metadata.rs`, fail if title or filename contains stuttering prefixes (e.g. `Use Case 01: UC 01` or `UC-01-UC_01_`).
+2. **Anti-Boilerplate / Minimum Scenario Gate**:
+   - In `spec_audit/sections.rs` / `uml_validator.rs`, scan Use Case content:
+     - Reject documents containing canned fallback strings (`"initiates workflow execution"`, `"processes structural elements and validates semantic constraints"`).
+     - Require Main Success Scenario to have $\ge 5$ numbered steps.
+     - Require Alternate and Exception Flows to have $\ge 3$ concrete exception cases.
+3. **Use Case Diagram Compliance Gate**:
+   - In `spec_audit/diagram_ast.rs` and `uml_validator.rs`:
+     - Reject Use Case diagrams missing a system boundary subgraph.
+     - Reject Use Case diagrams with directed arrows (`-->`) connecting actors to use cases.
+     - Reject Use Case diagrams with non-stadium nodes inside the boundary.
+     - Reject 2-node trivial diagrams (`Actor --> Target`).
+4. **Epic Statechart Heterogeneity Gate**:
+   - Verify that Epics do not share identical canned state machine diagrams; each must reflect its subsystem's actual behavioral states.
+5. **Parent Epic Alignment Gate**:
+   - Verify that User Stories declare a Parent Epic corresponding to their owning package, not hardcoded `EPIC-02-ConOps`.
 
-### Work Package 4: Audit & File Defect 4 (Title Normalization Collision & Rename Failure)
-- **Target Component**: `crates/reconcile-backlog/src/tracker.rs`
-- **Audit Pillar**: Concurrency
-- **Target Repository**: `gintatkinson/deap-compiler`
-- **Symptom**: `reconcile-backlog` correlates specification files with tracker issues using normalized title matching. When a specification is renamed or decomposed, the title normalization mismatch causes the reconciler to lose association with the pre-existing issue number, leading to orphaned tracker issues, duplicate issue creation, or unclosed deleted specification issues.
-- **Subagent Role**: `Adversarial Code Auditor`
-- **Dispatch Prompt Payload**:
-  ```text
-  Execute adversarial-code-auditor skill.
-  Read skills/adversarial-code-auditor/SKILL.md in full. Follow the Protocol (Section 3) exactly -- Read, Audit, Write, Verify, File.
-  FILE_PATH: crates/reconcile-backlog/src/tracker.rs PILLAR: Concurrency MODE: audit REPO: gintatkinson/deap-compiler
-  Return issue URLs with severities. PROCEED
-  ```
-- **Deliverables**:
-  1. Complete 7-section defect dossier adhering character-for-character to Section 2 skeleton.
-  2. Mandatory offline Check 7 Mermaid syntax validation executed and passed.
-  3. Verified dossier saved to `.pipeline/defects/dossier_title_normalization_collision.md`.
-  4. Issue filed to `gintatkinson/deap-compiler` with `--label bug`.
-  5. Closed-loop verification of live published payload via `gh issue view --repo gintatkinson/deap-compiler <ID>`.
+### Work Package 4: Ground 0 Pipeline Recompilation & Purge
+- Rebuild workspace release binaries: `cargo build --release --workspace`.
+- Purge legacy misnamed files: `git rm docs/use-cases/UC-*-UC_*.md`.
+- Run Ground 0 compilation:
+  - `./target/release/compile-sysml --compile`
+  - `./target/release/compile-sysml --stpa-transpile`
+  - `./target/release/compile-sysml --forward-sync --force`
+- Audit regenerated files against reference `target/reference/3dgs-039/docs/use-cases/` to ensure 100% convergence.
 
-### Work Package 5: Synthesis, Closed-Loop Verification, Commit Hygiene & Remote Sync
-- **Target Scope**: `.pipeline/defects/`, Git Index, Remote Tracking Branch
-- **Actions**:
-  1. Inspect and verify all 4 live published GitHub issue URLs, labels, and bodies via:
-     `gh issue view --repo gintatkinson/deap-compiler <ID>`
-  2. Stage and commit all 4 generated defect dossiers in `.pipeline/defects/` adhering strictly to the Commit Message Non-Closure Invariant:
-     `git commit -m "docs(defects): record upstream compiler defect dossiers (#<id1>, #<id2>, #<id3>, #<id4>)"`
-     (Auto-closing keywords `fix`, `fixes`, `close`, `closes`, `resolve`, `resolves` strictly forbidden).
-  3. Push all commits to `origin/main`.
-  4. Verify remote synchronization: assert that `git diff origin/main` is empty (0 bytes).
-  5. Generate final walkthrough and summary table citing all 4 issue URLs, severities, and target components.
+### Work Package 5: Verification, GitHub Projection & Remote Sync
+- Execute `./target/release/verify-baseline . --spec-only` (must pass with 0 findings).
+- Execute `./target/release/verify-baseline . --no-domain` (must pass all 32 quality gates).
+- Project cleaned specifications to GitHub: `./target/release/reconcile-backlog --sync-bodies`.
+- Commit changes using neutral citations: `(refs #115)`.
+- Push to `origin/main` and verify `git diff origin/main` is empty.
 
 ---
 
-## 3. Mandatory Constraints & Quality Gates
+## 3. Acceptance Criteria
 
-1. **Strictly Zero Python**: `python`, `python3`, `pytest`, `pip` are strictly prohibited across all operations and checks.
-2. **Strictly Zero Unicode Em Dashes**: Unicode `\u2014` is strictly prohibited; use ASCII `--` or `-` exclusively.
-3. **Strict Serial Execution**: Dispatch exactly ONE subagent at a time. No parallel or concurrent dispatches.
-4. **Offline Validation Gate**: Check 7 must be verified offline before filing any issue.
-5. **Workspace Isolation**: All operations must remain strictly inside `/Users/perkunas/jail/dumpiler-01`.
-6. **Commit Message Non-Closure Invariant**: Commit messages must use neutral citations `(#<id>)` or `(refs #<id>)` without auto-closing verbs.
-
----
-
-## 4. Acceptance Criteria
-
-- [ ] Subagent 1 executes Test Integrity audit on `crates/verify-baseline/src/runner.rs`.
-- [ ] Dossier 1 verified offline (Check 7) and saved to `.pipeline/defects/dossier_blind_linter_bypass.md`.
-- [ ] Issue 1 filed on `gintatkinson/deap-compiler` (`--label bug`) and verified via `gh issue view`.
-- [ ] Subagent 2 executes Semantic Traceability audit on `crates/compile-sysml/src/sync/forward.rs`.
-- [ ] Dossier 2 verified offline (Check 7) and saved to `.pipeline/defects/dossier_cross_tier_link_propagation.md`.
-- [ ] Issue 2 filed on `gintatkinson/deap-compiler` (`--label bug`) and verified via `gh issue view`.
-- [ ] Subagent 3 executes Resource Lifecycle audit on `crates/compile-sysml/src/main.rs`.
-- [ ] Dossier 3 verified offline (Check 7) and saved to `.pipeline/defects/dossier_decoupled_safety_transpilation.md`.
-- [ ] Issue 3 filed on `gintatkinson/deap-compiler` (`--label bug`) and verified via `gh issue view`.
-- [ ] Subagent 4 executes Concurrency audit on `crates/reconcile-backlog/src/tracker.rs`.
-- [ ] Dossier 4 verified offline (Check 7) and saved to `.pipeline/defects/dossier_title_normalization_collision.md`.
-- [ ] Issue 4 filed on `gintatkinson/deap-compiler` (`--label bug`) and verified via `gh issue view`.
-- [ ] All 4 defect dossiers staged and committed with neutral citations `(#<id1>, #<id2>, #<id3>, #<id4>)`.
-- [ ] Commits pushed to `origin/main` and `git diff origin/main` verified clean (0 bytes).
-- [ ] Summary walkthrough and defect register produced.
+- [ ] `crates/compile-sysml/src/parser/grammar.rs` captures inner `doc /* ... */` in `use case def`.
+- [ ] `crates/compile-sysml/src/sync/forward.rs` generates clean Use Case titles, clean filenames, rich scenarios, valid UML Use Case diagrams, and dynamic source paths.
+- [ ] Epics carry genuine subsystem statecharts and multi-part class diagrams from `schema/subsystems/*/`.
+- [ ] User Stories carry genuine sequence diagrams and bind to their respective parent Epics.
+- [ ] `crates/verify-baseline` fails mechanically on stuttering titles, canned boilerplate, 2-node flowcharts, canned epic statecharts, and cross-tier epic mismatches.
+- [ ] All 93 specification files pass the armed `verify-baseline` with 0 findings.
+- [ ] All 32 quality gates pass with exit code 0.
+- [ ] All updated specifications projected to GitHub issues via `reconcile-backlog --sync-bodies`.
+- [ ] All changes committed with neutral citations and pushed cleanly to remote.
 
 ---
 
-## 5. Human Approval Gate
+## 4. Human Authorization Gate
 
-Per `AGENTS.md` § **Strict Planning Gate** & § **Mandatory Teamwork Preview Gate**:
-The coordinator is halted and awaiting your explicit approval.
-
+Per `AGENTS.md` § **Strict Planning Gate**:
 To authorize execution of this implementation plan, please reply with **PROCEED**.

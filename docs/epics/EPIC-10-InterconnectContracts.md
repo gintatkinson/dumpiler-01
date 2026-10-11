@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 8 Level 1C ICD Interconnect Contracts
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #102 - [Use Case 08: UC 08 ICD Interconnect Contract Generation Workflow](../use-cases/UC-08-UC_08_ICD_Interconnect_Contract_Generation_Workflow.md)
+- [ ] #102 - [Use Case 08: ICD Interconnect Contract Generation Workflow](../use-cases/UC-08-ICD_Interconnect_Contract_Generation_Workflow.md)
 
 #### Associated User Stories
 - [ ] #96 - [User Story 08: Synthesize ICDContracts Action](../user-stories/US-08-SynthesizeICDContractsAction.md)

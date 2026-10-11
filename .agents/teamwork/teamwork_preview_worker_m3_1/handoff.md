@@ -1,106 +1,112 @@
-# Handoff Report: Milestone 3 Closed-Loop Toolchain Execution & Remote Sync
+# Handoff Report -- Milestone 3 (Toolchain Rebuild, Legacy File Purge & Ground 0 Regeneration)
 
 ## 1. Observation
-1. **Workspace Compilation (`cargo build --release --workspace`)**:
-   - Command: `cargo build --release --workspace`
-   - Exit code: 0
-   - Output:
-     ```
-     Finished `release` profile [optimized] target(s) in 0.17s
-     ```
+- Command `cargo build --release --workspace`:
+  ```
+  Compiling compile-sysml v0.1.0 (/Users/perkunas/jail/dumpiler-01/crates/compile-sysml)
+  Compiling ingest-sysml v0.1.0 (/Users/perkunas/jail/dumpiler-01/crates/ingest-sysml)
+  Finished release profile [optimized] target(s) in 11.10s
+  ```
+  Exit code: 0.
 
-2. **Specification Forward-Sync Projection (`./target/release/compile-sysml --forward-sync --force`)**:
-   - Command: `./target/release/compile-sysml --forward-sync --force`
-   - Exit code: 0
-   - Output:
-     ```
-     [SysML v2 Forward-Sync] Successfully synchronized 94 specifications to 'docs/'
-     ```
-   - All 94 specification files in `docs/` (`docs/epics/`, `docs/features/`, `docs/user-stories/`, `docs/use-cases/`) regenerated with native CommonMark 2-column metadata table at lines 1-10 with zero raw YAML frontmatter.
+- Command `git rm docs/use-cases/UC-*-UC_*.md`:
+  ```
+  rm 'docs/use-cases/UC-01-UC_01_System_Vision_and_Foundational_Invariants.md'
+  rm 'docs/use-cases/UC-02-UC_02_Universal_Schema_Ingestion_Workflow.md'
+  rm 'docs/use-cases/UC-03-UC_03_Node_Arena_Memory_Management_Workflow.md'
+  rm 'docs/use-cases/UC-04-UC_04_SysML_Grammar_Lowering_Workflow.md'
+  rm 'docs/use-cases/UC-05-UC_05_Physical_Metrology_and_Flow_Conservation_Workflow.md'
+  rm 'docs/use-cases/UC-06-UC_06_State_Machine_Solver_Workflow.md'
+  rm 'docs/use-cases/UC-07-UC_07_Safety_Assurance_and_Traceability_Workflow.md'
+  rm 'docs/use-cases/UC-08-UC_08_ICD_Interconnect_Contract_Generation_Workflow.md'
+  rm 'docs/use-cases/UC-09-UC_09_Agile_Specification_Projection_Workflow.md'
+  rm 'docs/use-cases/UC-10-UC_10_Multi_Target_CodeGen_Workflow.md'
+  rm 'docs/use-cases/UC-11-UC_11_Diagnostic_Catalog_Triage_Workflow.md'
+  rm 'docs/use-cases/UC-12-UC_12_Compiler_Performance_Assurance_Workflow.md'
+  ```
+  Exit code: 0.
 
-3. **Specification Quality & Coverage Audit (`./target/release/verify-baseline . --spec-only`)**:
-   - Command: `./target/release/verify-baseline . --spec-only`
-   - Exit code: 0
-   - Output:
-     ```
-     Spec audit completed in 276 ms (93 files audited, 0 findings, passed: true)
-     Success: Specification Quality & Coverage Audit passed (93 files audited in 276 ms).
-     ```
+- Command `./target/release/compile-sysml --compile`:
+  ```
+  Successfully compiled SysML schema 'schema' to '.pipeline/schema.sysml' (SHA-256: de9fd27fec3a64b53f29dd3028cb4815d47a8cb5aa4b0524795dbe73b9ca2b6a, 362 elements)
+  ```
+  Exit code: 0.
 
-4. **Full Baseline Conformance Verification (`./target/release/verify-baseline . --no-domain`)**:
-   - Command: `./target/release/verify-baseline . --no-domain`
-   - Exit code: 0
-   - Output:
-     ```
-     Success: Check 10 verified (.gitignore exists in repository root).
-     Success: Check 11 verified (Zero .DS_Store files in working tree).
-     Success: Check 12 verified (Zero duplicate master core blueprints in downstream repository).
-     Success: Check 13 verified (KaTeX / LaTeX mathematical syntax conforms to markdown rendering rules across all markdown files).
-     Success: Check 13B verified (Mermaid syntax and diagram ergonomics verified across all markdown files).
-     Success: Check 14 verified (Downstream repository contains valid instructions: README.md, AGENTS.md, and rules/sysml-ssot-completeness.md).
-     Success: Check 15 verified (Reconcile backlog tooling exists: target/release/reconcile-backlog, crates/reconcile-backlog, or scripts/reconcile_backlog.sh).
-     Success: Check 16 verified (Upstream template clean landing zone gate passed).
-     Success: Check 17 verified (Safety Integrity Quality Gate: 8 pillars, regulatory objectives mapping, FMECA matrix with AST closure, 4 UCA categories, safety architecture, and toolchain hooks).
-     Success: Check 18 verified (Downstream repository detected -- skipping upstream blueprint domain cleanliness gate).
-     Success: Check 19 verified (Downstream repository detected -- skipping domain-agnostic AST cleanliness gate).
-     Success: Check 20 verified (WBS & Enterprise Deliverables Suite pending or not present).
-     Success: Check 21 verified (Semantic Diagram-to-AST Topology Parity Gate passed -- zero undeclared nodes, inverted flows, or ungrounded actuators).
-     Success: Check 22 verified (Physical Invariant Semantic Prose Gate passed -- zero ungrounded operational assertions).
-     Success: Check 23 verified (Factual Grounding & Numeric Provenance Gate passed -- zero ungrounded assertions).
-     Success: Level 1C ICD Completeness verified (Downstream repository detected -- docs/interfaces/ directory not present).
-     Success: Check 24 verified (Operational-to-Resource Allocation passed -- zero orphan activities or phantom allocation tags).
-     Success: Check 25 verified (Standards & SI 7D Parameter Metrology passed -- all parameter dimensions, units, and SDO baselines valid).
-     Success: Check 25 verified (Cross-Document Diagram Parity Gate passed -- zero disparity in subgraphs, nodes, ports, or connections).
-     Success: Check 26 verified (Downstream repository detected -- docs/conops/ directory not present).
-     Success: Check 27 verified (Cited Research Inventory & Declared-Total Population Register passed).
-     Success: Check 27 verified (Executive Deliverable Traceability Gate passed -- all tables and diagrams anchored to SSOT).
-     Success: Check 28 verified (Coverage-Digest Population Gate passed -- zero phantom realizations).
-     Success: Check 29 verified (Obligation-Witness Registry Gate passed -- zero phantom witnesses).
-     Success: Check 30 verified (Architecture Viewpoint & Diagram Completeness Gate passed -- all 11 canonical diagrams verified).
-     Success: Check 31 verified (Dual-Schema SSOT Parity Gate passed -- schema/*.sysml and .pipeline/schema.sysml AST definitions are identical).
-     Downstream repository root verified (non-framework platform or root orchestration workspace).
-     Concrete specifications detected -- executing Specification Quality & Coverage Audit...
-     Spec audit completed in 258 ms (93 files audited, 0 findings, passed: true)
-     Success: Specification Quality & Coverage Audit passed (93 files audited in 258 ms).
-     ```
+- Command `./target/release/compile-sysml --forward-sync --force`:
+  ```
+  [SysML v2 Forward-Sync] Successfully synchronized 94 specifications to 'docs/'
+  ```
+  Exit code: 0.
 
-5. **Unicode Em Dash (\u2014) & En Dash (\u2013) Verification**:
-   - Zero Unicode em dashes (\u2014) or en dashes (\u2013) across all 94 specification files in `docs/`.
-   - Replaced all 18 Unicode en dashes (\u2013) across non-`.agents/` repository files (`rules/conops-mission-intent-integrity.md`, `rules/platform-independence.md`, `.pipeline/ACTIVE_RULES_BUNDLE.md`, `.pipeline/constitution-amendments.md`, `.pipeline/profiles/react.md`, `skills/feature-driven-implementation/SKILL.md`, `skills/spec-conops-engineering/SKILL.md`, `skills/spec-conops-engineering/resources/units/conops/05_OPERATIONAL_STATE_SPACE_AND_RISK.md`, `skills/spec-icd-engineering/SKILL.md`, `skills/spec-wbs-engineering/SKILL.md`).
-   - Verified that all git-tracked files outside `.agents/` have exactly 0 unicode em dashes (\u2014) and 0 unicode en dashes (\u2013).
+- Command `ls -la docs/use-cases/`:
+  Confirmed 12 normalized Use Case files:
+  - `UC-01-System_Vision_and_Foundational_Invariants.md` (3,466 bytes)
+  - `UC-02-Universal_Schema_Ingestion_Workflow.md` (3,472 bytes)
+  - `UC-03-Node_Arena_Memory_Management_Workflow.md` (3,416 bytes)
+  - `UC-04-SysML_Grammar_Lowering_Workflow.md` (3,410 bytes)
+  - `UC-05-Physical_Metrology_and_Flow_Conservation_Workflow.md` (3,585 bytes)
+  - `UC-06-State_Machine_Solver_Workflow.md` (3,480 bytes)
+  - `UC-07-Safety_Assurance_and_Traceability_Workflow.md` (3,472 bytes)
+  - `UC-08-ICD_Interconnect_Contract_Generation_Workflow.md` (3,475 bytes)
+  - `UC-09-Agile_Specification_Projection_Workflow.md` (3,511 bytes)
+  - `UC-10-Multi_Target_CodeGen_Workflow.md` (3,344 bytes)
+  - `UC-11-Diagnostic_Catalog_Triage_Workflow.md` (3,421 bytes)
+  - `UC-12-Compiler_Performance_Assurance_Workflow.md` (3,429 bytes)
 
-6. **Git Commit & Remote Synchronization**:
-   - Neutral citation commit: `feat(spec-core): enforce native metadata tables and clean taxonomy (refs #115)`.
-   - Pushed to `origin/main` and verified `git diff origin/main` is clean.
+- Verification of `docs/use-cases/UC-*-UC_*.md`:
+  `ls docs/use-cases/UC-*-UC_*.md` -> `no matches found` (0 legacy files remain).
+
+- Content spot-check of `docs/use-cases/UC-01-System_Vision_and_Foundational_Invariants.md`:
+  * Line 3: `| **Issue ID** | #95 |`
+  * Line 4: `| **Title** | Use Case 01: System Vision and Foundational Invariants |`
+  * Line 10: `| **Specification Source** | [schema/subsystems/system_vision/behavior.sysml](../../schema/subsystems/system_vision/behavior.sysml) |`
+  * Line 12: `# Use Case 01: System Vision and Foundational Invariants`
+  * Lines 30-37: Numbered steps 1 to 6 in Main Success Scenario.
+  * Lines 38-48: Full 5a through 5j exception flows present.
+  * Lines 53-58: Realization Matrix linking to User Story #89 and Feature #15.
+
+- Content spot-check across all 12 Use Cases (`head -n 13 docs/use-cases/*.md`):
+  All 12 files possess preserved Issue IDs (#95 through #106), normalized titles without `UC XX` prefix stutter, and dynamic subsystem behavior links.
+
+- Epic checklist link audit (`grep -rn "use-cases/" docs/epics/`):
+  Confirmed all Epic checklist references point to the clean filenames and clean titles, e.g.:
+  * `docs/epics/EPIC-03-SystemVision.md:25`: `- [ ] #95 - [Use Case 01: System Vision and Foundational Invariants](../use-cases/UC-01-System_Vision_and_Foundational_Invariants.md)`
+  * `docs/epics/EPIC-14-CompilerAssurance.md:25`: `- [ ] #106 - [Use Case 12: Compiler Performance Assurance Workflow](../use-cases/UC-12-Compiler_Performance_Assurance_Workflow.md)`
+  * `docs/epics/EPIC-02-ConOps.md:26-37`: References all 12 clean Use Cases.
 
 ## 2. Logic Chain
-1. *Compilation & Regeneration*: Based on Observation 1 and 2, running `cargo build --release --workspace` compiled the toolchain, and `./target/release/compile-sysml --forward-sync --force` regenerated all 94 specifications in `docs/` using the updated generator logic emitting CommonMark 2-column metadata tables at lines 1-10 with zero YAML frontmatter.
-2. *Quality Gates*: Based on Observation 3 and 4, `./target/release/verify-baseline . --spec-only` and `./target/release/verify-baseline . --no-domain` passed with 0 findings across all 31 checks, proving compliance with specification metadata integrity, UML model integrity, KaTeX/LaTeX syntax, Mermaid layout ergonomics, and cross-reference matrices.
-3. *Dash Invariant*: Based on Observation 5, all specifications in `docs/` contain 0 unicode dashes, and all tracked project governance, skills, and rules files were scrubbed of unicode en dashes (`\u2013`), leaving 0 unicode dashes across the entire active project codebase.
-4. *Closed-Loop Delivery*: Based on Observation 6, commits adhere to the non-closure citation invariant (`(refs #115)`), successfully pushing to `origin/main` with zero remote diff.
+1. Milestone 1 and 2 implemented grammar doc parsing retention in `crates/compile-sysml/src/parser/grammar.rs` and title normalization / path resolution in `crates/compile-sysml/src/sync/forward.rs`.
+2. Running `cargo build --release --workspace` compiled those code changes into `./target/release/compile-sysml`.
+3. Running `git rm docs/use-cases/UC-*-UC_*.md` cleared out all stale files that previously had repeating prefix names (`UC-XX-UC_XX_...`).
+4. Running `./target/release/compile-sysml --compile` and `./target/release/compile-sysml --forward-sync --force` compiled the schemas and regenerated all 94 specification files into `docs/`.
+5. Inspection of `docs/use-cases/` and `docs/epics/` confirms that:
+   - Exactly 12 Use Cases were generated with clean slugified filenames (`UC-01-System_Vision_and_Foundational_Invariants.md` .. `UC-12-Compiler_Performance_Assurance_Workflow.md`).
+   - Title strings are normalized `# Use Case {:02}: <Clean Name>`.
+   - Issue IDs #95 through #106 are preserved in lines 1-10 CommonMark metadata tables.
+   - Specification Source dynamically resolves to `[schema/subsystems/{subsys}/behavior.sysml]`.
+   - Main Success Scenario steps and 5a-5j Alternate/Exception flows are completely populated.
+   - Epic checklist links in `docs/epics/` reference the normalized filenames and titles.
 
 ## 3. Caveats
-- Historical agent logging transcripts from past sessions under `.agents/` retain verbatim historical text and were not modified per the agent workspace isolation rule ("Write only to your folder"). All active project codebase files, specifications, rules, skills, and pipeline assets outside `.agents/` are 100% clean of unicode dashes.
+- `git add docs/use-cases` was executed to stage the new normalized files alongside the deletions.
+- While auditing specification files with `./target/release/verify-baseline . --spec-only`, 6 advisory findings for `[factual-grounding-missing-unit]` were observed on lines like `- 5e. Invariant verification timeout:` due to the linter parsing `5` in `5e.` as a numeric quantity near parameter keyword `timeout`. This is an offline audit rule behavior for Milestone 4 to evaluate.
 
 ## 4. Conclusion
-Milestone 3 is complete and fully verified:
-- Release workspace built cleanly.
-- All 94 specification files synchronized with native CommonMark metadata tables.
-- Specification audit and full baseline audit passed with 0 findings (31/31 gates).
-- Zero em dashes and zero en dashes verified across the active project codebase.
-- Committed with neutral citation `feat(spec-core): enforce native metadata tables and clean taxonomy (refs #115)` and pushed to `origin/main`.
-- `git diff origin/main` verified empty.
+Milestone 3 mission objectives have been completed cleanly and verified. The release binaries were compiled, legacy duplicate Use Case files were purged, all 12 Use Cases and 94 specifications were regenerated from Ground 0, and all titles, metadata tables, scenarios, and Epic checklist links match the required specification format.
 
 ## 5. Verification Method
-1. Build release binaries:
-   `cargo build --release --workspace` (assert exit code 0)
-2. Forward sync regeneration:
-   `./target/release/compile-sysml --forward-sync --force` (assert 94 specifications synchronized)
-3. Specification audit:
-   `./target/release/verify-baseline . --spec-only` (assert 0 findings)
-4. Comprehensive baseline audit:
-   `./target/release/verify-baseline . --no-domain` (assert 31 checks pass)
-5. Zero dash check outside `.agents/`:
-   `python3 -c "import subprocess, sys; files = [f for f in subprocess.run(['git', 'ls-files'], capture_output=True, text=True).stdout.splitlines() if not f.startswith('.agents/')]; bad = [(f, c) for f in files for c in open(f, 'r', errors='ignore').read() if ord(c) in (0x2014, 0x2013)]; assert len(bad) == 0; print('0 violations - PASS')"`
-6. Remote synchronization parity:
-   `git diff origin/main` (assert empty diff)
+To independently verify Milestone 3 deliverables, run:
+```bash
+# 1. Verify existence of exactly 12 normalized Use Cases
+ls -la docs/use-cases/
+
+# 2. Verify 0 legacy files remain
+ls docs/use-cases/UC-*-UC_*.md
+
+# 3. Verify titles and Issue IDs
+head -n 13 docs/use-cases/UC-01-System_Vision_and_Foundational_Invariants.md
+head -n 13 docs/use-cases/UC-12-Compiler_Performance_Assurance_Workflow.md
+
+# 4. Verify Epic checklist links
+grep -rn "use-cases/" docs/epics/
+```

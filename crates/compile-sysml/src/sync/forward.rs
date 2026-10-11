@@ -72,6 +72,27 @@ fn to_display_name(s: &str) -> String {
     result.trim().to_string()
 }
 
+/// Strips redundant leading prefixes (e.g., `UC_01_`, `UC-01-`, `UC01_`) from a Use Case name.
+fn strip_use_case_prefix(name: &str) -> &str {
+    let s = name.trim();
+    if s.len() >= 2 && s[..2].eq_ignore_ascii_case("uc") {
+        let rest = &s[2..];
+        let rest = rest.strip_prefix('_').or_else(|| rest.strip_prefix('-')).unwrap_or(rest);
+        let digit_count = rest.chars().take_while(|c| c.is_ascii_digit()).count();
+        if digit_count > 0 {
+            let after_digits = &rest[digit_count..];
+            let clean = after_digits
+                .strip_prefix('_')
+                .or_else(|| after_digits.strip_prefix('-'))
+                .unwrap_or(after_digits);
+            if !clean.is_empty() {
+                return clean;
+            }
+        }
+    }
+    s
+}
+
 /// Extracts the date from an existing file if present, preserving historical spec dates,
 /// otherwise falls back to the current ISO date.
 fn resolve_date(target_out_dir: &Path, rel_path: &str, fallback_iso: &str) -> String {
@@ -117,47 +138,81 @@ fn resolve_date(target_out_dir: &Path, rel_path: &str, fallback_iso: &str) -> St
     fallback_iso.to_string()
 }
 
+/// Extracts issue ID from raw markdown content if present.
+fn parse_issue_id_from_content(content: &str) -> Option<usize> {
+    for line in content.lines().take(25) {
+        let trimmed = line.trim();
+        if trimmed.starts_with("issue_id:") {
+            let d = trimmed
+                .trim_start_matches("issue_id:")
+                .trim()
+                .trim_matches('"')
+                .trim_matches('\'')
+                .trim_start_matches('#');
+            if let Ok(parsed) = d.parse::<usize>() {
+                if parsed > 0 {
+                    return Some(parsed);
+                }
+            }
+        } else if trimmed.starts_with('|') && trimmed.ends_with('|') {
+            let inner = trimmed.trim_matches('|');
+            let parts: Vec<&str> = inner.split('|').map(|s| s.trim()).collect();
+            if parts.len() >= 2 {
+                let mut key = String::new();
+                for c in parts[0].chars() {
+                    if !matches!(c, '*' | '`' | '_' | ':' | '#') {
+                        key.push(c);
+                    }
+                }
+                let key = key.trim().to_lowercase().replace(' ', "_").replace('-', "_");
+                if key == "issue_id" || key == "issue" || key == "id" {
+                    let d = parts[1]
+                        .trim()
+                        .trim_matches('*')
+                        .trim_matches('`')
+                        .trim_matches('"')
+                        .trim_matches('\'')
+                        .trim_start_matches('#')
+                        .trim();
+                    if let Ok(parsed) = d.parse::<usize>() {
+                        if parsed > 0 {
+                            return Some(parsed);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
 /// Extracts issue ID from an existing file if present, preserving historical issue links.
+/// If rel_path does not exist on disk, attempts prefix lookup for renamed files (e.g., `UC-01-*.md`).
 fn resolve_issue_id(target_out_dir: &Path, rel_path: &str, fallback_id: usize) -> usize {
     let full = target_out_dir.join(rel_path);
     if let Ok(content) = fs::read_to_string(&full) {
-        for line in content.lines().take(25) {
-            let trimmed = line.trim();
-            if trimmed.starts_with("issue_id:") {
-                let d = trimmed
-                    .trim_start_matches("issue_id:")
-                    .trim()
-                    .trim_matches('"')
-                    .trim_matches('\'')
-                    .trim_start_matches('#');
-                if let Ok(parsed) = d.parse::<usize>() {
-                    if parsed > 0 {
-                        return parsed;
-                    }
-                }
-            } else if trimmed.starts_with('|') && trimmed.ends_with('|') {
-                let inner = trimmed.trim_matches('|');
-                let parts: Vec<&str> = inner.split('|').map(|s| s.trim()).collect();
-                if parts.len() >= 2 {
-                    let mut key = String::new();
-                    for c in parts[0].chars() {
-                        if !matches!(c, '*' | '`' | '_' | ':' | '#') {
-                            key.push(c);
-                        }
-                    }
-                    let key = key.trim().to_lowercase().replace(' ', "_").replace('-', "_");
-                    if key == "issue_id" || key == "issue" || key == "id" {
-                        let d = parts[1]
-                            .trim()
-                            .trim_matches('*')
-                            .trim_matches('`')
-                            .trim_matches('"')
-                            .trim_matches('\'')
-                            .trim_start_matches('#')
-                            .trim();
-                        if let Ok(parsed) = d.parse::<usize>() {
-                            if parsed > 0 {
-                                return parsed;
+        if let Some(id) = parse_issue_id_from_content(&content) {
+            return id;
+        }
+    }
+    // Prefix lookup for renamed files (e.g., UC-01-*.md)
+    if let Some(parent) = Path::new(rel_path).parent() {
+        if let Some(file_name) = Path::new(rel_path).file_name().and_then(|f| f.to_str()) {
+            let prefix_end = file_name.find('-').and_then(|first_dash| {
+                file_name[first_dash + 1..].find('-').map(|second_dash| first_dash + 1 + second_dash + 1)
+            });
+            if let Some(prefix_len) = prefix_end {
+                let prefix = &file_name[..prefix_len];
+                let dir_path = target_out_dir.join(parent);
+                if let Ok(entries) = fs::read_dir(&dir_path) {
+                    for entry in entries.flatten() {
+                        let name = entry.file_name();
+                        let name_str = name.to_string_lossy();
+                        if name_str.starts_with(prefix) && name_str.ends_with(".md") {
+                            if let Ok(content) = fs::read_to_string(entry.path()) {
+                                if let Some(id) = parse_issue_id_from_content(&content) {
+                                    return id;
+                                }
                             }
                         }
                     }
@@ -350,6 +405,164 @@ fn generate_class_diagram(part: &PartDef) -> String {
 
     lines.join("\n")
 }
+
+/// Generates a compliant UML Use Case diagram with system boundary, stadium-shaped use case nodes,
+/// external actors outside boundary, and undirected associations.
+fn generate_use_case_diagram(
+    primary_actor: &str,
+    subject: &str,
+    clean_title: &str,
+    main_scenario: &[String],
+) -> String {
+    let mut lines = Vec::new();
+    lines.push("graph TD".to_string());
+    lines.push(format!("    subgraph \"{} System Boundary\"", subject));
+    lines.push(format!("        UC_Main([\"{}\"])", clean_title));
+
+    let mut step_ids = Vec::new();
+    for (idx, step) in main_scenario.iter().enumerate().take(6) {
+        let step_id = format!("UC_Step{:02}", idx + 1);
+        let mut clean_step = step.trim().to_string();
+        if let Some(dot_idx) = clean_step.find(". ") {
+            if clean_step[..dot_idx].chars().all(|c| c.is_ascii_digit()) {
+                clean_step = clean_step[dot_idx + 2..].trim().to_string();
+            }
+        }
+        if clean_step.len() > 60 {
+            clean_step.truncate(57);
+            clean_step.push_str("...");
+        }
+        let clean_step = clean_step.replace('"', "'");
+        lines.push(format!("        {}([\"{}\"])", step_id, clean_step));
+        step_ids.push(step_id);
+    }
+    lines.push("    end".to_string());
+
+    let actor_id = sanitize_id(primary_actor);
+    lines.push(format!("    {}((\"{}\")) --- UC_Main", actor_id, primary_actor));
+    for step_id in step_ids {
+        lines.push(format!("    UC_Main -. \"&lt;&lt;include&gt;&gt;\" .-> {}", step_id));
+    }
+
+    lines.join("\n")
+}
+
+/// Generates a Mermaid state machine diagram lowered from PackageDef state_defs or falls back to system lifecycle modes.
+fn generate_epic_statechart(p: &PackageDef) -> String {
+    if let Some(st_def) = p.state_defs.first() {
+        let mut lines = Vec::new();
+        lines.push("stateDiagram-v2".to_string());
+        let mut source_states = HashSet::new();
+        let mut target_states = HashSet::new();
+
+        for trans in &st_def.transitions {
+            let t_name = trans.name.as_deref().unwrap_or("");
+            if let Some(first_idx) = t_name.find("first ") {
+                let after_first = &t_name[first_idx + 6..];
+                let src_candidate = after_first.split_whitespace().next().unwrap_or("");
+                if let Some(then_idx) = after_first.find("then ") {
+                    let after_then = &after_first[then_idx + 5..];
+                    let tgt_candidate = after_then.split_whitespace().next().unwrap_or("");
+                    if !src_candidate.is_empty() && !tgt_candidate.is_empty() {
+                        let src = if src_candidate == "entry" { "[*]" } else { src_candidate };
+                        let tgt = tgt_candidate;
+                        lines.push(format!("    {} --> {}", src, tgt));
+                        if src != "[*]" {
+                            source_states.insert(src.to_string());
+                        }
+                        target_states.insert(tgt.to_string());
+                    }
+                }
+            }
+        }
+
+        // Add terminal transition for any target state that is not a source state
+        for tgt in &target_states {
+            if !source_states.contains(tgt) {
+                lines.push(format!("    {} --> [*]", tgt));
+            }
+        }
+
+        if lines.len() > 1 {
+            return lines.join("\n");
+        }
+    }
+
+    // Default canonical lifecycle state machine for root / conops
+    r#"stateDiagram-v2
+    [*] --> Bootstrapping
+    Bootstrapping --> Ingesting : dispatch
+    Ingesting --> Compiling : parse_complete
+    Compiling --> Verifying : ast_lowered
+    Verifying --> EmitSuccess : pass
+    Compiling --> FaultTerminated : error
+    Verifying --> FaultTerminated : fail
+    EmitSuccess --> [*]"#.to_string()
+}
+
+/// Generates an expanded Mermaid class diagram for an Epic including constituent part defs,
+/// port defs, attributes, and composition relationships.
+fn generate_epic_class_diagram(p: &PackageDef, primary_engine: &str, is_root: bool) -> String {
+    let mut lines = Vec::new();
+    lines.push("classDiagram".to_string());
+
+    if is_root {
+        lines.push("    class DEAPCompilerSystem".to_string());
+        for subpart in &p.part_defs {
+            if subpart.name != "DEAPCompilerSystem" {
+                lines.push(format!("    class {}", subpart.name));
+                lines.push(format!("    DEAPCompilerSystem --> {} : contains", subpart.name));
+            }
+        }
+        return lines.join("\n");
+    }
+
+    lines.push("    class DEAPCompilerSystem".to_string());
+
+    for part in &p.part_defs {
+        let has_members = !part.ports.is_empty() || !part.attributes.is_empty() || !part.operations.is_empty();
+        if has_members {
+            lines.push(format!("    class {} {{", part.name));
+            for port in &part.ports {
+                let dir_prefix = if port.direction == "in" {
+                    "in"
+                } else if port.direction == "out" {
+                    "out"
+                } else {
+                    "inout"
+                };
+                let p_type = if port.type_name.is_empty() { "Port" } else { &port.type_name };
+                lines.push(format!("        +{} {} ({})", p_type, port.name, dir_prefix));
+            }
+            for attr in &part.attributes {
+                let a_type = if attr.type_name.is_empty() { "String" } else { &attr.type_name };
+                lines.push(format!("        +{} {}", a_type, attr.name));
+            }
+            for op in &part.operations {
+                let ret = op.return_type.as_deref().unwrap_or("void");
+                lines.push(format!("        +{}() {}", op.name, ret));
+            }
+            lines.push("    }".to_string());
+        } else {
+            lines.push(format!("    class {}", part.name));
+        }
+    }
+
+    lines.push(format!("    DEAPCompilerSystem --> {} : contains", primary_engine));
+
+    for part in &p.part_defs {
+        if part.name != primary_engine {
+            lines.push(format!("    {} --> {} : coordinates", primary_engine, part.name));
+        }
+        for subpart in &part.parts {
+            let target_type = subpart.type_name.as_deref().unwrap_or(&subpart.name);
+            lines.push(format!("    {} --> {} : {}", part.name, target_type, subpart.name));
+        }
+    }
+
+    lines.join("\n")
+}
+
 
 /// Structured use case sections parsed from doc comments.
 #[derive(Debug, Default)]
@@ -550,9 +763,14 @@ pub fn forward_sync_sysml_to_specs(
     struct StoryMeta {
         action_name: String,
         engine_name: String,
+        caller_engine: String,
+        reply_msg: String,
+        interaction_name: String,
         subsys_display: String,
         pkg_name: String,
+        subsys_dir: String,
         engine_feat_num: usize,
+        caller_feat_num: Option<usize>,
         s_num: usize,
     }
 
@@ -566,7 +784,8 @@ pub fn forward_sync_sysml_to_specs(
             None => continue,
         };
         let subsys_display = to_display_name(&p.name);
-        let engine_name = p
+        let subsys_dir = to_snake_case(&p.name);
+        let default_engine_name = p
             .part_defs
             .iter()
             .find(|part| part.name.ends_with("Engine"))
@@ -578,19 +797,62 @@ pub fn forward_sync_sysml_to_specs(
                     .unwrap_or_else(|| "DEAPCompilerSystem".to_string())
             });
 
-        let engine_feat_num = part_contexts
+        let mut caller_engine = "DEAPCompilerSystem".to_string();
+        let mut target_engine = default_engine_name.clone();
+        let mut reply_msg = "OperationComplete".to_string();
+        let mut interaction_name = action_name.clone();
+
+        if let Some(inter) = p.interaction_defs.first() {
+            interaction_name = inter.name.clone();
+            if inter.lifelines.len() >= 2 {
+                let l0 = &inter.lifelines[0];
+                if let Some((_, type_name)) = l0.split_once(':') {
+                    caller_engine = type_name.trim().to_string();
+                }
+                let l1 = &inter.lifelines[1];
+                if let Some((_, type_name)) = l1.split_once(':') {
+                    target_engine = type_name.trim().to_string();
+                }
+            }
+            if inter.messages.len() >= 2 {
+                let m1 = &inter.messages[1];
+                if let Some(first_word) = m1.split_whitespace().next() {
+                    reply_msg = first_word.to_string();
+                }
+            }
+        }
+
+        let default_engine_feat_num = part_contexts
             .iter()
-            .position(|ctx| ctx.part.name == engine_name)
+            .position(|ctx| ctx.pkg_name == p.name && ctx.part.name == default_engine_name)
+            .or_else(|| part_contexts.iter().position(|ctx| ctx.part.name == default_engine_name))
             .map(|pos| pos + 1)
             .unwrap_or(1);
+
+        let engine_feat_num = part_contexts
+            .iter()
+            .position(|ctx| ctx.pkg_name == p.name && ctx.part.name == target_engine)
+            .or_else(|| part_contexts.iter().position(|ctx| ctx.part.name == target_engine))
+            .map(|pos| pos + 1)
+            .unwrap_or(default_engine_feat_num);
+
+        let caller_feat_num = part_contexts
+            .iter()
+            .position(|ctx| ctx.part.name == caller_engine)
+            .map(|pos| pos + 1);
 
         let s_num = story_metas.len() + 1;
         story_metas.push(StoryMeta {
             action_name,
-            engine_name,
+            engine_name: target_engine,
+            caller_engine,
+            reply_msg,
+            interaction_name,
             subsys_display,
             pkg_name: p.name.clone(),
+            subsys_dir,
             engine_feat_num,
+            caller_feat_num,
             s_num,
         });
     }
@@ -598,6 +860,7 @@ pub fn forward_sync_sysml_to_specs(
     struct UseCaseMeta<'a> {
         uc: &'a UseCaseDef,
         pkg_name: String,
+        subsys_dir: String,
         engine_name: String,
         engine_feat_num: usize,
         u_num: usize,
@@ -609,6 +872,13 @@ pub fn forward_sync_sysml_to_specs(
         if p.name == "DEAP_Compiler_System" || p.name == "ConOps" || p.name == "SysML_Model" || p.name == pkg.name {
             continue;
         }
+        let subsys_dir = if p.name == "DEAP_Compiler_System" || p.name == "SysML_Model" {
+            "architecture".to_string()
+        } else if p.name == "ConOps" {
+            "conops".to_string()
+        } else {
+            to_snake_case(&p.name)
+        };
         let default_engine_name = p
             .part_defs
             .iter()
@@ -659,6 +929,7 @@ pub fn forward_sync_sysml_to_specs(
             uc_metas.push(UseCaseMeta {
                 uc,
                 pkg_name: p.name.clone(),
+                subsys_dir: subsys_dir.clone(),
                 engine_name,
                 engine_feat_num,
                 u_num,
@@ -746,12 +1017,13 @@ pub fn forward_sync_sysml_to_specs(
         // Associated use cases and user stories
         let mut assoc_uc = Vec::new();
         for uc_m in uc_metas.iter().filter(|m| m.pkg_name == p.name || is_conops) {
-            let uc_slug = sanitize_id(&uc_m.uc.name);
+            let clean_name = strip_use_case_prefix(&uc_m.uc.name);
+            let uc_slug = sanitize_id(clean_name);
             let uc_path = format!("use-cases/UC-{:02}-{}.md", uc_m.u_num, uc_slug);
             let uc_issue = resolve_issue_id(&target_out_dir, &uc_path, 94 + uc_m.u_num);
             assoc_uc.push(format!(
                 "- [ ] #{} - [Use Case {:02}: {}](../use-cases/UC-{:02}-{}.md)",
-                uc_issue, uc_m.u_num, to_display_name(&uc_m.uc.name), uc_m.u_num, uc_slug
+                uc_issue, uc_m.u_num, to_display_name(clean_name), uc_m.u_num, uc_slug
             ));
         }
 
@@ -805,6 +1077,9 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
             )
         };
 
+        let class_diagram_block = generate_epic_class_diagram(p, &primary_engine, is_root);
+        let state_diagram_block = generate_epic_statechart(p);
+
         let content = format!(
             r#"| Attribute | Specification Detail |
 | :--- | :--- |
@@ -847,24 +1122,13 @@ Safety-critical invariant satisfaction, formal trace matrix closure, and zero ha
 ## System-Level UML Class Diagram
 
 ```mermaid
-classDiagram
-    class DEAPCompilerSystem
-    class {primary_engine}
-    DEAPCompilerSystem --> {primary_engine} : contains
+{class_diagram_block}
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+{state_diagram_block}
 ```
 "#,
             title = title,
@@ -877,6 +1141,8 @@ stateDiagram-v2
             assoc_us_text = assoc_us_text,
             primary_engine = primary_engine,
             source_refs = source_refs,
+            class_diagram_block = class_diagram_block,
+            state_diagram_block = state_diagram_block,
         );
 
         generated_files.insert(rel_path, content);
@@ -1032,25 +1298,84 @@ Component behavior and interface definitions derive from `schema/model.sysml` pu
 
         let action_name = &s_meta.action_name;
         let engine_name = &s_meta.engine_name;
+        let caller_engine = &s_meta.caller_engine;
+        let reply_msg = &s_meta.reply_msg;
+        let interaction_name = &s_meta.interaction_name;
         let engine_feat_num = s_meta.engine_feat_num;
         let subsys_display = &s_meta.subsys_display;
+        let subsys_dir = &s_meta.subsys_dir;
 
         let seq_diagram = format!(
             r#"sequenceDiagram
     autonumber
     actor HumanEngineer
-    participant DEAPCompilerSystem
+    participant {caller_engine}
     participant {engine_name}
-    HumanEngineer->>DEAPCompilerSystem: {action_name}()
-    DEAPCompilerSystem->>{engine_name}: {action_name}()
-    {engine_name}-->>DEAPCompilerSystem: OperationComplete
-    DEAPCompilerSystem-->>HumanEngineer: StatusReport"#
+    HumanEngineer->>{caller_engine}: {action_name}()
+    {caller_engine}->>{engine_name}: {action_name}()
+    {engine_name}-->>{caller_engine}: {reply_msg}
+    {caller_engine}-->>HumanEngineer: StatusReport"#
         );
 
-        let req_features = format!(
-            "- [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)\n- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)\n- [ ] [Feature {:02}: [{}] {}](../features/FEAT-{:02}-{}.md)",
-            engine_feat_num, subsys_display, engine_name, engine_feat_num, engine_name
-        );
+        let mut req_features_list = Vec::new();
+        req_features_list.push("- [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)".to_string());
+        if let Some(c_num) = s_meta.caller_feat_num {
+            let c_subsys = part_contexts.get(c_num - 1).map(|c| c.subsys_display.as_str()).unwrap_or("Architecture");
+            req_features_list.push(format!(
+                "- [ ] [Feature {:02}: [{}] {}](../features/FEAT-{:02}-{}.md)",
+                c_num, c_subsys, caller_engine, c_num, caller_engine
+            ));
+        }
+        if caller_engine != engine_name {
+            req_features_list.push(format!(
+                "- [ ] [Feature {:02}: [{}] {}](../features/FEAT-{:02}-{}.md)",
+                engine_feat_num, subsys_display, engine_name, engine_feat_num, engine_name
+            ));
+        }
+        let req_features = req_features_list.join("\n");
+
+        let parent_epic_link = {
+            let ep_idx = ordered_packages
+                .iter()
+                .position(|p| p.name == s_meta.pkg_name)
+                .map(|idx| idx + 1)
+                .unwrap_or(2);
+            if ep_idx == 2 {
+                "[EPIC-02-ConOps](../epics/EPIC-02-ConOps.md)".to_string()
+            } else {
+                format!(
+                    "[EPIC-{:02}-{}](../epics/EPIC-{:02}-{}.md)",
+                    ep_idx, s_meta.pkg_name, ep_idx, s_meta.pkg_name
+                )
+            }
+        };
+
+        let spec_source = if subsys_dir == "conops" {
+            "[schema/conops/activities.sysml](../../schema/conops/activities.sysml)".to_string()
+        } else {
+            format!(
+                "[schema/subsystems/{subsys_dir}/behavior.sysml](../../schema/subsystems/{subsys_dir}/behavior.sysml)",
+                subsys_dir = subsys_dir
+            )
+        };
+
+        let source_refs = if subsys_dir == "conops" {
+            r#"- ConOps Operational Activities: `schema/conops/activities.sysml`
+- System Architecture Model: `schema/model.sysml`
+- Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
+
+Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148."#.to_string()
+        } else {
+            format!(
+                r#"- Subsystem Behavior Specification: `schema/subsystems/{subsys_dir}/behavior.sysml`
+- ConOps Operational Activities: `schema/conops/activities.sysml`
+- System Architecture Model: `schema/model.sysml`
+- Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
+
+Authoritative user story flows and interaction lifelines derive from `schema/subsystems/{subsys_dir}/behavior.sysml` pursuant to ISO/IEC/IEEE 29148."#,
+                subsys_dir = subsys_dir
+            )
+        };
 
         let content = format!(
             r#"| Attribute | Specification Detail |
@@ -1058,11 +1383,11 @@ Component behavior and interface definitions derive from `schema/model.sysml` pu
 | **Issue ID** | #{us_issue_id} |
 | **Title** | {title} |
 | **Type** | user-story |
-| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `{action_name}` |
+| **Parent Epic** | {parent_epic_link} |
+| **SysML Interaction** | `{interaction_name}` |
 | **SysML Test Case** | `Test_{action_name}` |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | {spec_source} |
 
 # {title}
 
@@ -1082,19 +1407,19 @@ Component behavior and interface definitions derive from `schema/model.sysml` pu
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
-- ConOps Operational Activities: `schema/conops/activities.sysml`
-- System Architecture Model: `schema/model.sysml`
-- Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
-
-Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+{source_refs}
 "#,
             title = title,
             action_name = action_name,
             engine_name = engine_name,
             us_issue_id = us_issue_id,
+            parent_epic_link = parent_epic_link,
+            interaction_name = interaction_name,
+            spec_source = spec_source,
             seq_diagram = seq_diagram,
             s_num = s_num,
             req_features = req_features,
+            source_refs = source_refs,
         );
 
         generated_files.insert(rel_path, content);
@@ -1103,11 +1428,12 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
     // 4. Use Cases (UC-*.md) dynamically lowered from UseCaseDef nodes
     for uc_m in &uc_metas {
         let u_num = uc_m.u_num;
-        let uc_slug = sanitize_id(&uc_m.uc.name);
+        let clean_name = strip_use_case_prefix(&uc_m.uc.name);
+        let uc_slug = sanitize_id(clean_name);
         let rel_path = format!("use-cases/UC-{:02}-{}.md", u_num, uc_slug);
         let _uc_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
         let uc_issue_id = resolve_issue_id(&target_out_dir, &rel_path, u_num + 94);
-        let title = format!("Use Case {:02}: {}", u_num, to_display_name(&uc_m.uc.name));
+        let title = format!("Use Case {:02}: {}", u_num, to_display_name(clean_name));
 
         let parsed_doc = parse_use_case_doc(uc_m.uc.doc.as_deref());
 
@@ -1145,7 +1471,7 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
         let trigger = if !parsed_doc.trigger.is_empty() {
             format!("- {}", parsed_doc.trigger)
         } else {
-            format!("- Operational workflow command dispatched for {}.", uc_m.uc.name)
+            format!("- Operational workflow command dispatched for {}.", to_display_name(clean_name))
         };
 
         let main_scenario = if !parsed_doc.main_scenario.is_empty() {
@@ -1224,6 +1550,36 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
             us_row, feat_row
         );
 
+        let clean_title_display = to_display_name(clean_name);
+        let uc_diagram = generate_use_case_diagram(&primary_actor, subject, &clean_title_display, &parsed_doc.main_scenario);
+
+        let spec_source = if uc_m.subsys_dir == "conops" {
+            "[schema/conops/activities.sysml](../../schema/conops/activities.sysml)".to_string()
+        } else {
+            format!(
+                "[schema/subsystems/{subsys_dir}/behavior.sysml](../../schema/subsystems/{subsys_dir}/behavior.sysml)",
+                subsys_dir = uc_m.subsys_dir
+            )
+        };
+
+        let source_refs = if uc_m.subsys_dir == "conops" {
+            r#"- ConOps Operational Activities: `schema/conops/activities.sysml`
+- System Architecture Model: `schema/model.sysml`
+- Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
+
+Operational use case realization and traceability links derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148."#.to_string()
+        } else {
+            format!(
+                r#"- Subsystem Behavior Specification: `schema/subsystems/{subsys_dir}/behavior.sysml`
+- ConOps Operational Activities: `schema/conops/activities.sysml`
+- System Architecture Model: `schema/model.sysml`
+- Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
+
+Operational use case realization and traceability links derive from `schema/subsystems/{subsys_dir}/behavior.sysml` pursuant to ISO/IEC/IEEE 29148."#,
+                subsys_dir = uc_m.subsys_dir
+            )
+        };
+
         let content = format!(
             r#"| Attribute | Specification Detail |
 | :--- | :--- |
@@ -1234,15 +1590,14 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
 | **Scope** | {subject} |
 | **Level** | User Goal |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | {spec_source} |
 
 # {title}
 
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["{primary_actor}"] --> Target["{subject}"]
+{uc_diagram}
 ```
 
 ## 1. Actors
@@ -1267,22 +1622,21 @@ flowchart TD
 {realization_matrix_table}
 ## Source References
 Use case operational flows and lifecycle activity references:
-- ConOps Operational Activities: `schema/conops/activities.sysml`
-- System Architecture Model: `schema/model.sysml`
-- Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
-
-Operational use case realization and traceability links derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+{source_refs}
 "#,
             title = title,
             subject = subject,
             uc_issue_id = uc_issue_id,
             primary_actor = primary_actor,
+            spec_source = spec_source,
+            uc_diagram = uc_diagram,
             preconditions = preconditions,
             trigger = trigger,
             main_scenario = main_scenario,
             alternate_flows = alternate_flows,
             postconditions = postconditions,
             realization_matrix_table = realization_matrix_table,
+            source_refs = source_refs,
         );
 
         generated_files.insert(rel_path, content);
@@ -1718,6 +2072,176 @@ mod tests {
             lines.len() >= 3 && lines.len() <= 10,
             "Criteria count must be between 3 and 10, got: {}",
             lines.len()
+        );
+    }
+
+    #[test]
+    fn test_strip_use_case_prefix_variations() {
+        assert_eq!(
+            strip_use_case_prefix("UC_01_System_Vision_and_Foundational_Invariants"),
+            "System_Vision_and_Foundational_Invariants"
+        );
+        assert_eq!(
+            strip_use_case_prefix("UC-02-Universal_Schema_Ingestion_Workflow"),
+            "Universal_Schema_Ingestion_Workflow"
+        );
+        assert_eq!(
+            strip_use_case_prefix("UC03_Node_Arena_Memory_Management_Workflow"),
+            "Node_Arena_Memory_Management_Workflow"
+        );
+        assert_eq!(
+            strip_use_case_prefix("UC_Alpha_Workflow"),
+            "UC_Alpha_Workflow"
+        );
+    }
+
+    #[test]
+    fn test_generate_use_case_diagram_model_integrity() {
+        let scenario = vec![
+            "1. Actor initiates task".to_string(),
+            "2. Engine validates model".to_string(),
+        ];
+        let diag = generate_use_case_diagram(
+            "CIContinuousIntegrationRunner",
+            "StateMachineSolverEngine",
+            "State Machine Solver Workflow",
+            &scenario,
+        );
+
+        assert!(diag.contains("graph TD"));
+        assert!(diag.contains("subgraph \"StateMachineSolverEngine System Boundary\""));
+        assert!(diag.contains("UC_Main([\"State Machine Solver Workflow\"])"));
+        assert!(diag.contains("UC_Step01([\"Actor initiates task\"])"));
+        assert!(diag.contains("UC_Step02([\"Engine validates model\"])"));
+        assert!(diag.contains("end"));
+        assert!(diag.contains("CIContinuousIntegrationRunner((\"CIContinuousIntegrationRunner\")) --- UC_Main"));
+        assert!(diag.contains("UC_Main -. \"&lt;&lt;include&gt;&gt;\" .-> UC_Step01"));
+    }
+
+    #[test]
+    fn test_epic_statechart_and_class_diagram_generation() {
+        use deap_core::sysml_ast::{AttributeDef, PortDef, StateDef, TransitionDef};
+
+        let mut pkg = PackageDef {
+            name: "SpatioTemporalStateSolvers".to_string(),
+            ..Default::default()
+        };
+        let mut st_def = StateDef {
+            name: "StateSolverExecutionStatechart".to_string(),
+            ..Default::default()
+        };
+        st_def.transitions.push(TransitionDef {
+            name: Some("InitialToIngest first entry then IngestingStates".to_string()),
+            ..Default::default()
+        });
+        st_def.transitions.push(TransitionDef {
+            name: Some("IngestToSolve first IngestingStates then Solved".to_string()),
+            ..Default::default()
+        });
+        pkg.state_defs.push(st_def);
+
+        let mut engine = PartDef {
+            name: "StateMachineSolverEngine".to_string(),
+            ..Default::default()
+        };
+        engine.ports.push(PortDef {
+            name: "stream_in".to_string(),
+            direction: "in".to_string(),
+            type_name: "ASTStreamPort".to_string(),
+            ..Default::default()
+        });
+        engine.attributes.push(AttributeDef {
+            name: "recursion_depth".to_string(),
+            type_name: "Integer".to_string(),
+            ..Default::default()
+        });
+        pkg.part_defs.push(engine);
+
+        let helper = PartDef {
+            name: "StateHierarchyFlattener".to_string(),
+            ..Default::default()
+        };
+        pkg.part_defs.push(helper);
+
+        let statechart = generate_epic_statechart(&pkg);
+        assert!(statechart.contains("stateDiagram-v2"));
+        assert!(statechart.contains("[*] --> IngestingStates"));
+        assert!(statechart.contains("IngestingStates --> Solved"));
+        assert!(statechart.contains("Solved --> [*]"));
+
+        let class_diag = generate_epic_class_diagram(&pkg, "StateMachineSolverEngine", false);
+        assert!(class_diag.contains("classDiagram"));
+        assert!(class_diag.contains("class StateMachineSolverEngine {"));
+        assert!(class_diag.contains("+ASTStreamPort stream_in (in)"));
+        assert!(class_diag.contains("+Integer recursion_depth"));
+        assert!(class_diag.contains("DEAPCompilerSystem --> StateMachineSolverEngine : contains"));
+        assert!(class_diag.contains("StateMachineSolverEngine --> StateHierarchyFlattener : coordinates"));
+    }
+
+    #[test]
+    fn test_user_story_subsystem_parent_epic_and_dynamic_spec_source() {
+        use deap_core::sysml_ast::{ActionDef, InteractionDef};
+
+        let mut root = PackageDef {
+            name: "DEAP_Compiler_System".to_string(),
+            ..Default::default()
+        };
+        let mut sub = PackageDef {
+            name: "SpatioTemporalStateSolvers".to_string(),
+            ..Default::default()
+        };
+        sub.part_defs.push(PartDef {
+            name: "StateMachineSolverEngine".to_string(),
+            ..Default::default()
+        });
+        sub.action_defs.push(ActionDef {
+            name: "SolveStateDynamicsAction".to_string(),
+            ..Default::default()
+        });
+        sub.interaction_defs.push(InteractionDef {
+            name: "StateSolverInteraction".to_string(),
+            lifelines: vec![
+                "grammar : GrammarLoweringEngine".to_string(),
+                "solver : StateMachineSolverEngine".to_string(),
+            ],
+            messages: vec![
+                "SubmitModel from grammar to solver".to_string(),
+                "StateOutput from solver to grammar".to_string(),
+            ],
+            ..Default::default()
+        });
+        root.packages.push(sub);
+
+        let opts = ForwardSyncOptions {
+            schema_path: PathBuf::from("schema/test.sysml"),
+            docs_dir: PathBuf::from("docs"),
+            out_dir: None,
+            dry_run: true,
+            force: true,
+        };
+
+        let generated = forward_sync_sysml_to_specs(&root, &opts).unwrap();
+        let us = generated
+            .iter()
+            .find(|(k, _)| k.contains("US-") && k.contains("SolveStateDynamicsAction"))
+            .map(|(_, v)| v)
+            .expect("User story must be generated");
+
+        assert!(
+            us.contains("[schema/subsystems/spatio_temporal_state_solvers/behavior.sysml]"),
+            "Specification Source must bind to behavior.sysml"
+        );
+        assert!(
+            us.contains("GrammarLoweringEngine->>StateMachineSolverEngine: SolveStateDynamicsAction()"),
+            "Sequence diagram must use interaction lifelines"
+        );
+        assert!(
+            us.contains("StateMachineSolverEngine-->>GrammarLoweringEngine: StateOutput"),
+            "Sequence diagram must return reply message from interaction def"
+        );
+        assert!(
+            us.contains("`StateSolverInteraction`"),
+            "SysML Interaction must match interaction name"
         );
     }
 }

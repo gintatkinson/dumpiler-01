@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 6 Spatio Temporal State Solvers
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #100 - [Use Case 06: UC 06 State Machine Solver Workflow](../use-cases/UC-06-UC_06_State_Machine_Solver_Workflow.md)
+- [ ] #100 - [Use Case 06: State Machine Solver Workflow](../use-cases/UC-06-State_Machine_Solver_Workflow.md)
 
 #### Associated User Stories
 - [ ] #94 - [User Story 06: Solve State Dynamics Action](../user-stories/US-06-SolveStateDynamicsAction.md)

@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 9 Downstream Specification Projections
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #103 - [Use Case 09: UC 09 Agile Specification Projection Workflow](../use-cases/UC-09-UC_09_Agile_Specification_Projection_Workflow.md)
+- [ ] #103 - [Use Case 09: Agile Specification Projection Workflow](../use-cases/UC-09-Agile_Specification_Projection_Workflow.md)
 
 #### Associated User Stories
 - [ ] #97 - [User Story 09: Project Agile Specifications Action](../user-stories/US-09-ProjectAgileSpecificationsAction.md)

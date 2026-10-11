@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 5 7D Physical Metrology Flow Networks
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #99 - [Use Case 05: UC 05 Physical Metrology and Flow Conservation Workflow](../use-cases/UC-05-UC_05_Physical_Metrology_and_Flow_Conservation_Workflow.md)
+- [ ] #99 - [Use Case 05: Physical Metrology and Flow Conservation Workflow](../use-cases/UC-05-Physical_Metrology_and_Flow_Conservation_Workflow.md)
 
 #### Associated User Stories
 - [ ] #93 - [User Story 05: Solve Flows Action](../user-stories/US-05-SolveFlowsAction.md)

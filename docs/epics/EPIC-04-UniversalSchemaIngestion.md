@@ -23,7 +23,7 @@ Structural Architecture for Subsystem 2 Universal Schema Ingestion Engine
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #96 - [Use Case 02: UC 02 Universal Schema Ingestion Workflow](../use-cases/UC-02-UC_02_Universal_Schema_Ingestion_Workflow.md)
+- [ ] #96 - [Use Case 02: Universal Schema Ingestion Workflow](../use-cases/UC-02-Universal_Schema_Ingestion_Workflow.md)
 
 #### Associated User Stories
 - [ ] #90 - [User Story 02: Classify Format Action](../user-stories/US-02-ClassifyFormatAction.md)

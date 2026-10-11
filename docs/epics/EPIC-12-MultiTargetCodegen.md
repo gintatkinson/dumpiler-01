@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 10 Multi Target CodeGen Simulation Binding
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #104 - [Use Case 10: UC 10 Multi Target Code Gen Workflow](../use-cases/UC-10-UC_10_Multi_Target_CodeGen_Workflow.md)
+- [ ] #104 - [Use Case 10: Multi Target Code Gen Workflow](../use-cases/UC-10-Multi_Target_CodeGen_Workflow.md)
 
 #### Associated User Stories
 - [ ] #98 - [User Story 10: Synthesize Code Action](../user-stories/US-10-SynthesizeCodeAction.md)

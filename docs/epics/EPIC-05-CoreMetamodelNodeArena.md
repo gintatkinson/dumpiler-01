@@ -22,7 +22,7 @@ Structural Architecture for Subsystem 3 Core Metamodel Node Arena
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #97 - [Use Case 03: UC 03 Node Arena Memory Management Workflow](../use-cases/UC-03-UC_03_Node_Arena_Memory_Management_Workflow.md)
+- [ ] #97 - [Use Case 03: Node Arena Memory Management Workflow](../use-cases/UC-03-Node_Arena_Memory_Management_Workflow.md)
 
 #### Associated User Stories
 - [ ] #91 - [User Story 03: Allocate Node Action](../user-stories/US-03-AllocateNodeAction.md)

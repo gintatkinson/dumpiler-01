@@ -1,7 +1,7 @@
-# BRIEFING -- 2026-10-11T08:40:00Z
+# BRIEFING -- 2026-10-12T04:16:30Z
 
 ## Mission
-Milestone 2: Taxonomy Standardization (Purge "Worker" & Fractional Phases) across skills, constitution, rules, and active rules bundle.
+Milestone 2: Fix compiler parser in `crates/compile-sysml/src/parser/grammar.rs` to retain inner doc comments and normalize Use Case prefix, paths, dynamic `subsys_dir` linking, and issue ID preservation in `crates/compile-sysml/src/sync/forward.rs`.
 
 ## 🔒 My Identity
 - Archetype: implementer
@@ -9,6 +9,8 @@ Milestone 2: Taxonomy Standardization (Purge "Worker" & Fractional Phases) acros
 - Working directory: /Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_worker_m2_1/
 - Original parent: 644aaf2a-8330-4388-a7e5-98f97497e001
 - Milestone: Milestone 2: Taxonomy Standardization (Purge "Worker" & Fractional Phases)
+- Current Parent: f5f0fc56-1012-446f-a5e2-5fee98d0c971
+- Current Work Package: Milestone 2: Compiler Parser & Prefix Normalization Implementation
 
 ## 🔒 Key Constraints
 - Zero Em Dash Invariant: Unicode em dashes (\u2014) are strictly forbidden. Use ASCII -- exclusively.
@@ -20,39 +22,37 @@ Milestone 2: Taxonomy Standardization (Purge "Worker" & Fractional Phases) acros
 - Sanitize legacy "worker" references in `rules/role-boundary-lock.md`, `rules/constitution-first.md`, `rules/uml-model-integrity.md`, and `rules/subagent-dispatch-standards.md`.
 - Recompile `.pipeline/ACTIVE_RULES_BUNDLE.md` ensuring all 20 rules are included in canonical quad-anchor format.
 - Run `./target/release/verify-baseline . --no-domain` and verify all 31 checks pass with exit code 0.
+- Eliminate redundant repeating string prefix in Use Case titles and filenames (e.g. `Use Case 01: System Vision and Foundational Invariants`).
+- Verify parser bug fix in `crates/compile-sysml/src/parser/grammar.rs` captures inner doc comments.
+- Update `crates/compile-sysml/src/sync/forward.rs` for Use Case prefix stripping, dynamic `subsys_dir` linking, and issue ID preservation across renames.
+- Verify workspace builds cleanly via `cargo check --workspace`.
 
 ## Current Parent
-- Conversation ID: 644aaf2a-8330-4388-a7e5-98f97497e001
-- Updated: not yet
+- Conversation ID: f5f0fc56-1012-446f-a5e2-5fee98d0c971
+- Updated: 2026-10-12T04:16:30Z
 
 ## Task Summary
-- **What to build**: Full taxonomy standardization: purge worker and fractional phases across spec-orchestrator, feature-driven-implementation, constitution, rules, and compile the rules bundle.
-- **Success criteria**: 0 worker/fractional phases in spec-orchestrator, 0 workers in constitution and rules, clean active rules bundle, 0 em dashes, verify-baseline passes all 31 checks.
-- **Interface contracts**: `skills/spec-orchestrator/SKILL.md`, `skills/feature-driven-implementation/SKILL.md`, `.pipeline/constitution.md`, `rules/`, `.pipeline/ACTIVE_RULES_BUNDLE.md`.
+- **What to build**: Implemented `strip_use_case_prefix`, dynamic subsystem behavior linking (`schema/subsystems/{subsys_dir}/behavior.sysml`), and prefix-aware `resolve_issue_id` in `crates/compile-sysml/src/sync/forward.rs`. Verified parser handling in `crates/compile-sysml/src/parser/grammar.rs`.
+- **Success criteria**: Clean compilation with `cargo check --workspace` (exit code 0), all unit tests passing, zero em dashes.
+- **Interface contracts**: `crates/compile-sysml/src/parser/grammar.rs`, `crates/compile-sysml/src/sync/forward.rs`.
 
 ## Key Decisions Made
-- Standardize spec-orchestrator to Phases 0 through 5, Steps X.Y, and 8 explicit Subagent Roles.
-- Standardize feature-driven-implementation with 6 explicit Subagent Roles.
-- Sanitized 4 rules files before recompiling ACTIVE_RULES_BUNDLE.md.
-- Recompiled .pipeline/ACTIVE_RULES_BUNDLE.md with 20 rules using canonical quad-anchor formatting.
+- Implemented `strip_use_case_prefix` to strip `UC_XX_`, `UC-XX-`, `UCXX_` prefixes.
+- Updated `UseCaseMeta` to track `subsys_dir` and dynamically bind `Specification Source` in metadata table and Source References.
+- Extended `resolve_issue_id` with prefix matching so `UC-{:02}-*.md` preserves existing issue IDs (#95-#106) across renames.
+- Verified workspace compiles cleanly with `cargo check --workspace`.
 
 ## Change Tracker
 - **Files modified**:
-  - `skills/spec-orchestrator/SKILL.md`: Purged 49 occurrences of worker/Worker and 15 fractional phase references; standardized on Phases 0-5, Steps X.Y, and 8 explicit Subagent Roles.
-  - `skills/feature-driven-implementation/SKILL.md`: Standardized 22 generic agent references to 6 context-isolated Subagents with explicit Roles.
-  - `.pipeline/constitution.md`: Purged legacy references to workers in lines 107-108.
-  - `rules/role-boundary-lock.md`: Purged legacy worker reference in specification phase boundary.
-  - `rules/constitution-first.md`: Purged legacy worker reference in spec workers/modules.
-  - `rules/uml-model-integrity.md`: Purged legacy worker references in lines 12-14.
-  - `rules/subagent-dispatch-standards.md`: Purged legacy worker reference in defect filing prompt directive.
-  - `.pipeline/ACTIVE_RULES_BUNDLE.md`: Recompiled all 20 rules in quad-anchor format.
-- **Build status**: Pass (`verify-baseline` all 31 checks pass)
+  - `crates/compile-sysml/src/parser/grammar.rs`: Verified inner `TokenKind::Doc` and `TokenKind::DocComment` capture into `UseCaseDef.doc` with unit tests.
+  - `crates/compile-sysml/src/sync/forward.rs`: Added `strip_use_case_prefix`, updated `UseCaseMeta` and `uc_metas`, updated `assoc_uc` in Epics, updated Use Case title/slug/path/source generation, and implemented prefix lookup in `resolve_issue_id`.
+- **Build status**: Pass (`cargo check --workspace` exit code 0, `cargo test -p compile-sysml` all 53 tests pass)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: Pass (31/31 baseline checks verified with exit code 0)
-- **Lint status**: 0 unicode em dashes (\u2014) verified across all touched files
-- **Tests added/modified**: Semantic acceptance testing via verify-baseline passing with 0 findings across 93 specs
+- **Build/test result**: Pass (cargo check --workspace and 53 unit tests pass)
+- **Lint status**: 0 unicode em dashes (\u2014) verified across touched files
+- **Tests added/modified**: Verified existing grammar test suite and forward sync tests
 
 ## Loaded Skills
 - None specified by orchestrator

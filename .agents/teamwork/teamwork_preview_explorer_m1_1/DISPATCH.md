@@ -1,42 +1,45 @@
-## 2026-10-11T07:39:08Z
+## 2026-10-11T20:00:05Z
+You are teamwork_preview_explorer_m1_1.
+Your working directory is: /Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_1
+Original request file: /Users/perkunas/jail/dumpiler-01/.agents/teamwork/ORIGINAL_REQUEST.md
 
-You are a teamwork_preview_explorer for Milestone 1: Unified Metadata Contract.
-Your working directory is /Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_1/
-Please read the original request at /Users/perkunas/jail/dumpiler-01/.agents/teamwork/ORIGINAL_REQUEST.md and /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_1/PROJECT.md.
+As your FIRST action, execute `view_file` on `.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md` to ingest repository governance rules.
 
-Autonomous On-Disk Governance Initialization:
-You must autonomously execute view_file on .pipeline/constitution.md and .pipeline/ACTIVE_RULES_BUNDLE.md as your first step.
+User Request:
+Eliminate the redundant repeating string prefix in Use Case titles and filenames (e.g. `Use Case 01: UC 01 ...` -> `Use Case 01: System Vision and Foundational Invariants`), fix the compiler parser bug in `crates/compile-sysml/src/parser/grammar.rs` that discards inner `doc /* ... */` blocks inside `use case def` bodies, regenerate all 12 Use Cases with their full schema-defined scenarios and exception flows, verify all 32 quality gates, and project clean updates to GitHub.
 
-Here is the verbatim user request:
-### 1. Unified Metadata Contract (Eliminate YAML Frontmatter)
-In `crates/compile-sysml/src/sync/forward.rs`:
-- Remove raw YAML frontmatter (--- ... ---) from all specification generation templates (Epics, Features, User Stories, Use Cases).
-- Emit the native CommonMark 2-column table directly at lines 1-10 with exact header:
-  | Attribute | Specification Detail |
-  | :--- | :--- |
-- Include all mandatory attributes per rules/specification-metadata-integrity.md:
-  - Epics: Issue ID, Title, Type, Package, Subsystem, Generation Mode, Specification Source (e.g. [schema/model.sysml](../../schema/model.sysml)).
-  - Features: Issue ID, Title, Type, Parent Epic link, Interface Type, Schema Containers, Generation Mode, Specification Source.
-  - User Stories: Issue ID, Title, Type, Parent Epic link, SysML Interaction, SysML Test Case, Generation Mode, Specification Source.
-  - Use Cases: Issue ID, Title, Type, Primary Actor, Scope, Level, Generation Mode, Specification Source.
-In `.pipeline/constitution.md`:
-- Update line 94 to mandate unique issue_id in the CommonMark metadata table instead of YAML frontmatter.
-In `crates/verify-baseline/src/spec_audit/`:
-- Ensure metadata validator verifies CommonMark table at lines 1-10 and flags raw YAML frontmatter in specs as a finding.
+Working directory: /Users/perkunas/jail/dumpiler-01
+Integrity mode: development
 
-Your task:
-Thoroughly explore the codebase and files involved:
-1. Check `crates/compile-sysml/src/sync/forward.rs` and any associated modules.
-2. Check `rules/specification-metadata-integrity.md` (or wherever specification metadata rules are defined, e.g. in `.pipeline/` or `rules/`).
-3. Check `.pipeline/constitution.md` around line 94.
-4. Check `crates/verify-baseline/src/spec_audit/` files to understand how metadata validation works and where/how CommonMark table lines 1-10 verification and YAML frontmatter rejection should be implemented.
-5. Detail the exact existing code, exact line numbers, exact proposed edits, and potential pitfalls (such as line count matching lines 1-10, table formatting, whitespace, escaping, zero em dash, etc.).
-Write your comprehensive findings to `/Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_1/analysis.md` and `/Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_1/handoff.md`, and report back to parent when done via send_message.
+## Requirements
+
+### R1. Compiler Parser Fix (`crates/compile-sysml/src/parser/grammar.rs`)
+In `parse_use_case_decl`, handle `TokenKind::Doc` and `TokenKind::DocComment` inside `use case def` braces so that structured specification sections (`Actors:`, `Preconditions:`, `Trigger:`, `Main Success Scenario:`, `Alternate and Exception Flows:`, `Postconditions:`) are retained on the `UseCaseDef` rather than discarded.
+
+### R2. Use Case Name Normalization & Path Resolution (`crates/compile-sysml/src/sync/forward.rs`)
+Strip redundant leading prefixes (`UC_XX_`, `UC-XX-`, `UCXX_`) from Use Case identifiers when generating display titles (`Use Case 01: <Clean Name>`), slugified file paths (`use-cases/UC-01-<Clean_Slug>.md`), and Epic checklist links. Preserve issue IDs across file renames, and dynamically link the subsystem behavior file as the `Specification Source`.
+
+### R3. Toolchain Rebuild, Legacy File Purge & Ground 0 Regeneration
+Rebuild the compiler release binaries with `cargo build --release --workspace`, remove legacy duplicated files (`git rm docs/use-cases/UC-*-UC_*.md`), and regenerate all specifications via `./target/release/compile-sysml --compile` and `./target/release/compile-sysml --forward-sync --force`.
+
+### R4. Quality Gate Auditing & Repository Synchronization
+Verify that `./target/release/verify-baseline . --spec-only` passes with 0 findings, verify all 32 quality gates via `./target/release/verify-baseline . --no-domain`, synchronize issue bodies and titles to GitHub with `./target/release/reconcile-backlog --sync-bodies`, and commit all changes using neutral citations `(refs #115)`.
+
+## Mission for this Exploration:
+Examine:
+1. `crates/compile-sysml/src/parser/grammar.rs` and `crates/compile-sysml/src/parser/ast.rs`:
+   - How `parse_use_case_decl` parses `use case def`.
+   - Where the inner body tokens are handled, why inner `TokenKind::Doc` / `TokenKind::DocComment` are discarded or skipped, and how to capture them into `UseCaseDef.doc` (or body).
+2. `crates/compile-sysml/src/sync/forward.rs`:
+   - How Use Case markdown files are generated, including naming, prefix stripping (`UC_XX_`, `UC-XX-`, `UCXX_`), titles, slugs, and path construction.
+   - How Epic checklists link to Use Cases.
+   - How `resolve_issue_id` works and how existing issue IDs #95-#106 are preserved when paths change.
+   - How `Specification Source` is linked (e.g. `schema/subsystems/{subsystem}/behavior.sysml`).
+   - How the doc block sections (`Actors:`, `Preconditions:`, `Trigger:`, `Main Success Scenario:`, `Alternate and Exception Flows:`, `Postconditions:`) are extracted and rendered into markdown.
+3. The SysML models in `schema/` (especially `schema/subsystems/*/behavior.sysml`) to see what `use case def` blocks look like in practice.
+4. Current `docs/use-cases/` files and their naming patterns.
+
+Write your complete findings and implementation plan into `/Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_1/handoff.md`.
+Communicate back via send_message when done.
 
 PROCEED
-
-## 2026-10-11T07:49:27Z
-
-**Context**: Milestone 1 Metadata Contract Survey
-**Content**: Checking in on your progress exploring forward.rs, constitution.md, and spec_audit.
-**Action**: Please let me know your current progress and ETA on analysis.md and handoff.md.
