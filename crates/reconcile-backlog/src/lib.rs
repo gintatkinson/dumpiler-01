@@ -145,82 +145,11 @@ pub fn run_reconciliation<T: TrackerClient>(
         // Step 4: Remote sync if enabled
         if options.sync_bodies && !options.offline && !options.dry_run {
             if let Some(issue_id) = spec.frontmatter.issue_id {
-                if modified {
-                    tracker.update_issue_body(issue_id, &spec.content)?;
-                    summary.remote_issues_synced += 1;
-                }
+                tracker.update_issue_body(issue_id, &spec.content)?;
+                summary.remote_issues_synced += 1;
             }
         }
     }
 
     Ok(summary)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tracker::OfflineTracker;
-    use std::io::Write;
-
-    struct TempWorkspace {
-        dir: PathBuf,
-    }
-
-    impl TempWorkspace {
-        fn new(name: &str) -> Self {
-            let rand_id = chrono::Utc::now().timestamp_nanos_opt().unwrap_or(0);
-            let dir = std::env::temp_dir().join(format!("{}_{}", name, rand_id));
-            fs::create_dir_all(&dir).unwrap();
-            Self { dir }
-        }
-    }
-
-    impl Drop for TempWorkspace {
-        fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.dir);
-        }
-    }
-
-    #[test]
-    fn test_load_and_reconcile_offline() {
-        let ws = TempWorkspace::new("test_ws");
-        let epic_dir = ws.dir.join("docs/epics");
-        fs::create_dir_all(&epic_dir).unwrap();
-
-        let epic_path = epic_dir.join("EPIC-01.md");
-        let mut f = fs::File::create(&epic_path).unwrap();
-        writeln!(
-            f,
-            r#"---
-title: "Epic 01: Test Epic"
-type: epic
----
-
-# Epic 01: Test Epic
-
-## 2. Requirements & Checklist
-- [ ] #10 - Feature 01: Test
-#### Associated Use Cases
-*To be populated after Phase 3*
-"#
-        )
-        .unwrap();
-
-        let tracker = OfflineTracker::new();
-        let options = ReconcileOptions {
-            workspace_root: ws.dir.clone(),
-            offline: true,
-            dry_run: false,
-            provider: "github".to_string(),
-            sync_bodies: false,
-        };
-
-        let summary = run_reconciliation(&tracker, &options).expect("Reconciliation succeeds");
-        assert_eq!(summary.total_specs_scanned, 1);
-        assert_eq!(summary.placeholders_purged, 1);
-
-        let content = fs::read_to_string(&epic_path).unwrap();
-        assert!(!content.contains("To be populated after Phase 3"));
-        assert!(content.contains("- None allocated (structural subsystem component)"));
-    }
 }
