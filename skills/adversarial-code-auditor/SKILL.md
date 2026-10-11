@@ -202,6 +202,23 @@ if grep -q '```mermaid' "$BODY_FILE"; then
     echo "check 7 FAILED: Uneven number of code fences ($FENCE_COUNT)" >&2
     exit 1
   fi
+  # 3. Verify absence of forbidden semicolons in Note statements and message lines
+  SEMICOLON_VIOLATIONS=$(awk '
+    /```mermaid/{in_mermaid=1; next}
+    /```/{in_mermaid=0}
+    in_mermaid && !/^[[:space:]]*%%/ {
+      line=$0
+      sub(/^[[:space:]]+/, "", line)
+      if ((line ~ /^Note / || line ~ /^note / || line ~ />>/ || line ~ /->/ || (line ~ /:/ && line !~ /^(participant|actor)[[:space:]]/)) && line ~ /;/) {
+        print line
+      }
+    }
+  ' "$BODY_FILE")
+  if [ -n "$SEMICOLON_VIOLATIONS" ]; then
+    echo "check 7 FAILED: Semicolons prohibited in Mermaid Note or message lines:" >&2
+    echo "$SEMICOLON_VIOLATIONS" >&2
+    exit 1
+  fi
 fi
 echo "check 7 passed"
 ```

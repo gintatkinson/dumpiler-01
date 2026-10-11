@@ -20,7 +20,6 @@ pub const EXCLUDED_DIRS: &[&str] = &[
     "out",
     ".pytest_cache",
     "__pycache__",
-    ".pipeline/defects",
     ".agents",
 ];
 
@@ -145,7 +144,6 @@ mod tests {
             "out",
             ".pytest_cache",
             "__pycache__",
-            ".pipeline/defects",
             ".agents",
         ];
         for dir in &required {

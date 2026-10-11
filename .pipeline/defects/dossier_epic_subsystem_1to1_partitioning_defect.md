@@ -72,7 +72,7 @@ sequenceDiagram
     Model->>Engine: Declare operational capabilities via CapabilityDef independent of physical packaging
     Model->>Engine: Allocate capability across multiple physical subsystems (M:N allocate relation)
     Engine->>Epics: Synthesize Epics as strategic portfolio initiatives spanning multiple subsystems
-    Note over Engine,Epics: Capabilities cross-cut subsystems; Subsystems realize multiple Epics
+    Note over Engine,Epics: Capabilities cross-cut subsystems, Subsystems realize multiple Epics
 ```
 
 ## 5. Affected Callers / Downstream Impact

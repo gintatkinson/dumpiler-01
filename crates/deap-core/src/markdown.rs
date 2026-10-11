@@ -329,12 +329,17 @@ pub fn check_mermaid_syntax(content: &str, file_rel_path: &str) -> Vec<String> {
     let n = lines.len();
     let mut i = 0;
 
-    let fence_open_re = Regex::new(r"^\s*```+\s*mermaid\s*$").unwrap();
-    let fence_any_re = Regex::new(r"^\s*```+").unwrap();
-
     while i < n {
         let line = lines[i];
-        if fence_open_re.is_match(line) {
+        let trimmed = line.trim();
+        let is_mermaid_open = if trimmed.starts_with("```") {
+            let backticks = trimmed.chars().take_while(|&c| c == '`').count();
+            backticks >= 3 && trimmed[backticks..].trim() == "mermaid"
+        } else {
+            false
+        };
+
+        if is_mermaid_open {
             let start_line = i + 1;
             let mut body: Vec<(usize, &str)> = Vec::new();
             i += 1;
@@ -342,7 +347,8 @@ pub fn check_mermaid_syntax(content: &str, file_rel_path: &str) -> Vec<String> {
 
             while i < n {
                 let inner = lines[i];
-                if fence_any_re.is_match(inner) {
+                let inner_trimmed = inner.trim();
+                if inner_trimmed.starts_with("```") {
                     closed = true;
                     break;
                 }
@@ -385,6 +391,28 @@ pub fn check_mermaid_syntax(content: &str, file_rel_path: &str) -> Vec<String> {
                         "{}:{}: missing or invalid Mermaid diagram header. The first non-comment line must declare a valid diagram type header.",
                         file_rel_path, start_line
                     ));
+                }
+
+                // Check forbidden semicolons in Mermaid Note statements and message text
+                for &(lineno, body_line) in &body {
+                    let trimmed = body_line.trim();
+                    if trimmed.is_empty() || trimmed.starts_with("%%") {
+                        continue;
+                    }
+                    let is_note = trimmed.starts_with("Note ") || trimmed.starts_with("note ");
+                    let is_msg = trimmed.contains(">>")
+                        || trimmed.contains("->>")
+                        || trimmed.contains("-->>")
+                        || (kind == "sequencediagram"
+                            && trimmed.contains(':')
+                            && !trimmed.starts_with("participant ")
+                            && !trimmed.starts_with("actor "));
+                    if (is_note || is_msg) && trimmed.contains(';') {
+                        errors.push(format!(
+                            "{}:{}: semicolon in Mermaid Note or message text: '{}'. Replace with commas, dashes, or spaces.",
+                            file_rel_path, lineno, trimmed
+                        ));
+                    }
                 }
 
                 // Check angle bracket escaping in diagram kinds
