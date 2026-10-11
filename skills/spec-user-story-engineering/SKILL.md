@@ -238,11 +238,11 @@ Normative Specification: [Normative Specification](link-to-specification)
    ./target/release/verify-baseline . --spec-only --only <spec>
    ```
    If the linter fails (returns a non-zero exit code), the subagent MUST parse the errors, fix all generated User Story markdown files, and re-run the linter until it passes with exit code 0.
-   Before committing the generated markdown files, the agent MUST run a check for untracked pipeline infrastructure files. If untracked files are found in `.pipeline/`, `skills/`, `rules/`, or `scripts/`, they must be staged and committed alongside the markdown files using `git add` to prevent remote divergence:
+   Before committing the generated markdown files, the agent MUST run a check for untracked pipeline infrastructure files. If untracked files are found in `.pipeline/`, `skills/`, or `rules/`, they must be staged and committed alongside the markdown files using `git add` to prevent remote divergence:
    ```bash
-   UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/ scripts/)
+   UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/)
    if [ -n "$UNTRACKED_INFRA" ]; then
-     git add .pipeline/ skills/ rules/ scripts/
+     git add .pipeline/ skills/ rules/
    fi
    ```
    Once the linter passes, commit and push the Markdown files to the remote repository.

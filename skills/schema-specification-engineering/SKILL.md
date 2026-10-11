@@ -444,9 +444,9 @@ For each Bounded Context, partition its subtree into cohesive functional feature
    If the linter fails (returns a non-zero exit code), the subagent MUST parse the errors, fix all generated Feature and Epic markdown files, and re-run the linter until it passes with exit code 0.
    Before committing the generated markdown files, the agent MUST run a check for untracked pipeline infrastructure files. If untracked files are found in `.pipeline/`, `skills/`, `rules/`, or `scripts/`, they must be staged and committed alongside the markdown files using `git add` to prevent remote divergence:
    ```bash
-   UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/ scripts/)
+   UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/)
    if [ -n "$UNTRACKED_INFRA" ]; then
-     git add .pipeline/ skills/ rules/ scripts/
+     git add .pipeline/ skills/ rules/
    fi
    ```
 
@@ -467,9 +467,9 @@ For each Bounded Context, partition its subtree into cohesive functional feature
          and retry/halt if this verification fails.
      4. Before committing the generated feature markdown files, the agent MUST run a check for untracked pipeline infrastructure files. If untracked files are found in `.pipeline/`, `skills/`, `rules/`, or `scripts/`, they must be staged and committed alongside the markdown files using `git add` to prevent remote divergence:
         ```bash
-        UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/ scripts/)
+        UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/)
         if [ -n "$UNTRACKED_INFRA" ]; then
-          git add .pipeline/ skills/ rules/ scripts/
+          git add .pipeline/ skills/ rules/
         fi
         ```
 
@@ -488,9 +488,9 @@ For each Bounded Context, partition its subtree into cohesive functional feature
           and retry/halt if this verification fails.
       4. Before committing the generated epic markdown files, the agent MUST run a check for untracked pipeline infrastructure files. If untracked files are found in `.pipeline/`, `skills/`, `rules/`, or `scripts/`, they must be staged and committed alongside the markdown files using `git add` to prevent remote divergence:
         ```bash
-        UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/ scripts/)
+        UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/)
         if [ -n "$UNTRACKED_INFRA" ]; then
-          git add .pipeline/ skills/ rules/ scripts/
+          git add .pipeline/ skills/ rules/
         fi
         ```
 

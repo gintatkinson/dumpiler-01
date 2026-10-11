@@ -1,11 +1,10 @@
 !/.agents/
 !/.agents/**
+.agents/teamwork/
 !/.pipeline/
 !/.pipeline/**
 !/rules/
 !/rules/**
-!/scripts/
-!/scripts/**
 !/skills/
 !/skills/**
 # 1453 tracked files pinned to Python 3.9.6 and to /Applications/Xcode.app paths,

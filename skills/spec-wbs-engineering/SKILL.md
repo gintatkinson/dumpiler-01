@@ -449,9 +449,9 @@ Per [`rules/platform-independence.md`](../../rules/platform-independence.md):
 2. **Untracked Infrastructure Pre-Commit Check**:
    Check for untracked pipeline infrastructure files before committing:
    ```bash
-   UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/ scripts/)
+   UNTRACKED_INFRA=$(git ls-files --others --exclude-standard .pipeline/ skills/ rules/)
    if [ -n "$UNTRACKED_INFRA" ]; then
-     git add .pipeline/ skills/ rules/ scripts/
+     git add .pipeline/ skills/ rules/
    fi
    ```
 

@@ -251,7 +251,7 @@ If a test fails with an unexpected error during Step 3, follow the 4-phase debug
    > **DO NOT USE THE FEATURE INDEX NUMBER** in the solution filename if the tracker issue number is different. The solution filename MUST strictly use the tracker issue number (e.g., `feat-<Issue_Number>-solution.md`).
    >
    > **ZERO-TRUST COLLISION CHECK:** Before updating or creating this file, search the repository and history for the target filename to check its existing content. If it exists, read it first and append/merge the new changes rather than overwriting. If there is a filename mismatch or conflict, alert the user and resolve the naming conflict immediately.
-3. **Backlog Reconciliation**: Run the backlog reconciliation script to synchronize all checklists, updated spec bodies (such as fixed Mermaid diagrams), and issue states back to GitHub: `./target/release/reconcile-backlog` (or `scripts/reconcile_backlog.sh`)
+3. **Backlog Reconciliation**: Run the backlog reconciliation tool to synchronize all checklists, updated spec bodies (such as fixed Mermaid diagrams), and issue states back to GitHub: `./target/release/reconcile-backlog`
 4. Commit and push the solution document using the configured commit command template with neutral issue citations (e.g. `docs(designs): add solution walkthrough (refs #<id>)` or `(#<id>)`). Never use auto-closing keywords (`fix`, `fixes`, `close`, `closes`, `resolve`, `resolves` preceding `#<id>`).
 5. Mark the feature issue `Fixed / Resolved` on the active issue tracker provider: apply the `status:fixed-resolved` label and embed a comment pointing to the committed solution document, dynamically constructing the URL using `meta.upstream_repository` from configuration. Leave the issue open -- `Closed` requires Product Owner validation (`.pipeline/constitution.md:161`).
 6. Update the local parent Epic checklist:
@@ -269,6 +269,6 @@ If a test fails with an unexpected error during Step 3, follow the 4-phase debug
 If a tool command (linter or reconciler) fails during implementation:
 1. **Do not proceed** to the next step.
 2. **Log the exact error** (stderr, exit code).
-3. **Automated Upstream Reporting**: If the step fails and you suspect it is due to a bug in the pipeline tooling, you MUST dispatch a fresh context-isolated subagent with Role `Adversarial Code Auditor` adopting `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `scripts/file_defect.sh` (e.g. `scripts/file_defect.sh --repo gintatkinson/DEAP01-spec-core --title "Tooling Bug: [Command] failed" --body-file [payload_path] --label "bug"`).
+3. **Automated Upstream Reporting**: If the step fails and you suspect it is due to a bug in the pipeline tooling, you MUST dispatch a fresh context-isolated subagent with Role `Adversarial Code Auditor` adopting `skills/adversarial-code-auditor/SKILL.md` to perform the 5-pillar audit, generate the verified 7-section defect dossier, and submit it via `./target/release/reconcile-backlog create-issue --label bug` (or `./target/release/file-defect`, e.g. `./target/release/reconcile-backlog create-issue --repo gintatkinson/DEAP01-spec-core --title "Tooling Bug: [Command] failed" --body-file [payload_path] --label "bug"`).
 4. Escalate to the user with the issue URL and error context.
 

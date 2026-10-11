@@ -20,7 +20,7 @@
 ## What local files are for
 
 - Local markdown files (`docs/epics/`, `docs/features/`, etc.) are the specification source, but their checklist states may be stale.
-- Always sync local state with the tracker state using the backlog reconciliation engine (`./target/release/reconcile-backlog` or `scripts/reconcile_backlog.sh`).
+- Always sync local state with the tracker state using the backlog reconciliation engine (`./target/release/reconcile-backlog`).
 - The authoritative "done" state lives in the issue tracker, not in local frontmatter.
 
 ## Multi-Provider Issue Tracker Standards (GitHub & GitLab)

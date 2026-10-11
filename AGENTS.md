@@ -13,7 +13,7 @@
 ## Upstream Distribution Template Clean Landing Zone Invariant
 - **Clean Landing Zone Mandate**: In upstream distribution template repositories (`DEAP-*`), the directories `schema/`, `docs/epics/`, `docs/features/`, `docs/user-stories/`, and `docs/use-cases/` must remain clean landing zones with ONLY `.gitkeep` files.
 - **Strict Prohibition of Concrete Specifications**: Committing concrete downstream project specifications, models, or code to upstream distribution templates is strictly forbidden.
-- **Downstream Workspace Boundary**: Concrete project schemas and specifications reside exclusively in downstream application workspaces installed via `scripts/install_pipeline.sh`.
+- **Downstream Workspace Boundary**: Concrete project schemas and specifications reside exclusively in downstream application workspaces installed via `./target/release/verify-baseline setup-hooks`.
 
 ## Mandatory Session Initialization Gate (CRITICAL FIRST STEP)
 Immediately following installation and on EVERY new session startup, before accepting ANY user directives, responding to inquiries, or executing task implementations, the agent MUST execute the following 6-step sequence in Turn 1:
@@ -90,7 +90,7 @@ Immediately following installation and on EVERY new session startup, before acce
 - **Mandatory Tracker Issue Transition Gate**: Every issue referenced in the commit log must carry `status:fixed-resolved` (or `status::fixed-resolved` on GitLab) and verification evidence comments prior to walkthrough completion.
 
 ## Mandatory Upstream Tooling Bug Reporting
-- If a tooling bug or limitation is identified in shared pipeline scripts, dispatch a subagent with `skills/adversarial-code-auditor/SKILL.md` to produce a 7-section defect dossier and submit via `scripts/file_defect.sh` (or `./target/release/file-defect`). Do not apply silent local-only patches.
+- If a tooling bug or limitation is identified in shared pipeline tooling, dispatch a subagent with `skills/adversarial-code-auditor/SKILL.md` to produce a 7-section defect dossier and submit via `./target/release/reconcile-backlog create-issue --label bug` (or `./target/release/file-defect`). Do not apply silent local-only patches.
 
 ## Documentation Integrity -- No Wholesale Replacement Without Approval
 - You are strictly forbidden from replacing, truncating, or rewriting any documentation file in a way that removes substantial content unless explicitly approved by the user in the current conversation turn.
@@ -111,7 +111,7 @@ Immediately following installation and on EVERY new session startup, before acce
 - **Subagent Tool Locking**: Subagents must only execute tools within their explicit domain.
 
 ## Backlog Reconciliation Mandate
-- Before finalizing any implementation branch commit, merge, or PR, execute `./target/release/reconcile-backlog` (or `scripts/reconcile_backlog.sh`) to synchronize local specifications, checklists, and diagrams with the issue tracker.
+- Before finalizing any implementation branch commit, merge, or PR, execute `./target/release/reconcile-backlog` to synchronize local specifications, checklists, and diagrams with the issue tracker.
 
 ## Mermaid Syntax & Diagram Integrity Rules
 - Every Mermaid diagram MUST have matching closing fences (```` ``` ```` on a new line). Leaking fences are forbidden.

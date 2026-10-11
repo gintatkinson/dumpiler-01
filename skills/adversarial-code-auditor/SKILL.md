@@ -158,7 +158,7 @@ Subagents follow these steps in order. No deviation.
 6. Section 4: Valid Mermaid block (```` ```mermaid ````) (Critical/Important) or "N/A -- [severity] severity." (Suggestion/Nitpick). No ASCII art.
 7. Section 6: Triple-backtick code block with language tag.
 8. End with SEVERITY and FILE_LOCATION lines exactly as shown in the skeleton.
-9. Identify or scaffold the test target file path (e.g. `tests/test_<name>_reproducer.py` or relevant test suite path) and annotate it in Section 1 via `<!-- test-target: [path/to/reproducer_test.py] -->` and `- **Test-Target**: `[path/to/reproducer_test.py]`` so that `scripts/reconcile_backlog.sh` (or `./target/release/reconcile-backlog`) can automatically discover and execute test targets for filed defects.
+9. Identify or scaffold the test target file path (e.g. `tests/test_<name>_reproducer.py` or relevant test suite path) and annotate it in Section 1 via `<!-- test-target: [path/to/reproducer_test.py] -->` and `- **Test-Target**: `[path/to/reproducer_test.py]`` so that `./target/release/reconcile-backlog` can automatically discover and execute test targets for filed defects.
 
 ### Step D -- Verify
 
@@ -177,11 +177,11 @@ Before filing, run these checks on the body. All must pass.
 | 9 | Balanced code blocks | Even number of ````` occurrences |
 | 10 | No ASCII art UML | Does NOT contain unescaped `->>` or `→` outside mermaid blocks |
 | 11 | Title-format | Matches `\[AUDIT\] \[[file.ext]\]: [description]` |
-| 12 | Test Target annotation | Contains `<!-- test-target: [path] -->` matching `<!--\s*test-target:\s*\S+\s*-->` and valid path in `- **Test-Target**:` bullet for automated discovery by `scripts/reconcile_backlog.sh` (or `./target/release/reconcile-backlog`) |
+| 12 | Test Target annotation | Contains `<!-- test-target: [path] -->` matching `<!--\s*test-target:\s*\S+\s*-->` and valid path in `- **Test-Target**:` bullet for automated discovery by `./target/release/reconcile-backlog` |
 
 If any check fails, fix the body and re-verify. Do NOT file until all checks pass.
 
-**Test Target Verification**: The subagent MUST verify that the test target file path is identified or scaffolded in the repository (e.g., under `tests/`), matches the syntax parsed by `scripts/reconcile_backlog.sh` (or `./target/release/reconcile-backlog`), and is executable so that defect reconciliation runs autonomously.
+**Test Target Verification**: The subagent MUST verify that the test target file path is identified or scaffolded in the repository (e.g., under `tests/`), matches the syntax parsed by `./target/release/reconcile-backlog`, and is executable so that defect reconciliation runs autonomously.
 
 **Check 7 is executable and MUST be run -- it is not an eyeball check.** Presence of a
 fenced block does not establish validity. An unparseable diagram previously cleared all
@@ -236,7 +236,7 @@ not a full Mermaid grammar parser, so a pass is not proof the diagram renders.
      ```bash
      glab issue create --repo [REPO] --title "[AUDIT] [file.ext]: [description]" --label "[LABEL]" --description "$(< /tmp/gl_body_[ID].md)"
      ```
-   - **GitLab (Direct REST API v4 / curl)**: In containerized or air-gapped GitLab CI environments where `glab` CLI is unavailable, file via `scripts/file_defect.sh` or direct REST API v4 using `curl`:
+   - **GitLab (Direct REST API v4 / curl)**: In containerized or air-gapped GitLab CI environments where `glab` CLI is unavailable, file via `./target/release/reconcile-backlog create-issue --label bug` or direct REST API v4 using `curl`:
      ```bash
      SERVER_URL="${GITLAB_URL:-${CI_SERVER_URL:-https://gitlab.com}}"
      PROJECT_ID=$(echo "${CI_PROJECT_PATH:-[REPO]}" | sed 's/\//%2F/g')

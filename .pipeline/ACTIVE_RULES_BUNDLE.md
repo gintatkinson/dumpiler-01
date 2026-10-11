@@ -1,6 +1,6 @@
 # ACTIVE RULES BUNDLE -- Consolidated Governance Manifest
 
-> **Notice:** This consolidated governance manifest is compiled automatically at installation time by `scripts/install_pipeline.sh`.
+> **Notice:** This consolidated governance manifest is compiled automatically at installation time by `./target/release/verify-baseline setup-hooks`.
 > It aggregates 100% of the active governance rules from `rules/` into a single, unified source of truth.
 > Autonomous agents (Antigravity, Claude Code, Cursor) MUST execute `view_file` on this file to ingest the full suite of active governance rules in a single read before executing any implementation or orchestration tasks.
 
@@ -218,7 +218,7 @@ degrades silently rather than failing loudly.
 
 # Rule: Hierarchical Concept of Operations & Tactical Mission Intent Integrity
 
-**ALWAYS enforce:** All Concept of Operations (`docs/conops/units/conops/` and `CONOPS.md`) and Tactical Mission Intent (`docs/conops/units/mission_intent/` and `MISSION_INTENT.md`) specifications in the Digital Engineering Autonomous Pipeline (DEAP) MUST adhere strictly to pure open schema contracts ($N \ge N_{\mathrm{min}}$ with zero static row caps), open multi-domain threat taxonomies across all 7 operational domains, mandatory INCOSE SEH v5.0 MoE/MoP mathematical formulations, 100% public clause citations, and deterministic modular assembly via `./target/release/assemble-conops` (or `scripts/assemble_conops.sh`).
+**ALWAYS enforce:** All Concept of Operations (`docs/conops/units/conops/` and `CONOPS.md`) and Tactical Mission Intent (`docs/conops/units/mission_intent/` and `MISSION_INTENT.md`) specifications in the Digital Engineering Autonomous Pipeline (DEAP) MUST adhere strictly to pure open schema contracts ($N \ge N_{\mathrm{min}}$ with zero static row caps), open multi-domain threat taxonomies across all 7 operational domains, mandatory INCOSE SEH v5.0 MoE/MoP mathematical formulations, 100% public clause citations, and deterministic modular assembly via `./target/release/assemble-conops`.
 
 ## Scope and Normative Authority
 
@@ -1419,7 +1419,7 @@ TDD prevents false confidence. A test written after the code is confirmation bia
 ## What local files are for
 
 - Local markdown files (`docs/epics/`, `docs/features/`, etc.) are the specification source, but their checklist states may be stale.
-- Always sync local state with the tracker state using the backlog reconciliation engine (`./target/release/reconcile-backlog` or `scripts/reconcile_backlog.sh`).
+- Always sync local state with the tracker state using the backlog reconciliation engine (`./target/release/reconcile-backlog`).
 - The authoritative "done" state lives in the issue tracker, not in local frontmatter.
 
 ## Multi-Provider Issue Tracker Standards (GitHub & GitLab)

@@ -189,6 +189,48 @@ pub fn check_domain_agnostic_ast_cleanliness(repo_root: &Path) -> Result<(), Vec
     }
 }
 
+/// Check 32: Zero Shell Scripts Invariant
+///
+/// Scans the entire repository tree (excluding `target` and `.git` directories)
+/// and fails closed if ANY `.sh` file exists on disk.
+pub fn check_zero_shell_scripts(repo_root: &Path) -> Result<(), Vec<String>> {
+    let mut violations = Vec::new();
+
+    for entry in WalkDir::new(repo_root)
+        .into_iter()
+        .filter_entry(|e| {
+            if e.file_type().is_dir() {
+                let name = e.file_name().to_string_lossy();
+                name != "target" && name != ".git"
+            } else {
+                true
+            }
+        })
+        .filter_map(|e| e.ok())
+    {
+        if entry.file_type().is_file() {
+            if let Some(ext) = entry.path().extension() {
+                if ext == "sh" {
+                    let rel = entry
+                        .path()
+                        .strip_prefix(repo_root)
+                        .unwrap_or(entry.path())
+                        .display()
+                        .to_string();
+                    violations.push(rel);
+                }
+            }
+        }
+    }
+
+    if violations.is_empty() {
+        Ok(())
+    } else {
+        violations.sort();
+        Err(violations)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

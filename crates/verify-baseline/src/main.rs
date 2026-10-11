@@ -3,10 +3,12 @@
 use clap::Parser;
 use std::path::PathBuf;
 use std::process;
+use verify_baseline::check_secrets::{self, CheckSecretsArgs};
 use verify_baseline::commit_msg::{self, CommitMsgArgs};
 use verify_baseline::defect_dossier::{self, DefectDossierArgs};
 use verify_baseline::output_integrity::{self, OutputIntegrityArgs};
 use verify_baseline::runner::{run, BaselineOptions};
+use verify_baseline::setup_hooks::{self, SetupHooksArgs};
 
 #[derive(Parser, Debug)]
 #[command(name = "verify-baseline")]
@@ -67,6 +69,14 @@ enum Subcommands {
     /// Port of file_defect validator: check 7-section defect dossier schema
     #[command(name = "check-defect", alias = "verify-defect-dossier")]
     CheckDefect(DefectDossierArgs),
+
+    /// Setup cross-platform git hooks natively
+    #[command(name = "setup-hooks")]
+    SetupHooks(SetupHooksArgs),
+
+    /// Check post-build assets for leaked credentials and secrets
+    #[command(name = "check-secrets")]
+    CheckSecrets(CheckSecretsArgs),
 }
 
 fn main() {
@@ -86,6 +96,16 @@ fn main() {
             }
             Subcommands::CheckDefect(args) => {
                 if let Err(code) = defect_dossier::run_check_defect(&args) {
+                    process::exit(code);
+                }
+            }
+            Subcommands::SetupHooks(args) => {
+                if let Err(code) = setup_hooks::run_setup_hooks(&args) {
+                    process::exit(code);
+                }
+            }
+            Subcommands::CheckSecrets(args) => {
+                if let Err(code) = check_secrets::run_check_secrets(&args) {
                     process::exit(code);
                 }
             }

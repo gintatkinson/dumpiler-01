@@ -34,7 +34,7 @@ pub struct CreateIssueArgs {
     #[arg(long = "provider", default_value = "github")]
     pub provider: String,
 
-    /// Positional arguments for backwards compatibility with create_issue.sh:
+    /// Positional arguments for positional CLI invocation:
     /// <body-file> <label> <title> [repo]
     #[arg(value_name = "ARGS")]
     pub positional: Vec<String>,

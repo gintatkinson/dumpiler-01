@@ -1,4 +1,4 @@
-//! Baseline verification runner orchestrating checks 10 through 31 and platform gates.
+//! Baseline verification runner orchestrating checks 10 through 32 and platform gates.
 
 use crate::checks::*;
 use crate::spec_audit::{run_spec_audit, SpecAuditOptions};
@@ -292,7 +292,7 @@ pub fn run(options: &BaselineOptions) -> Result<(), ()> {
         write_defect_dossier(&repo_root, "Check 15 (Reconcile backlog tooling)", &errs);
         return Err(());
     }
-    println!("Success: Check 15 verified (Reconcile backlog tooling exists: target/release/reconcile-backlog, crates/reconcile-backlog, or scripts/reconcile_backlog.sh).");
+    println!("Success: Check 15 verified (Reconcile backlog tooling exists: target/release/reconcile-backlog or crates/reconcile-backlog).");
 
     // Check 16: Upstream template clean landing zone gate
     if let Err(errs) = check_upstream_template_clean_landing_zones(&repo_root) {
@@ -597,6 +597,17 @@ pub fn run(options: &BaselineOptions) -> Result<(), ()> {
             return Err(());
         }
     }
+
+    // Check 32: Zero Shell Scripts Invariant
+    if let Err(errs) = check_zero_shell_scripts(&repo_root) {
+        eprintln!("ERROR: Check 32 failed (Zero Shell Scripts Invariant violated -- .sh files found on disk):");
+        for e in &errs {
+            eprintln!("  - {}", e);
+        }
+        write_defect_dossier(&repo_root, "Check 32 (Zero Shell Scripts Invariant)", &errs);
+        return Err(());
+    }
+    println!("Success: Check 32 verified (Zero Shell Scripts Invariant passed -- zero .sh files exist on disk).");
 
     // Platform Checks
     let dest = &options.destination;
