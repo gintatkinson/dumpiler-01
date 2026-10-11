@@ -185,7 +185,7 @@ After each micro-task's implementation, two reviews MUST occur **in this order**
 - Is anything missing from the spec? Is anything extra (not requested)?
 - **Persistence Verification:** Assert that all persistence transactions are validated directly against a running local database emulator during local integration runs (no stubs).
 - **Coupling & Leakage Audit:** Verify that no direct database SDK dependencies (e.g. `@firebase/firestore` or `cloud_firestore`) leak into UI / presentation components. All components must interact exclusively with abstract repositories.
-- **Layout Engine Compliance:** Verify that split workspaces align with `logical-layout.json`, resizable splitter containers isolate reflows using CSS Container Queries to prevent unmounting state loss, and icons conform to the 16px SVG outline limits (stroke weight 1.0px–1.2px, cell padding 4px).
+- **Layout Engine Compliance:** Verify that split workspaces align with `logical-layout.json`, resizable splitter containers isolate reflows using CSS Container Queries to prevent unmounting state loss, and icons conform to the 16px SVG outline limits (stroke weight 1.0px-1.2px, cell padding 4px).
 - **Model Integrity Check:** Verify that every constructor, `copyWith`, and `valueWriter` in the diff includes or passes through new fields.
 - **Governance Adherence Check:** Verify the subagent's governance acknowledgment is present and complete. If missing or incomplete, fail the review and require re-dispatch.
 - **If issues found:** Micro-Task Implementer fixes → re-review. Do NOT proceed to Stage 2 until Stage 1 passes.

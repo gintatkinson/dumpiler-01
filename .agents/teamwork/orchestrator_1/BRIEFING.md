@@ -1,4 +1,4 @@
-# BRIEFING — 2026-10-11T08:56:55Z
+# BRIEFING — 2026-10-11T09:01:15Z
 
 ## Mission
 Execute the total metadata integrity and taxonomy standardization plan in gintatkinson/dumpiler-01.
@@ -15,8 +15,8 @@ Execute the total metadata integrity and taxonomy standardization plan in gintat
 - **Scope document**: /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_1/PROJECT.md
 1. **Decompose**: Decomposed into 3 sequential Milestones:
    - M1: Unified Metadata Contract (compile-sysml forward sync templates & constitution line 94 & verify-baseline metadata validator) [DONE]
-   - M2: Taxonomy Standardization (skills & constitution purge of worker/fractional phases & recompile ACTIVE_RULES_BUNDLE.md) [IN_PROGRESS]
-   - M3: Closed-Loop Toolchain Execution, Spec Regeneration, Verification & Remote Sync [PLANNED]
+   - M2: Taxonomy Standardization (skills & constitution purge of worker/fractional phases & recompile ACTIVE_RULES_BUNDLE.md) [DONE]
+   - M3: Closed-Loop Toolchain Execution, Spec Regeneration, Verification & Remote Sync [IN_PROGRESS]
 2. **Dispatch & Execute**:
    - Direct iteration loop: Explorer -> Worker -> Reviewer -> Challenger -> Auditor -> Gate per milestone.
 3. **On failure**:
@@ -29,10 +29,10 @@ Execute the total metadata integrity and taxonomy standardization plan in gintat
 4. **Succession**: At 16 spawns, write handoff.md, spawn successor.
 - **Work items**:
   1. Milestone 1: Unified Metadata Contract [DONE]
-  2. Milestone 2: Taxonomy Standardization [in-progress]
-  3. Milestone 3: Closed-Loop Toolchain Execution & Remote Sync [pending]
-- **Current phase**: Phase 2 (M2 Forensic Audit)
-- **Current focus**: Auditor 2 verifying implementation integrity for M2
+  2. Milestone 2: Taxonomy Standardization [DONE]
+  3. Milestone 3: Closed-Loop Toolchain Execution & Remote Sync [in-progress]
+- **Current phase**: Phase 3 (M3 Execution & Remote Sync)
+- **Current focus**: Worker 3 compiling release binaries, forward-syncing specs, verifying baseline, committing and pushing to remote
 
 ## 🔒 Key Constraints
 - Zero Em Dash Invariant: Unicode em dashes (\u2014) are strictly forbidden across all files, commit messages, and outputs. Use ASCII -- exclusively.
@@ -47,11 +47,8 @@ Execute the total metadata integrity and taxonomy standardization plan in gintat
 
 ## Key Decisions Made
 - Milestone 1 fully verified and passed (Gate: PASS).
-- Completed M2 exploration with Explorer 2 (d5c84b23-b9bd-4d4e-9c5c-c2b842e610b5).
-- Completed M2 implementation with Worker 2 (03810849-c293-4ca8-b387-ffa770dabb2b).
-- Completed M2 review with Reviewer 2 (280874bc-a3b1-4ff7-9d63-7a7aba589716) -> APPROVE.
-- Completed M2 challenge with Challenger 2 (607d44fe-2b1e-403f-967c-5b0c833d8ad4) -> APPROVE.
-- Dispatched Auditor 2 (dc9e2abc-8445-4214-895b-cc5904c82f73) to perform forensic audit.
+- Milestone 2 fully verified and passed (Gate: PASS).
+- Dispatched Worker 3 (8aa4110b-8012-4fb7-80aa-4948a5ae98fa) for Milestone 3 (build, regenerate 94 specs, verify-baseline, commit refs #115, push to origin/main).
 
 ## Team Roster
 | Agent | Type | Work Item | Status | Conv ID |
@@ -65,18 +62,19 @@ Execute the total metadata integrity and taxonomy standardization plan in gintat
 | worker_m2_1 | teamwork_preview_worker | M2 Taxonomy Implementation | completed | 03810849-c293-4ca8-b387-ffa770dabb2b |
 | reviewer_m2_1 | teamwork_preview_reviewer | M2 Taxonomy Review 1 | completed (APPROVE) | 280874bc-a3b1-4ff7-9d63-7a7aba589716 |
 | challenger_m2_1 | teamwork_preview_challenger | M2 Adversarial Challenge 1 | completed (APPROVE) | 607d44fe-2b1e-403f-967c-5b0c833d8ad4 |
-| auditor_m2_1 | teamwork_preview_auditor | M2 Forensic Audit 1 | in-progress | dc9e2abc-8445-4214-895b-cc5904c82f73 |
+| auditor_m2_1 | teamwork_preview_auditor | M2 Forensic Audit 1 | completed (CLEAN) | dc9e2abc-8445-4214-895b-cc5904c82f73 |
+| worker_m3_1 | teamwork_preview_worker | M3 Toolchain Execution & Sync | in-progress | 8aa4110b-8012-4fb7-80aa-4948a5ae98fa |
 
 ## Succession Status
 - Succession required: no
-- Spawn count: 10 / 16
-- Pending subagents: dc9e2abc-8445-4214-895b-cc5904c82f73
+- Spawn count: 11 / 16
+- Pending subagents: 8aa4110b-8012-4fb7-80aa-4948a5ae98fa
 - Predecessor: none
 - Successor: not yet spawned
 
 ## Active Timers
 - Heartbeat cron: 644aaf2a-8330-4388-a7e5-98f97497e001/task-14
-- Safety timer: 644aaf2a-8330-4388-a7e5-98f97497e001/task-306
+- Safety timer: 644aaf2a-8330-4388-a7e5-98f97497e001/task-333
 - On succession: kill all timers before spawning successor
 - On context truncation: run `manage_task(Action="list")` — re-create if missing
 
@@ -85,5 +83,3 @@ Execute the total metadata integrity and taxonomy standardization plan in gintat
 - /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_1/PROJECT.md — Global architecture and milestone plan
 - /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_1/GATE_STATUS.md — Gate status tracking
 - /Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_worker_m2_1/handoff.md — M2 Worker handoff
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_reviewer_m2_1/handoff.md — M2 Reviewer handoff (APPROVE)
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_challenger_m2_1/handoff.md — M2 Challenger handoff (APPROVE)

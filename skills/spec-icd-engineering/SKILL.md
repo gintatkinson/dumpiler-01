@@ -111,7 +111,7 @@ The Worker ICD synthesizes two primary Level 1C engineering artifacts in `docs/i
 
 ## Step 3: Standardized Level 1C Markdown Artifact Structures
 
-All Level 1C documents are stored under `docs/interfaces/` and MUST begin at lines 1–10 with a native CommonMark two-column Metadata Table per `rules/specification-metadata-integrity.md`.
+All Level 1C documents are stored under `docs/interfaces/` and MUST begin at lines 1-10 with a native CommonMark two-column Metadata Table per `rules/specification-metadata-integrity.md`.
 
 ### 3.1 Metadata Table Specification (Mandatory for all ICD files)
 
@@ -129,7 +129,7 @@ Every generated ICD document MUST open with the following exact table structure:
 ```
 
 > [!WARNING]
-> Raw `--- ... ---` YAML frontmatter blocks are strictly forbidden in specification markdown files. All metadata must reside in the native CommonMark 2-column table at lines 1–10.
+> Raw `--- ... ---` YAML frontmatter blocks are strictly forbidden in specification markdown files. All metadata must reside in the native CommonMark 2-column table at lines 1-10.
 
 ---
 

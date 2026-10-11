@@ -888,7 +888,7 @@ Non-destructive: additive airworthiness governance clause, line count maintained
 
 ### Change
 
-Section *Universal Quality Gates*, subsection *Strict Planning Mode Gate*, lines 163–167.
+Section *Universal Quality Gates*, subsection *Strict Planning Mode Gate*, lines 163-167.
 
 Renamed section header to *Strict Planning Mode Gate & Plan Continuity Mandate* and added explicit third bullet point codifying the strict prohibition against abandoning, altering, or discarding approved implementation plans without explicit user approval.
 
