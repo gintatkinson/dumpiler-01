@@ -1,44 +1,93 @@
-# Sentinel Handoff Report: Mermaid Diagram Visual Verification & Screenshot Proofs
+# Handoff Report: Check 7 Hollow Gate Regression Audit & Upstream Issue Filing
 
 ## 1. Observation
-- User directive received at `2026-10-11T11:35:21Z` requesting verification of every non-requirement issue on GitHub in repository `gintatkinson/dumpiler-01` containing Mermaid diagrams.
-- Scope: Headless browser screenshot capture (`docs/reports/mermaid_proofs/`), verification report synthesis (`docs/reports/MERMAID_RENDERING_VERIFICATION.md`), 32/32 baseline gate checks, zero em dashes, neutral citations, and remote push.
-- Recorded verbatim into `.agents/teamwork/ORIGINAL_REQUEST.md`.
-- Evaluated against Routing Decision Table: Routed to **General** (`teamwork_preview_orchestrator`).
-- Orchestrator `orchestrator_4` (`76c1cb8b-7a78-4131-87c6-9375d3b4efec`) executed full multi-agent cycle:
-  - Discovery: Queried 125 issues via GitHub CLI, filtered 105 requirement issues, cataloged exactly 20 non-requirement Mermaid diagrams.
-  - Semicolon remediation: Fixed issues #121 and #123 on GitHub replacing `;` with `--` (refs #124, refs #125).
-  - Headless rendering: Rendered 20 diagrams via Google Chrome Headless, verified 100% PASS, saved 20 visual proofs under `docs/reports/mermaid_proofs/`.
-  - Report synthesis: Authored comprehensive report `docs/reports/MERMAID_RENDERING_VERIFICATION.md` (872 lines).
-  - Git synchronization: Committed in `039c7cc` with neutral citations `(refs #124, refs #125)` and pushed to `origin/main`.
-- Independent Post-Victory Auditor `victory_auditor_3` (`31f1fda5-87c3-42fa-8454-2e293340ea82`) conducted a blocking 3-phase audit:
-  - Phase A (Timeline & Requirements): PASS (all R1-R5 verified against ORIGINAL_REQUEST.md).
-  - Phase B (Integrity Forensics): PASS (20 genuine PNG proofs with valid magic bytes and unique hashes; live GitHub issue payloads verified; zero em dashes; neutral commit citations with zero auto-closing verbs).
-  - Phase C (Independent Test Execution): PASS (`./target/release/verify-baseline . --no-domain` passed all 32 quality gates cleanly; `git diff origin/main` returned 0 bytes; Chrome Headless DOM status PASS).
-  - Verdict: **VICTORY CONFIRMED**.
-- Cleanup: Both monitoring crons cancelled and all subagents reclaimed via `manage_subagents(action="kill_all")`.
+
+1. **User Directive**:
+   - Execute `adversarial-code-auditor` skill per Section 3 Protocol.
+   - Audit regression in `skills/adversarial-code-auditor/SKILL.md:186-207` (Check 7) under the Test Integrity pillar.
+   - Document 5 empirical findings in a 7-section defect dossier at `.pipeline/defects/dossier_check7_hollow_gate_regression.md`.
+   - Ensure Section 4 sequence diagram uses strictly zero semicolons.
+   - File the defect issue on GitHub via `gh issue create`.
+
+2. **Routing & Dispatch**:
+   - Routed to the General execution path: Project Orchestrator (`teamwork_preview_orchestrator`, orchestrator_5).
+   - Both monitoring crons (Progress Reporting */8 and Liveness Check */10) were scheduled immediately.
+   - Orchestrator executed a 5-stage serial workflow: Explorer -> Worker -> Reviewer -> Challenger -> Auditor.
+
+3. **Key Deliverables Produced**:
+   - Canonical 7-section defect dossier authored at `.pipeline/defects/dossier_check7_hollow_gate_regression.md`.
+   - All 5 empirical findings fully documented:
+     1. Symptoms: Issues #121 and #123 rich display parsing crash due to semicolons in sequence diagram Note lines.
+     2. Direct Root Cause: Commit `f3fbfdd` gutted Check 7, replacing the Python AST Mermaid validator with a hollow bash stub.
+     3. False Promise: `SKILL.md:61` falsely claims mechanical enforcement by Check 7.
+     4. Toolchain Root Cause: `crates/deap-core/src/markdown.rs:326-415` missing scalar semicolon checks and using Regex; `crates/deap-core/src/rules.rs:23` excluding `.pipeline/defects` from workspace scans.
+     5. Invariant Violations: REQ-0015 (Zero-Regex Monotonic Scanning) and Test Integrity Pillar.
+   - Section 4 sequence diagram verified to contain strictly 0 semicolons, confirmed via headless Chrome rendering (31.8 KB SVG generated with 0 errors).
+   - Defect published as live GitHub Issue #126:
+     - URL: `https://github.com/gintatkinson/dumpiler-01/issues/126`
+     - Title: `[AUDIT] [SKILL.md]: Hollow Check 7 verification gate allows unescaped semicolon mermaid syntax regressions`
+     - Label: `bug`
+     - Payload parity: 100% match with `.pipeline/defects/dossier_check7_hollow_gate_regression.md`.
+   - All 32 quality gates passed via `./target/release/verify-baseline . --no-domain`.
+
+4. **Independent Victory Audit**:
+   - Dispatched `teamwork_preview_victory_auditor` (`victory_auditor_3`).
+   - Conducted Phase A (Timeline & Scope), Phase B (Integrity Forensics & Cheating Detection), and Phase C (Independent Test Execution).
+   - Verdict: **VICTORY CONFIRMED**.
+
+5. **Cleanup**:
+   - Both background crons cancelled via `manage_task(action="kill")`.
+   - All subagents terminated via `manage_subagents(action="kill_all")`.
+
+---
 
 ## 2. Logic Chain
-1. Verbatim request appended to `.agents/teamwork/ORIGINAL_REQUEST.md`.
-2. Mandatory initialization gates verified (DOWNSTREAM_CUSTOMER_PROJECT detected, constitution and active rules read, baseline 32 checks passed, cargo check passed).
-3. Evaluated per Routing Decision Table: General execution path selected.
-4. Orchestrator spawned with verbatim payload; monitoring crons activated.
-5. Orchestrator claimed victory upon completing discovery, remediation, headless screenshot rendering, report compilation, and git push.
-6. Per Sentinel Job 4, victory claim was not accepted at face value; independent Victory Auditor was spawned with unshared context.
-7. Victory Auditor completed independent 3-phase verification, confirming timeline, cheating detection, and independent test execution.
-8. Verdict returned: VICTORY CONFIRMED.
-9. Sentinel cancelled all monitoring crons and reclaimed all subagents.
+
+1. **Routing Accuracy**: Task was classified under General path per the Routing Decision Table since it was not a document review, math proof, or light single change.
+2. **Serial Execution & Gate Control**: Orchestrator enforced serial subagent dispatch across discovery, implementation, adversarial review, empirical challenge, and internal audit.
+3. **Empirical Grounding**: The challenger empirically verified that injecting a semicolon into a sequence diagram Note line reproduces the exact parse error reported in Issues #121/#123, and confirmed that the Check 7 bash stub falsely returns exit code 0 on the broken diagram.
+4. **Zero-Trust Independent Victory Audit**: Orchestrator's victory claim was independently audited by a clean-context auditor inspecting the live GitHub payload, local files, and baseline compiler checks.
+
+---
 
 ## 3. Caveats
-- GitHub Issue #126 was filed concurrently at `2026-10-11T12:08:18Z` by another pipeline (`orchestrator_5`) after commit `039c7cc` (`2026-10-11T12:04:22Z`). Issue #126 contains no semicolons in its diagram and falls outside the scope of milestone m1_4 which audited the 20 pre-existing issues.
+
+- GitHub Issue #126 is filed and open for triage and subsequent toolchain remediation in `crates/deap-core/src/markdown.rs` and `skills/adversarial-code-auditor/SKILL.md`.
+- No source modifications to the compiler toolchain or skill were requested or performed in this adversarial audit session.
+
+---
 
 ## 4. Conclusion
-- All requirements R1 through R5 under the user directive have been completely implemented, verified, audited, and certified.
-- Independent Victory Auditor verdict: **VICTORY CONFIRMED**.
+
+All requirements of the user request and `skills/adversarial-code-auditor/SKILL.md` Section 3 Protocol have been fulfilled. The 7-section defect dossier exists on disk at `.pipeline/defects/dossier_check7_hollow_gate_regression.md`, contains zero semicolons in its Mermaid diagram, and is published as GitHub Issue #126. Independent Victory Audit confirmed completion with verdict: **VICTORY CONFIRMED**.
+
+---
 
 ## 5. Verification Method
-- Baseline verification: `./target/release/verify-baseline . --no-domain` -> all 32 quality gates pass cleanly (0 findings).
-- Proofs count: 20 valid PNG files in `docs/reports/mermaid_proofs/`.
-- Zero em dashes: `grep -r $'\u2014' docs/reports/MERMAID_RENDERING_VERIFICATION.md` -> 0 matches.
-- Neutral citations: `./target/release/verify-baseline check-commit-msg --head` -> exit code 0.
-- Remote parity: `git diff origin/main` -> 0 bytes.
+
+1. **Inspect Defect Dossier**:
+   `view_file` on `.pipeline/defects/dossier_check7_hollow_gate_regression.md` to verify all 7 canonical sections and test-target annotation.
+
+2. **Verify Section 4 Zero Semicolons**:
+   ```bash
+   awk '/```mermaid/{f=1; next} /```/{f=0} f{if(/;/){print; err=1}} END{exit err}' .pipeline/defects/dossier_check7_hollow_gate_regression.md
+   ```
+   *Expected result*: Exit code 0, 0 lines printed.
+
+3. **Verify Zero Unicode Em Dashes**:
+   ```bash
+   grep -P '\x{2014}' .pipeline/defects/dossier_check7_hollow_gate_regression.md
+   ```
+   *Expected result*: Exit code 1 (no matches).
+
+4. **Verify Live GitHub Issue**:
+   ```bash
+   gh issue view 126
+   ```
+   *Expected result*: Displays issue #126 with label `bug` and title `[AUDIT] [SKILL.md]: Hollow Check 7 verification gate allows unescaped semicolon mermaid syntax regressions`.
+
+5. **Verify Baseline Toolchain**:
+   ```bash
+   ./target/release/verify-baseline . --no-domain
+   ```
+   *Expected result*: All 32 quality checks pass, 0 spec findings (exit code 0).
