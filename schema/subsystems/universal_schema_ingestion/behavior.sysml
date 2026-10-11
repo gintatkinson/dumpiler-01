@@ -19,37 +19,70 @@ package UniversalSchemaIngestion {
 
         transition ScanToHeader
             first ScanState
+            accept PipeToken
             then HeaderState;
 
         transition HeaderToDelimiter
             first HeaderState
+            accept NewlineToken
             then DelimiterState;
 
         transition DelimiterToRow
             first DelimiterState
+            accept PipeToken
             then RowState;
 
         transition RowToCell
             first RowState
+            accept CellTextToken
             then CellState;
 
         transition CellToEscape
             first CellState
+            accept EscapeToken
             then EscapeState;
 
         transition EscapeToCell
             first EscapeState
+            accept EscapedCharToken
             then CellState;
 
         transition CellToHalt
             first CellState
+            accept EofToken
             then HaltState;
+    }
+
+    doc /* Autonomous format classifier action */
+    action def ClassifyFormatAction {
+        in input : RawSchemaStreamPort;
+        out output : RawSchemaStreamPort;
+    }
+
+    doc /* Stream tokenization action converting schema streams into typed tokens */
+    action def TokenizeStreamAction {
+        in input : RawSchemaStreamPort;
+        out output : TokenStreamPort;
+    }
+
+    doc /* Delimiter synchronization recovery action */
+    action def RecoverSyncAction {
+        in input : RawSchemaStreamPort;
+        out output : TokenStreamPort;
     }
 
     doc /* End-to-end schema classification and tokenization action pipeline */
     action def IngestSchemaAction {
         in schema_file : RawSchemaStreamPort;
         out token_stream : TokenStreamPort;
+
+        action classify_format : ClassifyFormatAction;
+        action tokenize_stream : TokenizeStreamAction;
+        action recover_synchronization : RecoverSyncAction;
+
+        flow from schema_file to classify_format.input;
+        flow from classify_format.output to tokenize_stream.input;
+        flow from tokenize_stream.output to token_stream;
     }
 
     doc /* Interaction lifeline modeling client-to-engine schema ingestion */

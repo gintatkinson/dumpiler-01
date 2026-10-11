@@ -1,8 +1,8 @@
 {
-  "sha256": "d5fd4f605d00d0a11a7bba2bcfdd63393dbc598755d19b5725c8a774aade86d6",
-  "total_lines": 6649,
+  "sha256": "f9ceaa9c4d6330e2e5363a4206c2f88fd7dfe5e639d8eb0c41b70ea26e23d427",
+  "total_lines": 6655,
   "node_counts": {
-    "action_defs": 36,
+    "action_defs": 39,
     "attribute_defs": 20,
     "capability_defs": 14,
     "connection_defs": 16,
@@ -14,7 +14,7 @@
     "interaction_defs": 24,
     "item_defs": 4,
     "leaves": 20,
-    "lists": 36,
+    "lists": 39,
     "operation_defs": 0,
     "packages": 15,
     "part_defs": 105,
@@ -42,6 +42,7 @@
     "BootstrapSystemVisionAction",
     "CIContinuousIntegrationRunner",
     "CLIPort",
+    "ClassifyFormatAction",
     "CliCommandDispatcher",
     "CodeArtifactFormatter",
     "CodeArtifactPort",
@@ -332,6 +333,7 @@
     "REQ_0199__4_Pass_Semantic_Parity_Verification_Framework",
     "RawSchemaStreamPort",
     "ReachabilityMatrixEvaluator",
+    "RecoverSyncAction",
     "RegressionInoculationRunner",
     "RemoteArtifactRegistry",
     "ResourceExhaustionFlood",
@@ -501,6 +503,7 @@
     "TargetAstTranspiler",
     "TemplateRenderingEngine",
     "TokenStreamPort",
+    "TokenizeStreamAction",
     "TraceabilitySweepFSM",
     "TriageDiagnosticAction",
     "UC01UC01SystemVisionAndFoundationalInvariants",
@@ -1011,10 +1014,10 @@
     },
     {
       "path": "schema/subsystems/universal_schema_ingestion/behavior.sysml",
-      "sha256": "409c5c870849017e357e3f884210aac40abf42f1eca8edb381d1baadbce6aadd",
-      "bytes": 4041,
-      "lines": 92,
-      "entities": 4
+      "sha256": "9e103e49b280be154b60b84fadb434314d7e68b7b1e49111eeaf3e34018a663d",
+      "bytes": 5173,
+      "lines": 125,
+      "entities": 7
     },
     {
       "path": "schema/subsystems/universal_schema_ingestion/requirements.sysml",

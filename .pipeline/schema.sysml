@@ -5834,6 +5834,12 @@ package SysML_Model {
     doc /* Structural Architecture for Subsystem 2 Universal Schema Ingestion Engine */
     package UniversalSchemaIngestion {
         import DEAP_Compiler_System::*;
+        doc /* Autonomous format classifier action */
+        action def ClassifyFormatAction(in input : RawSchemaStreamPort, out output : RawSchemaStreamPort);
+        doc /* Stream tokenization action converting schema streams into typed tokens */
+        action def TokenizeStreamAction(in input : RawSchemaStreamPort, out output : TokenStreamPort);
+        doc /* Delimiter synchronization recovery action */
+        action def RecoverSyncAction(in input : RawSchemaStreamPort, out output : TokenStreamPort);
         doc /* End-to-end schema classification and tokenization action pipeline */
         action def IngestSchemaAction(in schema_file : RawSchemaStreamPort, out token_stream : TokenStreamPort);
         doc /* UUIDv5: a5840107-5c1d-59b3-bdf6-acd7ea1d1e16 | Complexity: Class P (O(K) = O(1)) | Standard: IEEE 29148-2018 / RFC 2119 | Diagnostics: E0100 */
@@ -6595,13 +6601,13 @@ package SysML_Model {
         state def CommonMarkTableLexerStatechart {
             entry ;
             transition InitialToScan first entry then ScanState;
-            transition ScanToHeader first ScanState then HeaderState;
-            transition HeaderToDelimiter first HeaderState then DelimiterState;
-            transition DelimiterToRow first DelimiterState then RowState;
-            transition RowToCell first RowState then CellState;
-            transition CellToEscape first CellState then EscapeState;
-            transition EscapeToCell first EscapeState then CellState;
-            transition CellToHalt first CellState then HaltState;
+            transition ScanToHeader first ScanState accept PipeToken then HeaderState;
+            transition HeaderToDelimiter first HeaderState accept NewlineToken then DelimiterState;
+            transition DelimiterToRow first DelimiterState accept PipeToken then RowState;
+            transition RowToCell first RowState accept CellTextToken then CellState;
+            transition CellToEscape first CellState accept EscapeToken then EscapeState;
+            transition EscapeToCell first EscapeState accept EscapedCharToken then CellState;
+            transition CellToHalt first CellState accept EofToken then HaltState;
         }
         doc /* Comprehensive use case for universal schema ingestion */
         use case def UC_02_Universal_Schema_Ingestion_Workflow {
