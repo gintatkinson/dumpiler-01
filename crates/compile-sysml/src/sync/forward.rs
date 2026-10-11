@@ -285,6 +285,7 @@ fn generate_class_diagram(part: &PartDef) -> String {
 #[derive(Debug, Default)]
 struct ParsedUseCaseDoc {
     actors: Vec<String>,
+    subject: Option<String>,
     preconditions: Vec<String>,
     trigger: String,
     main_scenario: Vec<String>,
@@ -311,6 +312,12 @@ fn parse_use_case_doc(doc_opt: Option<&str>) -> ParsedUseCaseDoc {
                 .filter(|a| !a.is_empty())
                 .collect();
             current_section = "actors";
+        } else if trimmed.starts_with("Subject:") {
+            let subj = trimmed.trim_start_matches("Subject:").trim();
+            if !subj.is_empty() {
+                parsed.subject = Some(subj.to_string());
+            }
+            current_section = "subject";
         } else if trimmed.starts_with("Preconditions:") {
             let pre = trimmed.trim_start_matches("Preconditions:").trim();
             if !pre.is_empty() {
@@ -524,7 +531,7 @@ pub fn forward_sync_sysml_to_specs(
         engine_name: String,
         engine_feat_num: usize,
         u_num: usize,
-        story_s_num: usize,
+        story_s_num: Option<usize>,
     }
 
     let mut uc_metas: Vec<UseCaseMeta> = Vec::new();
@@ -532,7 +539,7 @@ pub fn forward_sync_sysml_to_specs(
         if p.name == "DEAP_Compiler_System" || p.name == "ConOps" || p.name == "SysML_Model" || p.name == pkg.name {
             continue;
         }
-        let engine_name = p
+        let default_engine_name = p
             .part_defs
             .iter()
             .find(|part| part.name.ends_with("Engine"))
@@ -544,24 +551,45 @@ pub fn forward_sync_sysml_to_specs(
                     .unwrap_or_else(|| "DEAPCompilerSystem".to_string())
             });
 
-        let engine_feat_num = part_contexts
+        let default_engine_feat_num = part_contexts
             .iter()
-            .position(|ctx| ctx.part.name == engine_name)
+            .position(|ctx| ctx.pkg_name == p.name && ctx.part.name == default_engine_name)
+            .or_else(|| part_contexts.iter().position(|ctx| ctx.part.name == default_engine_name))
             .map(|pos| pos + 1)
             .unwrap_or(1);
 
         let story_s_num = story_metas
             .iter()
             .find(|s| s.pkg_name == p.name)
-            .map(|s| s.s_num)
-            .unwrap_or(1);
+            .map(|s| s.s_num);
 
         for uc in &p.use_case_defs {
+            let parsed_doc = parse_use_case_doc(uc.doc.as_deref());
+            let subject_candidate = uc.subject.as_ref().or(parsed_doc.subject.as_ref());
+            let engine_name = if let Some(subj) = subject_candidate {
+                if p.part_defs.iter().any(|part| &part.name == subj)
+                    || part_contexts.iter().any(|ctx| &ctx.part.name == subj && ctx.pkg_name == p.name)
+                {
+                    subj.clone()
+                } else {
+                    default_engine_name.clone()
+                }
+            } else {
+                default_engine_name.clone()
+            };
+
+            let engine_feat_num = part_contexts
+                .iter()
+                .position(|ctx| ctx.pkg_name == p.name && ctx.part.name == engine_name)
+                .or_else(|| part_contexts.iter().position(|ctx| ctx.part.name == engine_name))
+                .map(|pos| pos + 1)
+                .unwrap_or(default_engine_feat_num);
+
             let u_num = uc_metas.len() + 1;
             uc_metas.push(UseCaseMeta {
                 uc,
                 pkg_name: p.name.clone(),
-                engine_name: engine_name.clone(),
+                engine_name,
                 engine_feat_num,
                 u_num,
                 story_s_num,
@@ -1093,17 +1121,37 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
             feat_link_num + 9,
         );
 
-        let us_link_num = uc_m.story_s_num;
-        let matching_story = story_metas
-            .iter()
-            .find(|s| s.s_num == us_link_num)
-            .unwrap();
-        let us_slug = sanitize_id(&matching_story.action_name);
-        let us_display = to_display_name(&matching_story.action_name);
-        let us_issue = resolve_issue_id(
-            &target_out_dir,
-            &format!("user-stories/US-{:02}-{}.md", us_link_num, us_slug),
-            us_link_num + 88,
+        let matching_story = uc_m
+            .story_s_num
+            .and_then(|s_num| story_metas.iter().find(|s| s.s_num == s_num && s.pkg_name == uc_m.pkg_name));
+
+        let us_row = if let Some(story) = matching_story {
+            let us_link_num = story.s_num;
+            let us_slug = sanitize_id(&story.action_name);
+            let us_display = to_display_name(&story.action_name);
+            let us_issue = resolve_issue_id(
+                &target_out_dir,
+                &format!("user-stories/US-{:02}-{}.md", us_link_num, us_slug),
+                us_link_num + 88,
+            );
+            format!(
+                "| **#{}** | User Story | [User Story {:02}: {}](../user-stories/US-{:02}-{}.md) |\n",
+                us_issue, us_link_num, us_display, us_link_num, us_slug
+            )
+        } else {
+            String::new()
+        };
+
+        let feat_row = format!(
+            "| **#{}** | Feature | [Feature {:02}: [{}] {}](../features/FEAT-{:02}-{}.md) |\n",
+            feat_issue, feat_link_num, feat_subsys, feat_part, feat_link_num, feat_part
+        );
+
+        let realization_matrix_table = format!(
+            "| Specification Item | Type | Link / Reference |\n\
+| :--- | :--- | :--- |\n\
+{}{}",
+            us_row, feat_row
         );
 
         let content = format!(
@@ -1146,11 +1194,7 @@ flowchart TD
 {postconditions}
 
 ## 8. Realization Matrix
-| Specification Item | Type | Link / Reference |
-| :--- | :--- | :--- |
-| **#{us_issue}** | User Story | [User Story {us_link_num:02}: {us_display}](../user-stories/US-{us_link_num:02}-{us_slug}.md) |
-| **#{feat_issue}** | Feature | [Feature {feat_link_num:02}: [{feat_subsys}] {feat_part}](../features/FEAT-{feat_link_num:02}-{feat_part}.md) |
-
+{realization_matrix_table}
 ## Source References
 Use case operational flows and lifecycle activity references:
 - ConOps Operational Activities: `schema/conops/activities.sysml`
@@ -1168,14 +1212,7 @@ Operational use case realization and traceability links derive from `schema/cono
             main_scenario = main_scenario,
             alternate_flows = alternate_flows,
             postconditions = postconditions,
-            us_issue = us_issue,
-            us_link_num = us_link_num,
-            us_display = us_display,
-            us_slug = us_slug,
-            feat_issue = feat_issue,
-            feat_link_num = feat_link_num,
-            feat_subsys = feat_subsys,
-            feat_part = feat_part,
+            realization_matrix_table = realization_matrix_table,
         );
 
         generated_files.insert(rel_path, content);
@@ -1448,4 +1485,110 @@ mod tests {
             "Empty interactions must not emit phantom user-story files"
         );
     }
+
+    #[test]
+    fn test_use_case_realization_matrix_traceability_alignment() {
+        let mut root = PackageDef {
+            name: "DEAP_Compiler_System".to_string(),
+            ..Default::default()
+        };
+
+        // Subsystem Alpha has Engine, Action, and Use Case
+        let mut sub_alpha = PackageDef {
+            name: "Subsystem_Alpha".to_string(),
+            ..Default::default()
+        };
+        sub_alpha.part_defs.push(PartDef {
+            name: "AlphaEngine".to_string(),
+            ..Default::default()
+        });
+        sub_alpha.action_defs.push(deap_core::sysml_ast::ActionDef {
+            name: "AlphaAction".to_string(),
+            ..Default::default()
+        });
+        sub_alpha.use_case_defs.push(UseCaseDef {
+            name: "UC_Alpha_Workflow".to_string(),
+            ..Default::default()
+        });
+
+        // Subsystem Beta has Engine, Action, and Use Case
+        let mut sub_beta = PackageDef {
+            name: "Subsystem_Beta".to_string(),
+            ..Default::default()
+        };
+        sub_beta.part_defs.push(PartDef {
+            name: "BetaEngine".to_string(),
+            ..Default::default()
+        });
+        sub_beta.action_defs.push(deap_core::sysml_ast::ActionDef {
+            name: "BetaAction".to_string(),
+            ..Default::default()
+        });
+        sub_beta.use_case_defs.push(UseCaseDef {
+            name: "UC_Beta_Workflow".to_string(),
+            ..Default::default()
+        });
+
+        // Subsystem Gamma has Engine and Use Case, but NO Action (tests zero cross-wiring when subsystem has no user story)
+        let mut sub_gamma = PackageDef {
+            name: "Subsystem_Gamma".to_string(),
+            ..Default::default()
+        };
+        sub_gamma.part_defs.push(PartDef {
+            name: "GammaEngine".to_string(),
+            ..Default::default()
+        });
+        sub_gamma.use_case_defs.push(UseCaseDef {
+            name: "UC_Gamma_Workflow".to_string(),
+            ..Default::default()
+        });
+
+        root.packages.push(sub_alpha);
+        root.packages.push(sub_beta);
+        root.packages.push(sub_gamma);
+
+        let opts = ForwardSyncOptions {
+            schema_path: PathBuf::from("schema/test.sysml"),
+            docs_dir: PathBuf::from("docs"),
+            out_dir: None,
+            dry_run: true,
+            force: true,
+        };
+
+        let generated = forward_sync_sysml_to_specs(&root, &opts).unwrap();
+
+        let alpha_uc = generated
+            .iter()
+            .find(|(k, _)| k.contains("UC_Alpha_Workflow"))
+            .map(|(_, v)| v)
+            .expect("Alpha UC must be generated");
+        let beta_uc = generated
+            .iter()
+            .find(|(k, _)| k.contains("UC_Beta_Workflow"))
+            .map(|(_, v)| v)
+            .expect("Beta UC must be generated");
+        let gamma_uc = generated
+            .iter()
+            .find(|(k, _)| k.contains("UC_Gamma_Workflow"))
+            .map(|(_, v)| v)
+            .expect("Gamma UC must be generated");
+
+        // Alpha UC checks
+        assert!(alpha_uc.contains("AlphaAction"), "Alpha UC must link to AlphaAction user story");
+        assert!(alpha_uc.contains("AlphaEngine"), "Alpha UC must link to AlphaEngine feature");
+        assert!(!alpha_uc.contains("BetaAction"), "Alpha UC must NOT link to BetaAction");
+        assert!(!alpha_uc.contains("BetaEngine"), "Alpha UC must NOT link to BetaEngine");
+
+        // Beta UC checks
+        assert!(beta_uc.contains("BetaAction"), "Beta UC must link to BetaAction user story");
+        assert!(beta_uc.contains("BetaEngine"), "Beta UC must link to BetaEngine feature");
+        assert!(!beta_uc.contains("AlphaAction"), "Beta UC must NOT link to AlphaAction");
+        assert!(!beta_uc.contains("AlphaEngine"), "Beta UC must NOT link to AlphaEngine");
+
+        // Gamma UC checks: Gamma has no ActionDef, so its Realization Matrix MUST NOT contain AlphaAction or BetaAction
+        assert!(gamma_uc.contains("GammaEngine"), "Gamma UC must link to GammaEngine feature");
+        assert!(!gamma_uc.contains("AlphaAction"), "Gamma UC must NOT cross-wire to AlphaAction");
+        assert!(!gamma_uc.contains("BetaAction"), "Gamma UC must NOT cross-wire to BetaAction");
+    }
 }
+
