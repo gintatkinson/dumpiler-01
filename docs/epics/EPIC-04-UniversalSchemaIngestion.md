@@ -26,7 +26,7 @@ Structural Architecture for Subsystem 2 Universal Schema Ingestion Engine
 - [ ] #96 - [Use Case 02: UC 02 Universal Schema Ingestion Workflow](../use-cases/UC-02-UC_02_Universal_Schema_Ingestion_Workflow.md)
 
 #### Associated User Stories
-- [ ] #90 - [User Story 02: Ingest Schema Action](../user-stories/US-02-IngestSchemaAction.md)
+- [ ] #90 - [User Story 02: Classify Format Action](../user-stories/US-02-ClassifyFormatAction.md)
 
 ## 3. Architecture
 Subsystem structural composition, port allocations, and directional data connectors realized by UniversalIngestionEngine.

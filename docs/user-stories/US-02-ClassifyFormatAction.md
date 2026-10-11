@@ -1,15 +1,15 @@
 | Attribute | Specification Detail |
 | :--- | :--- |
 | **Issue ID** | #90 |
-| **Title** | User Story 02: Ingest Schema Action |
+| **Title** | User Story 02: Classify Format Action |
 | **Type** | user-story |
 | **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `IngestSchemaAction` |
-| **SysML Test Case** | `Test_IngestSchemaAction` |
+| **SysML Interaction** | `ClassifyFormatAction` |
+| **SysML Test Case** | `Test_ClassifyFormatAction` |
 | **Generation Mode** | subagent |
 | **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
 
-# User Story 02: Ingest Schema Action
+# User Story 02: Classify Format Action
 
 ## UML Sequence Diagram
 
@@ -19,14 +19,14 @@ sequenceDiagram
     actor HumanEngineer
     participant DEAPCompilerSystem
     participant UniversalIngestionEngine
-    HumanEngineer->>DEAPCompilerSystem: IngestSchemaAction()
-    DEAPCompilerSystem->>UniversalIngestionEngine: IngestSchemaAction()
+    HumanEngineer->>DEAPCompilerSystem: ClassifyFormatAction()
+    DEAPCompilerSystem->>UniversalIngestionEngine: ClassifyFormatAction()
     UniversalIngestionEngine-->>DEAPCompilerSystem: OperationComplete
     DEAPCompilerSystem-->>HumanEngineer: StatusReport
 ```
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-US-02-01: Given operational environment initialized, When IngestSchemaAction executes, Then UniversalIngestionEngine processes the AST within defined latency envelope.
+- [ ] AC-US-02-01: Given operational environment initialized, When ClassifyFormatAction executes, Then UniversalIngestionEngine processes the AST within defined latency envelope.
 - [ ] AC-US-02-02: Given formal constraints, When semantic validator executes, Then asserts invariant satisfaction.
 - [ ] AC-US-02-03: Given exceptional conditions, When error recovery activates, Then graceful recovery occurs without data loss.
 

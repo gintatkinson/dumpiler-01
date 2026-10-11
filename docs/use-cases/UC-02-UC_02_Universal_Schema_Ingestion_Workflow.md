@@ -46,7 +46,7 @@ flowchart TD
 ## 8. Realization Matrix
 | Specification Item | Type | Link / Reference |
 | :--- | :--- | :--- |
-| **#90** | User Story | [User Story 02: Ingest Schema Action](../user-stories/US-02-IngestSchemaAction.md) |
+| **#90** | User Story | [User Story 02: Classify Format Action](../user-stories/US-02-ClassifyFormatAction.md) |
 | **#19** | Feature | [Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine](../features/FEAT-10-UniversalIngestionEngine.md) |
 
 ## Source References

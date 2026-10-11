@@ -1,5 +1,6 @@
 % SLDV Formal Proof Script
 % Schema constraint bindings
+sldv.assert( (false), 'Bind_TRACEABILITYGRAPHINVARIANT_ASSERTION' );
 
 % Theorem proof bindings
 % T-01 Kinetic Energy Dissipation Bound

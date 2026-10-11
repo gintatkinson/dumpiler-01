@@ -11,7 +11,7 @@
 # Epic 02: Concept of Operations Operational Activities
 
 ## 1. Context
-ConOps Operational Activities
+ConOps Operational Activities pursuant to ISO/IEC/IEEE 29148
 
 ## 2. Requirements & Checklist
 - [ ] #10 - Feature 01: [Con Ops] HumanEngineer
@@ -38,7 +38,7 @@ ConOps Operational Activities
 
 #### Associated User Stories
 - [ ] #89 - [User Story 01: Bootstrap System Vision Action](../user-stories/US-01-BootstrapSystemVisionAction.md)
-- [ ] #90 - [User Story 02: Ingest Schema Action](../user-stories/US-02-IngestSchemaAction.md)
+- [ ] #90 - [User Story 02: Classify Format Action](../user-stories/US-02-ClassifyFormatAction.md)
 - [ ] #91 - [User Story 03: Allocate Node Action](../user-stories/US-03-AllocateNodeAction.md)
 - [ ] #92 - [User Story 04: Lower Sys MLAction](../user-stories/US-04-LowerSysMLAction.md)
 - [ ] #93 - [User Story 05: Solve Flows Action](../user-stories/US-05-SolveFlowsAction.md)
