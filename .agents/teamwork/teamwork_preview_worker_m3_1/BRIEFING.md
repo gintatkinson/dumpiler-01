@@ -1,4 +1,4 @@
-# BRIEFING — 2026-10-11T09:09:45Z
+# BRIEFING — 2026-10-11T09:11:00Z
 
 ## Mission
 Milestone 3: Closed-Loop Toolchain Execution & Remote Sync
@@ -24,18 +24,18 @@ Milestone 3: Closed-Loop Toolchain Execution & Remote Sync
 ## Task Summary
 - **What to build**: Build release toolchain, run `compile-sysml --forward-sync --force` to regenerate 94 specs in `docs/`, verify with `verify-baseline . --spec-only` and `--no-domain`, check em-dash invariants, commit with neutral citation `feat(spec-core): enforce native metadata tables and clean taxonomy (refs #115)`, push to `origin/main`, verify `git diff origin/main` is empty.
 - **Success criteria**:
-  1. `cargo build --release --workspace` succeeds.
-  2. `./target/release/compile-sysml --forward-sync --force` regenerates 94 specs.
-  3. `./target/release/verify-baseline . --spec-only` passes with 0 findings.
-  4. `./target/release/verify-baseline . --no-domain` passes all 31 checks.
-  5. 0 unicode em dashes (\u2014) or en dashes (\u2013) across the active repository.
-  6. Git commit created with neutral citation `feat(spec-core): enforce native metadata tables and clean taxonomy (refs #115)`.
-  7. Pushed to `origin/main` and `git diff origin/main` is clean.
+  1. `cargo build --release --workspace` succeeds. (DONE)
+  2. `./target/release/compile-sysml --forward-sync --force` regenerates 94 specs. (DONE)
+  3. `./target/release/verify-baseline . --spec-only` passes with 0 findings. (DONE)
+  4. `./target/release/verify-baseline . --no-domain` passes all 31 checks. (DONE)
+  5. 0 unicode em dashes (\u2014) or en dashes (\u2013) across the active repository. (DONE)
+  6. Git commit created with neutral citation `feat(spec-core): enforce native metadata tables and clean taxonomy (refs #115)`. (DONE)
+  7. Pushed to `origin/main` and `git diff origin/main` is clean. (DONE)
 - **Interface contracts**: `.pipeline/constitution.md`, `.pipeline/ACTIVE_RULES_BUNDLE.md`
 - **Code layout**: Root Rust workspace with crates/compile-sysml, crates/verify-baseline, etc.
 
 ## Key Decisions Made
-- Executed tasks sequentially. Scrubbed 18 Unicode en dashes across 10 active governance/skill files. Verified 0 unicode dashes across all active codebase and spec files. Created handoff report.
+- Executed tasks sequentially. Scrubbed 18 Unicode en dashes across 10 active governance/skill files. Verified 0 unicode dashes across all active codebase and spec files. Created handoff report. Committed and pushed to `origin/main`.
 
 ## Artifact Index
 - `.agents/teamwork/teamwork_preview_worker_m3_1/DISPATCH.md` — assignment
