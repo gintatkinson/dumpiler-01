@@ -3,11 +3,11 @@
 | **Issue ID** | #89 |
 | **Title** | User Story 01: Bootstrap System Vision Action |
 | **Type** | user-story |
-| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `BootstrapSystemVisionAction` |
+| **Parent Epic** | [EPIC-03-SystemVision](../epics/EPIC-03-SystemVision.md) |
+| **SysML Interaction** | `SystemVisionInteraction` |
 | **SysML Test Case** | `Test_BootstrapSystemVisionAction` |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | [schema/subsystems/system_vision/behavior.sysml](../../schema/subsystems/system_vision/behavior.sysml) |
 
 # User Story 01: Bootstrap System Vision Action
 
@@ -21,7 +21,7 @@ sequenceDiagram
     participant SystemVisionEngine
     HumanEngineer->>DEAPCompilerSystem: BootstrapSystemVisionAction()
     DEAPCompilerSystem->>SystemVisionEngine: BootstrapSystemVisionAction()
-    SystemVisionEngine-->>DEAPCompilerSystem: OperationComplete
+    SystemVisionEngine-->>DEAPCompilerSystem: RuleDispatch
     DEAPCompilerSystem-->>HumanEngineer: StatusReport
 ```
 
@@ -32,13 +32,14 @@ sequenceDiagram
 
 ## Required Features
 - [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)
-- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)
+- [ ] [Feature 05: [System Architecture] DEAPCompilerSystem](../features/FEAT-05-DEAPCompilerSystem.md)
 - [ ] [Feature 06: [System Vision] SystemVisionEngine](../features/FEAT-06-SystemVisionEngine.md)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
+- Subsystem Behavior Specification: `schema/subsystems/system_vision/behavior.sysml`
 - ConOps Operational Activities: `schema/conops/activities.sysml`
 - System Architecture Model: `schema/model.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
 
-Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+Authoritative user story flows and interaction lifelines derive from `schema/subsystems/system_vision/behavior.sysml` pursuant to ISO/IEC/IEEE 29148.

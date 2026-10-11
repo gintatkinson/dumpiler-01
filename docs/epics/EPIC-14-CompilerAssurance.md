@@ -49,20 +49,39 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class CompilerAssuranceEngine
+    class CompilerAssuranceEngine {
+        +CLIPort cli_in (in)
+        +PerformanceMetricsPort metrics_out (out)
+    }
+    class CliCommandDispatcher {
+        +CLIPort cli_in (in)
+        +PerformanceMetricsPort metrics_out (out)
+    }
+    class PerformanceProfiler {
+        +CLIPort cli_in (in)
+        +PerformanceMetricsPort metrics_out (out)
+    }
+    class RegressionInoculationRunner {
+        +CLIPort cli_in (in)
+        +PerformanceMetricsPort metrics_out (out)
+    }
     DEAPCompilerSystem --> CompilerAssuranceEngine : contains
+    CompilerAssuranceEngine --> CliCommandDispatcher : cliDispatcher
+    CompilerAssuranceEngine --> PerformanceProfiler : perfProfiler
+    CompilerAssuranceEngine --> RegressionInoculationRunner : regressionRunner
+    CompilerAssuranceEngine --> CliCommandDispatcher : coordinates
+    CompilerAssuranceEngine --> PerformanceProfiler : coordinates
+    CompilerAssuranceEngine --> RegressionInoculationRunner : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> CliDispatch
+    CliDispatch --> PerformanceProfiling
+    PerformanceProfiling --> RegressionExecution
+    RegressionExecution --> MetricsAggregation
+    MetricsAggregation --> AssuranceEmission
+    AssuranceEmission --> [*]
 ```

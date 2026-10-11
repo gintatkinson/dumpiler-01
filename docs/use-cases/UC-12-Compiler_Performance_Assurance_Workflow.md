@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["HumanEngineer"] --> Target["CompilerAssuranceEngine"]
+graph TD
+    subgraph "CompilerAssuranceEngine System Boundary"
+        UC_Main(["Compiler Performance Assurance Workflow"])
+        UC_Step01(["HumanEngineer or CI runner invokes compiler CLI entry poi..."])
+        UC_Step02(["CliCommandDispatcher parses CLI arguments and flags into ..."])
+        UC_Step03(["PerformanceProfiler starts execution timers and tracks me..."])
+        UC_Step04(["RegressionInoculationRunner executes compilation passes a..."])
+        UC_Step05(["PerformanceProfiler aggregates throughput, CPU time, and ..."])
+        UC_Step06(["CompilerAssuranceEngine emits formatted performance repor..."])
+    end
+    HumanEngineer(("HumanEngineer")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

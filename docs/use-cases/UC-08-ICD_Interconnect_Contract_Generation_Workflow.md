@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["CIContinuousIntegrationRunner"] --> Target["ICDEngine"]
+graph TD
+    subgraph "ICDEngine System Boundary"
+        UC_Main(["ICD Interconnect Contract Generation Workflow"])
+        UC_Step01(["SafetyAssuranceEngine passes verified architectural model..."])
+        UC_Step02(["InterfaceMatrixBuilder constructs the N x N subsystem int..."])
+        UC_Step03(["InterfaceMatrixBuilder sorts subsystems lexicographically..."])
+        UC_Step04(["PortCompatibilityChecker verifies electrical, timing, and..."])
+        UC_Step05(["ContractSerializer formats formal interface agreements an..."])
+        UC_Step06(["ICDEngine outputs ICDInterconnectPort payload to downstre..."])
+    end
+    CIContinuousIntegrationRunner(("CIContinuousIntegrationRunner")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

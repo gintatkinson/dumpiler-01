@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["CIContinuousIntegrationRunner"] --> Target["NodeArenaASTGraphEngine"]
+graph TD
+    subgraph "NodeArenaASTGraphEngine System Boundary"
+        UC_Main(["Node Arena Memory Management Workflow"])
+        UC_Step01(["UniversalIngestionEngine sends token stream to NodeArenaA..."])
+        UC_Step02(["ArenaAllocator calculates required node slot count and me..."])
+        UC_Step03(["ArenaAllocator allocates uniform 64-bit aligned node slot..."])
+        UC_Step04(["AstInterner deduplicates repeated identifier strings and ..."])
+        UC_Step05(["NodeTableIndex records scalar handles and assigns monoton..."])
+        UC_Step06(["NodeArenaASTGraphEngine emits indexed ASTGraphPort to Gra..."])
+    end
+    CIContinuousIntegrationRunner(("CIContinuousIntegrationRunner")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

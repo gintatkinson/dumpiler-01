@@ -3,11 +3,11 @@
 | **Issue ID** | #92 |
 | **Title** | User Story 04: Lower Sys MLAction |
 | **Type** | user-story |
-| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `LowerSysMLAction` |
+| **Parent Epic** | [EPIC-06-SysmlGrammarLowering](../epics/EPIC-06-SysmlGrammarLowering.md) |
+| **SysML Interaction** | `GrammarLoweringInteraction` |
 | **SysML Test Case** | `Test_LowerSysMLAction` |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | [schema/subsystems/sysml_grammar_lowering/behavior.sysml](../../schema/subsystems/sysml_grammar_lowering/behavior.sysml) |
 
 # User Story 04: Lower Sys MLAction
 
@@ -17,12 +17,12 @@
 sequenceDiagram
     autonumber
     actor HumanEngineer
-    participant DEAPCompilerSystem
+    participant NodeArenaASTGraphEngine
     participant GrammarLoweringEngine
-    HumanEngineer->>DEAPCompilerSystem: LowerSysMLAction()
-    DEAPCompilerSystem->>GrammarLoweringEngine: LowerSysMLAction()
-    GrammarLoweringEngine-->>DEAPCompilerSystem: OperationComplete
-    DEAPCompilerSystem-->>HumanEngineer: StatusReport
+    HumanEngineer->>NodeArenaASTGraphEngine: LowerSysMLAction()
+    NodeArenaASTGraphEngine->>GrammarLoweringEngine: LowerSysMLAction()
+    GrammarLoweringEngine-->>NodeArenaASTGraphEngine: EmitStream
+    NodeArenaASTGraphEngine-->>HumanEngineer: StatusReport
 ```
 
 ## Acceptance Criteria (BDD)
@@ -32,13 +32,14 @@ sequenceDiagram
 
 ## Required Features
 - [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)
-- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)
+- [ ] [Feature 15: [Core Metamodel Node Arena] NodeArenaASTGraphEngine](../features/FEAT-15-NodeArenaASTGraphEngine.md)
 - [ ] [Feature 19: [Sysml Grammar Lowering] GrammarLoweringEngine](../features/FEAT-19-GrammarLoweringEngine.md)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
+- Subsystem Behavior Specification: `schema/subsystems/sysml_grammar_lowering/behavior.sysml`
 - ConOps Operational Activities: `schema/conops/activities.sysml`
 - System Architecture Model: `schema/model.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
 
-Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+Authoritative user story flows and interaction lifelines derive from `schema/subsystems/sysml_grammar_lowering/behavior.sysml` pursuant to ISO/IEC/IEEE 29148.

@@ -488,16 +488,26 @@ fn generate_epic_statechart(p: &PackageDef) -> String {
         }
     }
 
-    // Default canonical lifecycle state machine for root / conops
+    if p.name == "ConOps" {
+        return r#"stateDiagram-v2
+    [*] --> IngestOEMArtifacts
+    IngestOEMArtifacts --> ParseSysMLAST : tokens_streamed
+    ParseSysMLAST --> ValidateModelSemantics : ast_built
+    ValidateModelSemantics --> SynthesizeICDInterconnects : semantics_verified
+    SynthesizeICDInterconnects --> EmitDownstreamArtifacts : icd_synthesized
+    EmitDownstreamArtifacts --> [*]"#.to_string();
+    }
+
+    // Default canonical lifecycle state machine for root / system
     r#"stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]"#.to_string()
+    [*] --> SystemColdStart
+    SystemColdStart --> SubsystemDiscovery : initialize_compiler
+    SubsystemDiscovery --> PipelineOrchestration : subsystems_bound
+    PipelineOrchestration --> HealthDiagnosticsEvaluation : pipeline_completed
+    HealthDiagnosticsEvaluation --> SystemReady : diagnostics_clear
+    HealthDiagnosticsEvaluation --> DegradedFailure : errors_reported
+    SystemReady --> [*]
+    DegradedFailure --> [*]"#.to_string()
 }
 
 /// Generates an expanded Mermaid class diagram for an Epic including constituent part defs,
@@ -507,7 +517,32 @@ fn generate_epic_class_diagram(p: &PackageDef, primary_engine: &str, is_root: bo
     lines.push("classDiagram".to_string());
 
     if is_root {
-        lines.push("    class DEAPCompilerSystem".to_string());
+        if let Some(root_part) = p.part_defs.iter().find(|part| part.name == "DEAPCompilerSystem") {
+            let has_members = !root_part.ports.is_empty() || !root_part.attributes.is_empty() || !root_part.operations.is_empty();
+            if has_members {
+                lines.push("    class DEAPCompilerSystem {".to_string());
+                for port in &root_part.ports {
+                    let dir_prefix = if port.direction == "in" {
+                        "in"
+                    } else if port.direction == "out" {
+                        "out"
+                    } else {
+                        "inout"
+                    };
+                    let p_type = if port.type_name.is_empty() { "Port" } else { &port.type_name };
+                    lines.push(format!("        +{} {} ({})", p_type, port.name, dir_prefix));
+                }
+                for attr in &root_part.attributes {
+                    let a_type = if attr.type_name.is_empty() { "String" } else { &attr.type_name };
+                    lines.push(format!("        +{} {}", a_type, attr.name));
+                }
+                lines.push("    }".to_string());
+            } else {
+                lines.push("    class DEAPCompilerSystem".to_string());
+            }
+        } else {
+            lines.push("    class DEAPCompilerSystem".to_string());
+        }
         for subpart in &p.part_defs {
             if subpart.name != "DEAPCompilerSystem" {
                 lines.push(format!("    class {}", subpart.name));

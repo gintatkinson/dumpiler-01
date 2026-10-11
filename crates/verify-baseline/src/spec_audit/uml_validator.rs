@@ -676,6 +676,408 @@ fn collect_state_names(state: &StateDef, names: &mut HashSet<String>) {
     }
 }
 
+/// Validates Use Case Mermaid diagram compliance conforming to DO-178C Level A and ISO 26262 ASIL D.
+///
+/// Preconditions: `doc` has been parsed.
+/// Postconditions: Mechanically fails if Use Case diagrams:
+/// 1. Lack a system boundary subgraph (`subgraph ... System Boundary`).
+/// 2. Use directed arrows (`-->`) to actors.
+/// 3. Use non-stadium nodes (`["..."]` instead of `(["..."])`).
+/// 4. Consist of trivial 2-node flows.
+/// Algorithmic Complexity: O(B * L) where B is mermaid block count and L is line count.
+pub fn validate_use_case_diagram_compliance(
+    doc: &MarkdownDoc,
+    rel_path: &str,
+) -> Vec<String> {
+    let mut errors = Vec::new();
+
+    if doc.mermaid_blocks.is_empty() {
+        errors.push(format!(
+            "{}: Use Case Diagram Compliance Gate violation: Use Case document contains no Mermaid diagram blocks.",
+            rel_path
+        ));
+        return errors;
+    }
+
+    for block in &doc.mermaid_blocks {
+        let lines: Vec<&str> = block.raw.lines().collect();
+
+        // 1. System boundary subgraph check
+        let has_subgraph = lines.iter().any(|l| {
+            let t = l.trim().to_lowercase();
+            t.starts_with("subgraph")
+        });
+
+        if !has_subgraph {
+            errors.push(format!(
+                "{}: Use Case Diagram Compliance Gate violation: Diagram lacks a system boundary subgraph (expected 'subgraph \"... System Boundary\"').",
+                rel_path
+            ));
+        }
+
+        // 2. Directed arrows to actors check
+        let primary_actor = doc.table_metadata.get("primary_actor").map(|s| s.trim()).unwrap_or("");
+        let mut actor_ids = HashSet::new();
+        if !primary_actor.is_empty() {
+            actor_ids.insert(primary_actor.to_string());
+            actor_ids.insert(primary_actor.to_lowercase());
+        }
+        actor_ids.insert("actor".to_string());
+        actor_ids.insert("Actor".to_string());
+
+        for l in &lines {
+            let t = l.trim();
+            if t.starts_with("actor ") {
+                let act_id = t["actor ".len()..].trim().split_whitespace().next().unwrap_or("");
+                if !act_id.is_empty() {
+                    actor_ids.insert(act_id.to_string());
+                    actor_ids.insert(act_id.to_lowercase());
+                }
+            } else if t.contains("((\"") {
+                if let Some(paren_pos) = t.find("((\"") {
+                    let act_id = t[..paren_pos].trim();
+                    if !act_id.is_empty() {
+                        actor_ids.insert(act_id.to_string());
+                        actor_ids.insert(act_id.to_lowercase());
+                    }
+                }
+            }
+        }
+
+        let directed_arrows = ["-->", "->", "==>", "-.->", "<--", "<-"];
+        for l in &lines {
+            let t = l.trim();
+            if t.starts_with("%%") {
+                continue;
+            }
+            let is_directed = directed_arrows.iter().any(|&arr| t.contains(arr));
+            if is_directed {
+                let contains_actor = actor_ids.iter().any(|act| {
+                    t.contains(act) || t.to_lowercase().contains(act)
+                });
+                if contains_actor {
+                    errors.push(format!(
+                        "{}: Use Case Diagram Compliance Gate violation: Directed arrows ('-->') used to connect actor in line: '{}'. Actors must use undirected associations ('---') in UML Use Case diagrams.",
+                        rel_path, t
+                    ));
+                    break;
+                }
+            }
+        }
+
+        // 3. Non-stadium nodes check (`["..."]` instead of `(["..."])`)
+        let mut has_non_stadium = false;
+        for l in &lines {
+            let t = l.trim();
+            if t.starts_with("%%") || t.starts_with("subgraph") || t.starts_with("classDef") || t.starts_with("style") {
+                continue;
+            }
+            if t.contains("[\"") && t.contains("\"]") && !t.contains("([\"") && !t.contains("\"])") {
+                has_non_stadium = true;
+                break;
+            }
+        }
+
+        if has_non_stadium {
+            errors.push(format!(
+                "{}: Use Case Diagram Compliance Gate violation: Non-stadium nodes ('[\"... \"]') found in Use Case diagram. Use cases must use stadium-shaped nodes ('([\"... \"])').",
+                rel_path
+            ));
+        }
+
+        // 4. Trivial 2-node flows
+        let mut node_ids = HashSet::new();
+        for l in &lines {
+            let t = l.trim();
+            if t.starts_with("%%") || t.starts_with("subgraph") || t.starts_with("end")
+                || t.starts_with("flowchart") || t.starts_with("graph")
+                || t.starts_with("classDef") || t.starts_with("style")
+            {
+                continue;
+            }
+            let first_token = t.split(|c: char| c == '[' || c == '(' || c == ' ' || c == '-' || c == '.')
+                .next()
+                .unwrap_or("")
+                .trim();
+            if !first_token.is_empty() && first_token.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+                node_ids.insert(first_token.to_string());
+            }
+
+            for arr in &["-->", "---", "->", "-.->"] {
+                if let Some(pos) = t.find(arr) {
+                    let after = t[pos + arr.len()..].trim();
+                    let target_token = after.split(|c: char| c == '[' || c == '(' || c == ' ' || c == '-' || c == '.')
+                        .next()
+                        .unwrap_or("")
+                        .trim();
+                    if !target_token.is_empty() && target_token.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+                        node_ids.insert(target_token.to_string());
+                    }
+                }
+            }
+        }
+
+        if node_ids.len() <= 2 {
+            errors.push(format!(
+                "{}: Use Case Diagram Compliance Gate violation: Trivial 2-node flow detected (found {} distinct node(s)). Use case diagrams must model complete subsystem boundaries and scenario step inclusions.",
+                rel_path, node_ids.len()
+            ));
+        }
+    }
+
+    errors
+}
+
+/// Validates Epic statechart heterogeneity conforming to DO-178C Level A and ISO 26262 ASIL D.
+///
+/// Preconditions: `epics` contains audited Epic Markdown documents.
+/// Postconditions: Mechanically fails if multiple Epics share identical canned statecharts
+/// (e.g. sharing identical 'Bootstrapping -> Ingesting -> Compiling -> Verifying' transitions
+/// without subsystem-specific states, or sharing identical statechart transition sets).
+/// Algorithmic Complexity: O(E * T) where E is epic count and T is transition count.
+pub fn validate_epic_statechart_heterogeneity(
+    epics: &[(&str, &MarkdownDoc)],
+) -> Vec<String> {
+    let mut errors = Vec::new();
+    let mut epic_transitions: Vec<(&str, Vec<(String, String)>)> = Vec::new();
+
+    for &(rel_path, doc) in epics {
+        for block in &doc.mermaid_blocks {
+            let lower_raw = block.raw.to_lowercase();
+            if block.header.starts_with("stateDiagram") || lower_raw.contains("statediagram") {
+                let mut trans_list = Vec::new();
+                for line in block.raw.lines() {
+                    let t = line.trim();
+                    if t.starts_with("%%") || t.starts_with("stateDiagram") || t.is_empty() {
+                        continue;
+                    }
+                    if let Some(arrow_idx) = t.find("-->") {
+                        let from = t[..arrow_idx].trim();
+                        let rest = t[arrow_idx + 3..].trim();
+                        let to = match rest.find(':') {
+                            Some(colon_idx) => rest[..colon_idx].trim(),
+                            None => rest,
+                        };
+                        if !from.is_empty() && !to.is_empty() {
+                            trans_list.push((from.to_string(), to.to_string()));
+                        }
+                    }
+                }
+                trans_list.sort();
+                epic_transitions.push((rel_path, trans_list));
+                break;
+            }
+        }
+    }
+
+    if epic_transitions.len() < 2 {
+        return errors;
+    }
+
+    // 1. Check for canned pipeline lifecycle transitions:
+    let mut canned_epics = Vec::new();
+    for (rel_path, trans) in &epic_transitions {
+        let has_boot_ingest = trans.iter().any(|(f, t)| f == "Bootstrapping" && t == "Ingesting");
+        let has_ingest_comp = trans.iter().any(|(f, t)| f == "Ingesting" && t == "Compiling");
+        let has_comp_verif = trans.iter().any(|(f, t)| f == "Compiling" && t == "Verifying");
+        if has_boot_ingest && has_ingest_comp && has_comp_verif {
+            canned_epics.push(*rel_path);
+        }
+    }
+
+    if canned_epics.len() > 1 {
+        errors.push(format!(
+            "Epic Statechart Heterogeneity Gate violation: Multiple Epics ({}) share identical canned pipeline lifecycle statecharts ('Bootstrapping -> Ingesting -> Compiling -> Verifying') without subsystem-specific states.",
+            canned_epics.join(", ")
+        ));
+    }
+
+    // 2. Check for exact identical transition sets between any two different Epics
+    let mut checked_pairs = HashSet::new();
+    for i in 0..epic_transitions.len() {
+        for j in i + 1..epic_transitions.len() {
+            let (path1, trans1) = &epic_transitions[i];
+            let (path2, trans2) = &epic_transitions[j];
+            if !trans1.is_empty() && trans1 == trans2 {
+                let pair_key = if path1 < path2 {
+                    format!("{}|{}", path1, path2)
+                } else {
+                    format!("{}|{}", path2, path1)
+                };
+                if checked_pairs.insert(pair_key) {
+                    if !(canned_epics.contains(path1) && canned_epics.contains(path2)) {
+                        errors.push(format!(
+                            "Epic Statechart Heterogeneity Gate violation: Epics '{}' and '{}' share identical statechart transitions ({} transitions). Epics must define distinct subsystem-specific statecharts.",
+                            path1, path2, trans1.len()
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    errors
+}
+
+/// Helper to extract clean epic stem from markdown link or identifier.
+fn extract_epic_stem(raw: &str) -> String {
+    let clean = raw.trim().trim_matches(|c| c == '[' || c == ']');
+    if let Some(idx) = clean.find('(') {
+        let text = clean[..idx].trim().trim_matches(|c| c == ']' || c == '[');
+        if !text.is_empty() {
+            return text.to_string();
+        }
+    }
+    if let Some(idx) = clean.rfind('/') {
+        let fname = &clean[idx + 1..];
+        return fname.strip_suffix(".md").unwrap_or(fname).to_string();
+    }
+    clean.to_string()
+}
+
+/// Helper to extract subsystem name from a feature title like "Feature 06: [System Vision] SystemVisionEngine".
+fn extract_subsystem_from_title(title: &str) -> String {
+    if let Some(open) = title.find('[') {
+        if let Some(close) = title[open..].find(']') {
+            return title[open + 1..open + close].trim().to_string();
+        }
+    }
+    String::new()
+}
+
+/// Validates Parent Epic alignment between User Stories, Features, and Epics.
+///
+/// Preconditions: `stories`, `features`, and `epics` contain parsed Markdown documents.
+/// Postconditions: Mechanically fails if a User Story links to a mismatching parent Epic
+/// (e.g. non-conops story declaring 'Parent Epic: EPIC-02-ConOps' when its subsystem / required
+/// features belong to a different Epic).
+/// Algorithmic Complexity: O(S * F) where S is story count and F is required feature count.
+pub fn validate_parent_epic_alignment(
+    stories: &[(&str, &MarkdownDoc)],
+    features: &[(&str, &MarkdownDoc)],
+    epics: &[(&str, &MarkdownDoc)],
+) -> Vec<String> {
+    let mut errors = Vec::new();
+
+    let mut feat_info: HashMap<String, (String, String)> = HashMap::new();
+    for &(f_path, f_doc) in features {
+        let f_basename = match f_path.rfind('/') {
+            Some(idx) => &f_path[idx + 1..],
+            None => f_path,
+        };
+        let f_stem = f_basename.strip_suffix(".md").unwrap_or(f_basename).to_lowercase();
+
+        let parent_epic = f_doc.table_metadata.get("parent_epic").map(|s| s.trim()).unwrap_or("");
+        let parent_epic_clean = extract_epic_stem(parent_epic);
+
+        let title = f_doc.table_metadata.get("title").map(|s| s.trim()).unwrap_or("");
+        let subsys = extract_subsystem_from_title(title);
+
+        feat_info.insert(f_stem, (subsys, parent_epic_clean));
+    }
+
+    let mut epic_associated_stories: HashMap<String, String> = HashMap::new();
+    for &(ep_path, ep_doc) in epics {
+        let ep_basename = match ep_path.rfind('/') {
+            Some(idx) => &ep_path[idx + 1..],
+            None => ep_path,
+        };
+        let ep_stem = ep_basename.strip_suffix(".md").unwrap_or(ep_basename);
+        if ep_stem.to_lowercase().contains("epic-02") {
+            continue;
+        }
+
+        for segment in &ep_doc.prose {
+            for raw_word in segment.text.split(|c: char| c == '(' || c == ')' || c == '[' || c == ']' || c.is_whitespace()) {
+                let word = raw_word.trim_matches(|c: char| c.is_ascii_punctuation() && c != '-' && c != '_');
+                if word.to_lowercase().contains("us-") {
+                    let s_basename = match word.rfind('/') {
+                        Some(idx) => &word[idx + 1..],
+                        None => word,
+                    };
+                    let s_stem = s_basename.strip_suffix(".md").unwrap_or(s_basename).to_lowercase();
+                    epic_associated_stories.insert(s_stem, ep_stem.to_string());
+                }
+            }
+        }
+    }
+
+    for &(s_path, s_doc) in stories {
+        let s_basename = match s_path.rfind('/') {
+            Some(idx) => &s_path[idx + 1..],
+            None => s_path,
+        };
+        let s_stem = s_basename.strip_suffix(".md").unwrap_or(s_basename).to_lowercase();
+
+        let declared_parent = s_doc.table_metadata.get("parent_epic").map(|s| s.trim()).unwrap_or("");
+        let declared_stem = extract_epic_stem(declared_parent);
+
+        let spec_source = s_doc.table_metadata.get("specification_source").map(|s| s.trim()).unwrap_or("");
+        let is_conops_source = spec_source.to_lowercase().contains("conops");
+
+        let mut linked_feature_parent_epics = Vec::new();
+        for segment in &s_doc.prose {
+            for raw_word in segment.text.split(|c: char| c == '(' || c == ')' || c == '[' || c == ']' || c.is_whitespace()) {
+                let word = raw_word.trim_matches(|c: char| c.is_ascii_punctuation() && c != '-' && c != '_');
+                if word.to_lowercase().contains("feat-") {
+                    let f_basename = match word.rfind('/') {
+                        Some(idx) => &word[idx + 1..],
+                        None => word,
+                    };
+                    let f_stem = f_basename.strip_suffix(".md").unwrap_or(f_basename).to_lowercase();
+                    let matched_feat = feat_info.iter().find(|(k, _)| {
+                        k.as_str() == f_stem
+                            || (k.starts_with(&f_stem) && k[f_stem.len()..].starts_with('-'))
+                            || (f_stem.starts_with(k.as_str()) && f_stem[k.len()..].starts_with('-'))
+                    });
+                    if let Some((_, (_subsys, p_epic))) = matched_feat {
+                        if !p_epic.is_empty() {
+                            linked_feature_parent_epics.push((f_stem, p_epic.clone()));
+                        }
+                    }
+                }
+            }
+        }
+
+        let primary_feature_epic = linked_feature_parent_epics
+            .iter()
+            .find(|(_f, p)| !p.to_lowercase().contains("epic-01") && !p.to_lowercase().contains("epic-02"))
+            .map(|(_f, p)| p.as_str());
+
+        let expected_from_epic_checklist = epic_associated_stories
+            .iter()
+            .find(|(k, _)| {
+                k.as_str() == s_stem
+                    || (k.starts_with(&s_stem) && k[s_stem.len()..].starts_with('-'))
+                    || (s_stem.starts_with(k.as_str()) && s_stem[k.len()..].starts_with('-'))
+            })
+            .map(|(_, v)| v.as_str());
+        let expected_epic = primary_feature_epic.or(expected_from_epic_checklist);
+
+        if let Some(expected) = expected_epic {
+            let declared_lower = declared_stem.to_lowercase();
+            let expected_lower = expected.to_lowercase();
+
+            let mismatch = if declared_lower.contains("epic-02") && !expected_lower.contains("epic-02") {
+                true
+            } else if !declared_lower.contains(&expected_lower) && !expected_lower.contains(&declared_lower) {
+                !is_conops_source
+            } else {
+                false
+            };
+
+            if mismatch {
+                errors.push(format!(
+                    "{}: Parent Epic Alignment Gate violation: User Story declared parent Epic '{}', but its associated subsystem / required features belong to '{}'.",
+                    s_path, declared_stem, expected
+                ));
+            }
+        }
+    }
+
+    errors
+}
+
 // ============================================================================
 // SEMANTIC ACCEPTANCE UNIT TESTS
 // ============================================================================
@@ -1086,5 +1488,201 @@ mod tests {
         let res = validate_source_references(&missing_doc);
         assert!(res.is_err());
         assert!(res.unwrap_err().to_string().contains("missing a mandatory 'Source References' section"));
+    }
+
+    #[test]
+    fn test_use_case_diagram_compliance_gate() {
+        use crate::spec_audit::markdown_ast::MermaidBlock;
+
+        // Trivial 2-node flow, directed arrow to actor, non-stadium, no boundary subgraph
+        let legacy_doc = MarkdownDoc {
+            headings: vec![],
+            frontmatter: None,
+            table_metadata: HashMap::from([("primary_actor".to_string(), "HumanEngineer".to_string())]),
+            prose: vec![],
+            mermaid_blocks: vec![MermaidBlock {
+                raw: "flowchart TD\n    Actor[\"HumanEngineer\"] --> Target[\"SystemVisionEngine\"]\n".to_string(),
+                header: "flowchart TD".to_string(),
+                start_line: 10,
+                end_line: 12,
+            }],
+            unresolved_placeholders: vec![],
+        };
+
+        let errs = validate_use_case_diagram_compliance(&legacy_doc, "docs/use-cases/uc-01.md");
+        assert!(errs.iter().any(|e| e.contains("lacks a system boundary subgraph")));
+        assert!(errs.iter().any(|e| e.contains("Directed arrows ('-->') used to connect actor")));
+        assert!(errs.iter().any(|e| e.contains("Non-stadium nodes")));
+        assert!(errs.iter().any(|e| e.contains("Trivial 2-node flow detected")));
+
+        // Compliant UML diagram with boundary, stadium nodes, undirected association
+        let compliant_raw = r#"graph TD
+    subgraph "SystemVisionEngine System Boundary"
+        UC_Main(["System Vision and Foundational Invariants"])
+        UC_Step01(["Operator dispatches command"])
+        UC_Step02(["Engine boots invariants"])
+    end
+    HumanEngineer(("HumanEngineer")) --- UC_Main
+    UC_Main -. "<<include>>" .-> UC_Step01
+    UC_Main -. "<<include>>" .-> UC_Step02
+"#;
+        let compliant_doc = MarkdownDoc {
+            headings: vec![],
+            frontmatter: None,
+            table_metadata: HashMap::from([("primary_actor".to_string(), "HumanEngineer".to_string())]),
+            prose: vec![],
+            mermaid_blocks: vec![MermaidBlock {
+                raw: compliant_raw.to_string(),
+                header: "graph TD".to_string(),
+                start_line: 10,
+                end_line: 18,
+            }],
+            unresolved_placeholders: vec![],
+        };
+
+        let clean_errs = validate_use_case_diagram_compliance(&compliant_doc, "docs/use-cases/uc-01.md");
+        assert!(clean_errs.is_empty(), "Compliant diagram should have 0 errors: {:?}", clean_errs);
+    }
+
+    #[test]
+    fn test_epic_statechart_heterogeneity_gate() {
+        use crate::spec_audit::markdown_ast::MermaidBlock;
+
+        let canned_raw = r#"stateDiagram-v2
+    [*] --> Bootstrapping
+    Bootstrapping --> Ingesting : dispatch
+    Ingesting --> Compiling : parse_complete
+    Compiling --> Verifying : ast_lowered
+    Verifying --> EmitSuccess : pass
+    EmitSuccess --> [*]
+"#;
+        let epic1 = MarkdownDoc {
+            headings: vec![],
+            frontmatter: None,
+            table_metadata: HashMap::new(),
+            prose: vec![],
+            mermaid_blocks: vec![MermaidBlock {
+                raw: canned_raw.to_string(),
+                header: "stateDiagram-v2".to_string(),
+                start_line: 1,
+                end_line: 8,
+            }],
+            unresolved_placeholders: vec![],
+        };
+        let epic2 = epic1.clone();
+
+        let epics = vec![
+            ("docs/epics/epic-03.md", &epic1),
+            ("docs/epics/epic-04.md", &epic2),
+        ];
+
+        let errs = validate_epic_statechart_heterogeneity(&epics);
+        assert!(!errs.is_empty(), "Identical canned statecharts must be flagged");
+        assert!(errs.iter().any(|e| e.contains("share identical canned pipeline lifecycle statecharts")));
+
+        // Heterogeneous epics
+        let custom_raw = r#"stateDiagram-v2
+    [*] --> Idle
+    Idle --> IngestionActive : start
+    IngestionActive --> Finalized : done
+    Finalized --> [*]
+"#;
+        let epic3 = MarkdownDoc {
+            headings: vec![],
+            frontmatter: None,
+            table_metadata: HashMap::new(),
+            prose: vec![],
+            mermaid_blocks: vec![MermaidBlock {
+                raw: custom_raw.to_string(),
+                header: "stateDiagram-v2".to_string(),
+                start_line: 1,
+                end_line: 6,
+            }],
+            unresolved_placeholders: vec![],
+        };
+
+        let heterogenous = vec![
+            ("docs/epics/epic-03.md", &epic1),
+            ("docs/epics/epic-04.md", &epic3),
+        ];
+        let clean_errs = validate_epic_statechart_heterogeneity(&heterogenous);
+        assert!(clean_errs.is_empty(), "Heterogeneous epics must pass: {:?}", clean_errs);
+    }
+
+    #[test]
+    fn test_parent_epic_alignment_gate() {
+        // Feature 06 belongs to EPIC-03-SystemVision
+        let feat06 = MarkdownDoc {
+            headings: vec![],
+            frontmatter: None,
+            table_metadata: HashMap::from([
+                ("title".to_string(), "Feature 06: [System Vision] SystemVisionEngine".to_string()),
+                ("parent_epic".to_string(), "[EPIC-03-SystemVision](../epics/EPIC-03-SystemVision.md)".to_string()),
+            ]),
+            prose: vec![],
+            mermaid_blocks: vec![],
+            unresolved_placeholders: vec![],
+        };
+
+        // Epic 03 checklist associates US-01
+        let epic03 = MarkdownDoc {
+            headings: vec![],
+            frontmatter: None,
+            table_metadata: HashMap::new(),
+            prose: vec![ProseSegment {
+                text: "- [ ] [User Story 01: Bootstrap System Vision Action](../user-stories/US-01-BootstrapSystemVisionAction.md)".to_string(),
+                line: 20,
+            }],
+            mermaid_blocks: vec![],
+            unresolved_placeholders: vec![],
+        };
+
+        // Mismatched story declaring Parent Epic: EPIC-02-ConOps while realizing FEAT-06
+        let mismatched_story = MarkdownDoc {
+            headings: vec![],
+            frontmatter: None,
+            table_metadata: HashMap::from([
+                ("title".to_string(), "User Story 01: Bootstrap System Vision Action".to_string()),
+                ("parent_epic".to_string(), "[EPIC-02-ConOps](../epics/EPIC-02-ConOps.md)".to_string()),
+                ("specification_source".to_string(), "[schema/subsystems/system_vision/behavior.sysml]".to_string()),
+            ]),
+            prose: vec![ProseSegment {
+                text: "## Required Features\n- [ ] [Feature 06: [System Vision] SystemVisionEngine](../features/FEAT-06-SystemVisionEngine.md)".to_string(),
+                line: 30,
+            }],
+            mermaid_blocks: vec![],
+            unresolved_placeholders: vec![],
+        };
+
+        let stories = vec![("docs/user-stories/US-01-BootstrapSystemVisionAction.md", &mismatched_story)];
+        let features = vec![("docs/features/FEAT-06-SystemVisionEngine.md", &feat06)];
+        let epics = vec![("docs/epics/EPIC-03-SystemVision.md", &epic03)];
+
+        let errs = validate_parent_epic_alignment(&stories, &features, &epics);
+        assert_eq!(errs.len(), 1);
+        assert!(errs[0].contains("Parent Epic Alignment Gate violation"));
+        assert!(errs[0].contains("declared parent Epic 'EPIC-02-ConOps'"));
+        assert!(errs[0].contains("EPIC-03-SystemVision"));
+
+        // Aligned story
+        let aligned_story = MarkdownDoc {
+            headings: vec![],
+            frontmatter: None,
+            table_metadata: HashMap::from([
+                ("title".to_string(), "User Story 01: Bootstrap System Vision Action".to_string()),
+                ("parent_epic".to_string(), "[EPIC-03-SystemVision](../epics/EPIC-03-SystemVision.md)".to_string()),
+                ("specification_source".to_string(), "[schema/subsystems/system_vision/behavior.sysml]".to_string()),
+            ]),
+            prose: vec![ProseSegment {
+                text: "## Required Features\n- [ ] [Feature 06: [System Vision] SystemVisionEngine](../features/FEAT-06-SystemVisionEngine.md)".to_string(),
+                line: 30,
+            }],
+            mermaid_blocks: vec![],
+            unresolved_placeholders: vec![],
+        };
+
+        let clean_stories = vec![("docs/user-stories/US-01-BootstrapSystemVisionAction.md", &aligned_story)];
+        let clean_errs = validate_parent_epic_alignment(&clean_stories, &features, &epics);
+        assert!(clean_errs.is_empty(), "Aligned story should have 0 errors: {:?}", clean_errs);
     }
 }

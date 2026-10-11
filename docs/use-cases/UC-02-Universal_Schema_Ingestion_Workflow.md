@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["HumanEngineer"] --> Target["UniversalIngestionEngine"]
+graph TD
+    subgraph "UniversalIngestionEngine System Boundary"
+        UC_Main(["Universal Schema Ingestion Workflow"])
+        UC_Step01(["Client submits raw schema file path through schema_in port."])
+        UC_Step02(["FormatClassifier inspects magic bytes and file extensions..."])
+        UC_Step03(["UniversalIngestionEngine selects corresponding parser eng..."])
+        UC_Step04(["Selected parser converts structural declarations, tables,..."])
+        UC_Step05(["Parser verifies token well-formedness and balances contai..."])
+        UC_Step06(["UniversalIngestionEngine streams normalized token stream ..."])
+    end
+    HumanEngineer(("HumanEngineer")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

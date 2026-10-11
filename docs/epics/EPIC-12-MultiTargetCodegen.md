@@ -49,20 +49,39 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class CodeGenEngine
+    class CodeGenEngine {
+        +SpecificationPort specs_in (in)
+        +CodeArtifactPort code_out (out)
+    }
+    class TargetAstTranspiler {
+        +SpecificationPort specs_in (in)
+        +CodeArtifactPort code_out (out)
+    }
+    class TemplateRenderingEngine {
+        +SpecificationPort specs_in (in)
+        +CodeArtifactPort code_out (out)
+    }
+    class CodeArtifactFormatter {
+        +SpecificationPort specs_in (in)
+        +CodeArtifactPort code_out (out)
+    }
     DEAPCompilerSystem --> CodeGenEngine : contains
+    CodeGenEngine --> TargetAstTranspiler : astTranspiler
+    CodeGenEngine --> TemplateRenderingEngine : templateEngine
+    CodeGenEngine --> CodeArtifactFormatter : formatter
+    CodeGenEngine --> TargetAstTranspiler : coordinates
+    CodeGenEngine --> TemplateRenderingEngine : coordinates
+    CodeGenEngine --> CodeArtifactFormatter : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> SpecIngest
+    SpecIngest --> TargetAstMapping
+    TargetAstMapping --> TemplateRendering
+    TemplateRendering --> CodeFormatting
+    CodeFormatting --> ArtifactEmission
+    ArtifactEmission --> [*]
 ```

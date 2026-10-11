@@ -3,11 +3,11 @@
 | **Issue ID** | #94 |
 | **Title** | User Story 06: Solve State Dynamics Action |
 | **Type** | user-story |
-| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `SolveStateDynamicsAction` |
+| **Parent Epic** | [EPIC-08-SpatioTemporalStateSolvers](../epics/EPIC-08-SpatioTemporalStateSolvers.md) |
+| **SysML Interaction** | `StateSolverInteraction` |
 | **SysML Test Case** | `Test_SolveStateDynamicsAction` |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | [schema/subsystems/spatio_temporal_state_solvers/behavior.sysml](../../schema/subsystems/spatio_temporal_state_solvers/behavior.sysml) |
 
 # User Story 06: Solve State Dynamics Action
 
@@ -17,12 +17,12 @@
 sequenceDiagram
     autonumber
     actor HumanEngineer
-    participant DEAPCompilerSystem
+    participant GrammarLoweringEngine
     participant StateMachineSolverEngine
-    HumanEngineer->>DEAPCompilerSystem: SolveStateDynamicsAction()
-    DEAPCompilerSystem->>StateMachineSolverEngine: SolveStateDynamicsAction()
-    StateMachineSolverEngine-->>DEAPCompilerSystem: OperationComplete
-    DEAPCompilerSystem-->>HumanEngineer: StatusReport
+    HumanEngineer->>GrammarLoweringEngine: SolveStateDynamicsAction()
+    GrammarLoweringEngine->>StateMachineSolverEngine: SolveStateDynamicsAction()
+    StateMachineSolverEngine-->>GrammarLoweringEngine: StateOutput
+    GrammarLoweringEngine-->>HumanEngineer: StatusReport
 ```
 
 ## Acceptance Criteria (BDD)
@@ -32,13 +32,14 @@ sequenceDiagram
 
 ## Required Features
 - [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)
-- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)
+- [ ] [Feature 19: [Sysml Grammar Lowering] GrammarLoweringEngine](../features/FEAT-19-GrammarLoweringEngine.md)
 - [ ] [Feature 27: [Spatio Temporal State Solvers] StateMachineSolverEngine](../features/FEAT-27-StateMachineSolverEngine.md)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
+- Subsystem Behavior Specification: `schema/subsystems/spatio_temporal_state_solvers/behavior.sysml`
 - ConOps Operational Activities: `schema/conops/activities.sysml`
 - System Architecture Model: `schema/model.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
 
-Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+Authoritative user story flows and interaction lifelines derive from `schema/subsystems/spatio_temporal_state_solvers/behavior.sysml` pursuant to ISO/IEC/IEEE 29148.

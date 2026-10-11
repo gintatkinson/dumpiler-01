@@ -72,7 +72,13 @@ Operational activity definitions and actor models derive from `schema/conops/act
 classDiagram
     class DEAPCompilerSystem
     class HumanEngineer
+    class CIContinuousIntegrationRunner
+    class RemoteArtifactRegistry
+    class DownstreamApplicationHost
     DEAPCompilerSystem --> HumanEngineer : contains
+    HumanEngineer --> CIContinuousIntegrationRunner : coordinates
+    HumanEngineer --> RemoteArtifactRegistry : coordinates
+    HumanEngineer --> DownstreamApplicationHost : coordinates
 ```
 
 ## System State Machine Diagram
@@ -80,11 +86,12 @@ classDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
+    Bootstrapping --> Ingesting
+    Ingesting --> Compiling
+    Compiling --> Verifying
+    Verifying --> EmitSuccess
+    Compiling --> FaultTerminated
+    Verifying --> FaultTerminated
     EmitSuccess --> [*]
+    FaultTerminated --> [*]
 ```

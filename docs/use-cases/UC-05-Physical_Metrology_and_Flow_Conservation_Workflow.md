@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["CIContinuousIntegrationRunner"] --> Target["MetrologyFlowEngine"]
+graph TD
+    subgraph "MetrologyFlowEngine System Boundary"
+        UC_Main(["Physical Metrology and Flow Conservation Workflow"])
+        UC_Step01(["GrammarLoweringEngine passes AST stream to MetrologyFlowE..."])
+        UC_Step02(["DimensionalUnitChecker verifies SI unit coherence across ..."])
+        UC_Step03(["FlowConservationSolver inspects connection networks and v..."])
+        UC_Step04(["ConservationNetworkRouter checks that total inward flow e..."])
+        UC_Step05(["MetrologyFlowEngine calculates margin bounds and validate..."])
+        UC_Step06(["MetrologyFlowEngine outputs verified MetrologyFlowPort pa..."])
+    end
+    CIContinuousIntegrationRunner(("CIContinuousIntegrationRunner")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

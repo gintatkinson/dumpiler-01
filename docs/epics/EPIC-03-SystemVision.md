@@ -49,8 +49,30 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class SystemVisionEngine
+    class SystemVisionEngine {
+        +CompilerRulePort rules_out (out)
+    }
+    class InvariantBootstrapEngine {
+        +CompilerRulePort rules_out (out)
+        +String compiler_namespace_uuid
+    }
+    class NamespaceUuidGenerator {
+        +ASTGraphPort path_in (in)
+        +CompilerRulePort uuid_out (out)
+        +Integer uuid_version
+    }
+    class DomainVocabularyValidator {
+        +TokenStreamPort token_in (in)
+        +DiagnosticPort diag_out (out)
+        +Integer max_violations
+    }
     DEAPCompilerSystem --> SystemVisionEngine : contains
+    SystemVisionEngine --> InvariantBootstrapEngine : bootstrapper
+    SystemVisionEngine --> NamespaceUuidGenerator : uuidGen
+    SystemVisionEngine --> DomainVocabularyValidator : vocabValidator
+    SystemVisionEngine --> InvariantBootstrapEngine : coordinates
+    SystemVisionEngine --> NamespaceUuidGenerator : coordinates
+    SystemVisionEngine --> DomainVocabularyValidator : coordinates
 ```
 
 ## System State Machine Diagram
@@ -58,11 +80,10 @@ classDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    Bootstrapping --> InvariantVerification
+    InvariantVerification --> NamespaceHashing
+    NamespaceHashing --> ActiveMonitoring
+    InvariantVerification --> FaultTerminated
+    ActiveMonitoring --> [*]
+    FaultTerminated --> [*]
 ```

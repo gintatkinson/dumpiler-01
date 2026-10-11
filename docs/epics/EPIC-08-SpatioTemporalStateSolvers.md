@@ -49,20 +49,42 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class StateMachineSolverEngine
+    class StateMachineSolverEngine {
+        +ASTStreamPort ast_in (in)
+        +StateSolverPort state_out (out)
+    }
+    class StateHierarchyFlattener {
+        +ASTStreamPort ast_in (in)
+        +StateSolverPort state_out (out)
+        +Integer max_nesting_depth
+    }
+    class DiscreteTransitionSolver {
+        +ASTStreamPort ast_in (in)
+        +StateSolverPort state_out (out)
+        +String guard_evaluation_mode
+    }
+    class ReachabilityMatrixEvaluator {
+        +ASTStreamPort ast_in (in)
+        +StateSolverPort state_out (out)
+        +Boolean deadlock_detection
+    }
     DEAPCompilerSystem --> StateMachineSolverEngine : contains
+    StateMachineSolverEngine --> StateHierarchyFlattener : flattener
+    StateMachineSolverEngine --> DiscreteTransitionSolver : solver
+    StateMachineSolverEngine --> ReachabilityMatrixEvaluator : evaluator
+    StateMachineSolverEngine --> StateHierarchyFlattener : coordinates
+    StateMachineSolverEngine --> DiscreteTransitionSolver : coordinates
+    StateMachineSolverEngine --> ReachabilityMatrixEvaluator : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> IngestingStates
+    IngestingStates --> FlatteningHierarchy
+    FlatteningHierarchy --> SolvingTransitions
+    SolvingTransitions --> EvaluatingReachability
+    EvaluatingReachability --> Solved
+    Solved --> [*]
 ```

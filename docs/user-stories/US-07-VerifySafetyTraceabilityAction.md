@@ -3,11 +3,11 @@
 | **Issue ID** | #95 |
 | **Title** | User Story 07: Verify Safety Traceability Action |
 | **Type** | user-story |
-| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `VerifySafetyTraceabilityAction` |
+| **Parent Epic** | [EPIC-09-FormalSafetyTraceability](../epics/EPIC-09-FormalSafetyTraceability.md) |
+| **SysML Interaction** | `SafetyTraceabilityInteraction` |
 | **SysML Test Case** | `Test_VerifySafetyTraceabilityAction` |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | [schema/subsystems/formal_safety_traceability/behavior.sysml](../../schema/subsystems/formal_safety_traceability/behavior.sysml) |
 
 # User Story 07: Verify Safety Traceability Action
 
@@ -17,12 +17,12 @@
 sequenceDiagram
     autonumber
     actor HumanEngineer
-    participant DEAPCompilerSystem
+    participant StateMachineSolverEngine
     participant SafetyAssuranceEngine
-    HumanEngineer->>DEAPCompilerSystem: VerifySafetyTraceabilityAction()
-    DEAPCompilerSystem->>SafetyAssuranceEngine: VerifySafetyTraceabilityAction()
-    SafetyAssuranceEngine-->>DEAPCompilerSystem: OperationComplete
-    DEAPCompilerSystem-->>HumanEngineer: StatusReport
+    HumanEngineer->>StateMachineSolverEngine: VerifySafetyTraceabilityAction()
+    StateMachineSolverEngine->>SafetyAssuranceEngine: VerifySafetyTraceabilityAction()
+    SafetyAssuranceEngine-->>StateMachineSolverEngine: EmitSafetyProof
+    StateMachineSolverEngine-->>HumanEngineer: StatusReport
 ```
 
 ## Acceptance Criteria (BDD)
@@ -32,13 +32,14 @@ sequenceDiagram
 
 ## Required Features
 - [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)
-- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)
+- [ ] [Feature 27: [Spatio Temporal State Solvers] StateMachineSolverEngine](../features/FEAT-27-StateMachineSolverEngine.md)
 - [ ] [Feature 31: [Formal Safety Traceability] SafetyAssuranceEngine](../features/FEAT-31-SafetyAssuranceEngine.md)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
+- Subsystem Behavior Specification: `schema/subsystems/formal_safety_traceability/behavior.sysml`
 - ConOps Operational Activities: `schema/conops/activities.sysml`
 - System Architecture Model: `schema/model.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
 
-Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+Authoritative user story flows and interaction lifelines derive from `schema/subsystems/formal_safety_traceability/behavior.sysml` pursuant to ISO/IEC/IEEE 29148.

@@ -3,11 +3,11 @@
 | **Issue ID** | #90 |
 | **Title** | User Story 02: Classify Format Action |
 | **Type** | user-story |
-| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `ClassifyFormatAction` |
+| **Parent Epic** | [EPIC-04-UniversalSchemaIngestion](../epics/EPIC-04-UniversalSchemaIngestion.md) |
+| **SysML Interaction** | `IngestSchemaInteraction` |
 | **SysML Test Case** | `Test_ClassifyFormatAction` |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | [schema/subsystems/universal_schema_ingestion/behavior.sysml](../../schema/subsystems/universal_schema_ingestion/behavior.sysml) |
 
 # User Story 02: Classify Format Action
 
@@ -21,7 +21,7 @@ sequenceDiagram
     participant UniversalIngestionEngine
     HumanEngineer->>DEAPCompilerSystem: ClassifyFormatAction()
     DEAPCompilerSystem->>UniversalIngestionEngine: ClassifyFormatAction()
-    UniversalIngestionEngine-->>DEAPCompilerSystem: OperationComplete
+    UniversalIngestionEngine-->>DEAPCompilerSystem: TokenResponse
     DEAPCompilerSystem-->>HumanEngineer: StatusReport
 ```
 
@@ -32,13 +32,14 @@ sequenceDiagram
 
 ## Required Features
 - [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)
-- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)
+- [ ] [Feature 05: [System Architecture] DEAPCompilerSystem](../features/FEAT-05-DEAPCompilerSystem.md)
 - [ ] [Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine](../features/FEAT-10-UniversalIngestionEngine.md)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
+- Subsystem Behavior Specification: `schema/subsystems/universal_schema_ingestion/behavior.sysml`
 - ConOps Operational Activities: `schema/conops/activities.sysml`
 - System Architecture Model: `schema/model.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
 
-Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+Authoritative user story flows and interaction lifelines derive from `schema/subsystems/universal_schema_ingestion/behavior.sysml` pursuant to ISO/IEC/IEEE 29148.

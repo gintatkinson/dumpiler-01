@@ -50,20 +50,46 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class SafetyAssuranceEngine
+    class SafetyAssuranceEngine {
+        +MetrologyFlowPort metrology_in (in)
+        +StateSolverPort state_in (in)
+        +SafetyPort safety_out (out)
+    }
+    class BipartiteGraphBuilder {
+        +ASTStreamPort ast_stream (in)
+        +SafetyPort safety_out (out)
+    }
+    class DisjointTierValidator {
+        +ASTStreamPort ast_stream (in)
+        +SafetyPort safety_out (out)
+    }
+    class BidirectionalSweepEngine {
+        +ASTStreamPort ast_stream (in)
+        +SafetyPort safety_out (out)
+    }
+    class DiagnosticSentinelSink {
+        +DiagnosticPort diag_in (in)
+        +SafetyPort safety_out (out)
+    }
     DEAPCompilerSystem --> SafetyAssuranceEngine : contains
+    SafetyAssuranceEngine --> BipartiteGraphBuilder : graphBuilder
+    SafetyAssuranceEngine --> DisjointTierValidator : tierValidator
+    SafetyAssuranceEngine --> BidirectionalSweepEngine : sweepEngine
+    SafetyAssuranceEngine --> DiagnosticSentinelSink : diagSink
+    SafetyAssuranceEngine --> BipartiteGraphBuilder : coordinates
+    SafetyAssuranceEngine --> DisjointTierValidator : coordinates
+    SafetyAssuranceEngine --> BidirectionalSweepEngine : coordinates
+    SafetyAssuranceEngine --> DiagnosticSentinelSink : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> GraphIngest
+    GraphIngest --> TierPartitioning
+    TierPartitioning --> ForwardReachabilitySweep
+    ForwardReachabilitySweep --> BackwardReachabilitySweep
+    BackwardReachabilitySweep --> TraceabilityVerified
+    TraceabilityVerified --> [*]
 ```

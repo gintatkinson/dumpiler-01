@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["HumanEngineer"] --> Target["DiagnosticErrorCatalogEngine"]
+graph TD
+    subgraph "DiagnosticErrorCatalogEngine System Boundary"
+        UC_Main(["Diagnostic Catalog Triage Workflow"])
+        UC_Step01(["DiagnosticErrorCatalogEngine ingests raw diagnostic event..."])
+        UC_Step02(["ErrorCodeRegistry resolves canonical error code (E-code),..."])
+        UC_Step03(["SourceLocationMapper resolves byte offsets to exact 1-ind..."])
+        UC_Step04(["DiagnosticReportFormatter builds structured diagnostic re..."])
+        UC_Step05(["Formatter emits rendered diagnostic to terminal stderr or..."])
+        UC_Step06(["CompilerAssuranceEngine records error tally in performanc..."])
+    end
+    HumanEngineer(("HumanEngineer")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

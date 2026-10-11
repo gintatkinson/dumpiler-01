@@ -49,20 +49,39 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class ICDEngine
+    class ICDEngine {
+        +SafetyPort safety_in (in)
+        +ICDInterconnectPort icd_out (out)
+    }
+    class InterfaceMatrixBuilder {
+        +SafetyPort safety_in (in)
+        +ICDInterconnectPort icd_out (out)
+    }
+    class PortCompatibilityChecker {
+        +SafetyPort safety_in (in)
+        +ICDInterconnectPort icd_out (out)
+    }
+    class ContractSerializer {
+        +SafetyPort safety_in (in)
+        +ICDInterconnectPort icd_out (out)
+    }
     DEAPCompilerSystem --> ICDEngine : contains
+    ICDEngine --> InterfaceMatrixBuilder : matrixBuilder
+    ICDEngine --> PortCompatibilityChecker : compatChecker
+    ICDEngine --> ContractSerializer : serializer
+    ICDEngine --> InterfaceMatrixBuilder : coordinates
+    ICDEngine --> PortCompatibilityChecker : coordinates
+    ICDEngine --> ContractSerializer : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> MatrixSetup
+    MatrixSetup --> CoordinateAssignment
+    CoordinateAssignment --> PortValidation
+    PortValidation --> ContractSerialization
+    ContractSerialization --> Complete
+    Complete --> [*]
 ```

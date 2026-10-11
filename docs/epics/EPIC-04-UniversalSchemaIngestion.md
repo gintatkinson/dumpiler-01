@@ -50,20 +50,54 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class UniversalIngestionEngine
+    class UniversalIngestionEngine {
+        +RawSchemaStreamPort schema_in (in)
+        +CompilerRulePort rules_in (in)
+        +TokenStreamPort token_out (out)
+        +DiagnosticPort diag_out (out)
+    }
+    class FormatClassifier {
+        +RawSchemaStreamPort raw_in (in)
+        +TokenStreamPort token_out (out)
+        +Boolean auto_detect
+    }
+    class CommonMarkTableLexer {
+        +RawSchemaStreamPort raw_in (in)
+        +TokenStreamPort token_out (out)
+        +String table_delimiter
+    }
+    class ProtobufParser {
+        +RawSchemaStreamPort raw_in (in)
+        +TokenStreamPort token_out (out)
+        +Integer syntax_version
+    }
+    class OpenApiParser {
+        +RawSchemaStreamPort raw_in (in)
+        +TokenStreamPort token_out (out)
+        +String spec_version
+    }
     DEAPCompilerSystem --> UniversalIngestionEngine : contains
+    UniversalIngestionEngine --> FormatClassifier : classifier
+    UniversalIngestionEngine --> CommonMarkTableLexer : mdLexer
+    UniversalIngestionEngine --> ProtobufParser : protoParser
+    UniversalIngestionEngine --> OpenApiParser : openapiParser
+    UniversalIngestionEngine --> FormatClassifier : coordinates
+    UniversalIngestionEngine --> CommonMarkTableLexer : coordinates
+    UniversalIngestionEngine --> ProtobufParser : coordinates
+    UniversalIngestionEngine --> OpenApiParser : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> ScanState
+    ScanState --> HeaderState
+    HeaderState --> DelimiterState
+    DelimiterState --> RowState
+    RowState --> CellState
+    CellState --> EscapeState
+    EscapeState --> CellState
+    CellState --> HaltState
+    HaltState --> [*]
 ```

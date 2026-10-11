@@ -49,20 +49,44 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class NodeArenaASTGraphEngine
+    class NodeArenaASTGraphEngine {
+        +TokenStreamPort token_in (in)
+        +ASTGraphPort ast_graph_out (out)
+    }
+    class ArenaAllocator {
+        +TokenStreamPort token_in (in)
+        +ASTGraphPort ast_graph_out (out)
+        +Integer slot_size_bytes
+        +Integer alignment_bytes
+    }
+    class NodeTableIndex {
+        +TokenStreamPort token_in (in)
+        +ASTGraphPort ast_graph_out (out)
+        +Integer capacity
+    }
+    class AstInterner {
+        +TokenStreamPort token_in (in)
+        +ASTGraphPort ast_graph_out (out)
+        +Boolean deduplication_enabled
+    }
     DEAPCompilerSystem --> NodeArenaASTGraphEngine : contains
+    NodeArenaASTGraphEngine --> ArenaAllocator : allocator
+    NodeArenaASTGraphEngine --> NodeTableIndex : indexer
+    NodeArenaASTGraphEngine --> AstInterner : interner
+    NodeArenaASTGraphEngine --> ArenaAllocator : coordinates
+    NodeArenaASTGraphEngine --> NodeTableIndex : coordinates
+    NodeArenaASTGraphEngine --> AstInterner : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> Uninitialized
+    Uninitialized --> Allocated
+    Allocated --> ActiveSlotMapping
+    ActiveSlotMapping --> Compacting
+    Compacting --> ActiveSlotMapping
+    ActiveSlotMapping --> Deallocated
+    Deallocated --> [*]
 ```

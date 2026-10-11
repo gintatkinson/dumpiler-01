@@ -49,20 +49,42 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class MetrologyFlowEngine
+    class MetrologyFlowEngine {
+        +ASTStreamPort ast_in (in)
+        +MetrologyFlowPort metrology_out (out)
+    }
+    class DimensionalUnitChecker {
+        +ASTStreamPort ast_in (in)
+        +MetrologyFlowPort metrology_out (out)
+        +Boolean strict_si_mode
+    }
+    class FlowConservationSolver {
+        +ASTStreamPort ast_in (in)
+        +MetrologyFlowPort metrology_out (out)
+        +Real tolerance_epsilon
+    }
+    class ConservationNetworkRouter {
+        +ASTStreamPort ast_in (in)
+        +MetrologyFlowPort metrology_out (out)
+        +Integer max_hops
+    }
     DEAPCompilerSystem --> MetrologyFlowEngine : contains
+    MetrologyFlowEngine --> DimensionalUnitChecker : unitChecker
+    MetrologyFlowEngine --> FlowConservationSolver : flowSolver
+    MetrologyFlowEngine --> ConservationNetworkRouter : networkRouter
+    MetrologyFlowEngine --> DimensionalUnitChecker : coordinates
+    MetrologyFlowEngine --> FlowConservationSolver : coordinates
+    MetrologyFlowEngine --> ConservationNetworkRouter : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> NetworkIngest
+    NetworkIngest --> UnitDimensionalAnalysis
+    UnitDimensionalAnalysis --> KirchhoffBalanceCheck
+    KirchhoffBalanceCheck --> FlowRouting
+    FlowRouting --> Converged
+    Converged --> [*]
 ```

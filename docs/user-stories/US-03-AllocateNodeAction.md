@@ -3,11 +3,11 @@
 | **Issue ID** | #91 |
 | **Title** | User Story 03: Allocate Node Action |
 | **Type** | user-story |
-| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `AllocateNodeAction` |
+| **Parent Epic** | [EPIC-05-CoreMetamodelNodeArena](../epics/EPIC-05-CoreMetamodelNodeArena.md) |
+| **SysML Interaction** | `NodeAllocationInteraction` |
 | **SysML Test Case** | `Test_AllocateNodeAction` |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | [schema/subsystems/core_metamodel_node_arena/behavior.sysml](../../schema/subsystems/core_metamodel_node_arena/behavior.sysml) |
 
 # User Story 03: Allocate Node Action
 
@@ -17,12 +17,12 @@
 sequenceDiagram
     autonumber
     actor HumanEngineer
-    participant DEAPCompilerSystem
+    participant UniversalIngestionEngine
     participant NodeArenaASTGraphEngine
-    HumanEngineer->>DEAPCompilerSystem: AllocateNodeAction()
-    DEAPCompilerSystem->>NodeArenaASTGraphEngine: AllocateNodeAction()
-    NodeArenaASTGraphEngine-->>DEAPCompilerSystem: OperationComplete
-    DEAPCompilerSystem-->>HumanEngineer: StatusReport
+    HumanEngineer->>UniversalIngestionEngine: AllocateNodeAction()
+    UniversalIngestionEngine->>NodeArenaASTGraphEngine: AllocateNodeAction()
+    NodeArenaASTGraphEngine-->>UniversalIngestionEngine: SlotIndices
+    UniversalIngestionEngine-->>HumanEngineer: StatusReport
 ```
 
 ## Acceptance Criteria (BDD)
@@ -32,13 +32,14 @@ sequenceDiagram
 
 ## Required Features
 - [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)
-- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)
+- [ ] [Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine](../features/FEAT-10-UniversalIngestionEngine.md)
 - [ ] [Feature 15: [Core Metamodel Node Arena] NodeArenaASTGraphEngine](../features/FEAT-15-NodeArenaASTGraphEngine.md)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
+- Subsystem Behavior Specification: `schema/subsystems/core_metamodel_node_arena/behavior.sysml`
 - ConOps Operational Activities: `schema/conops/activities.sysml`
 - System Architecture Model: `schema/model.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
 
-Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+Authoritative user story flows and interaction lifelines derive from `schema/subsystems/core_metamodel_node_arena/behavior.sysml` pursuant to ISO/IEC/IEEE 29148.

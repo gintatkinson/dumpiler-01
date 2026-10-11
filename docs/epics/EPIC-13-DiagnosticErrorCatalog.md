@@ -49,20 +49,39 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class DiagnosticErrorCatalogEngine
+    class DiagnosticErrorCatalogEngine {
+        +DiagnosticPort diag_in (in)
+        +DiagnosticReportPort diag_out (out)
+    }
+    class ErrorCodeRegistry {
+        +DiagnosticPort diag_in (in)
+        +DiagnosticReportPort diag_out (out)
+    }
+    class SourceLocationMapper {
+        +DiagnosticPort diag_in (in)
+        +DiagnosticReportPort diag_out (out)
+    }
+    class DiagnosticReportFormatter {
+        +DiagnosticPort diag_in (in)
+        +DiagnosticReportPort diag_out (out)
+    }
     DEAPCompilerSystem --> DiagnosticErrorCatalogEngine : contains
+    DiagnosticErrorCatalogEngine --> ErrorCodeRegistry : registry
+    DiagnosticErrorCatalogEngine --> SourceLocationMapper : locMapper
+    DiagnosticErrorCatalogEngine --> DiagnosticReportFormatter : reportFormatter
+    DiagnosticErrorCatalogEngine --> ErrorCodeRegistry : coordinates
+    DiagnosticErrorCatalogEngine --> SourceLocationMapper : coordinates
+    DiagnosticErrorCatalogEngine --> DiagnosticReportFormatter : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> ErrorIngest
+    ErrorIngest --> CodeLookup
+    CodeLookup --> LocationMapping
+    LocationMapping --> ReportFormatting
+    ReportFormatting --> DiagnosticEmission
+    DiagnosticEmission --> [*]
 ```

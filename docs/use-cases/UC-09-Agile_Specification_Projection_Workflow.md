@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["HumanEngineer"] --> Target["AgileProjectionEngine"]
+graph TD
+    subgraph "AgileProjectionEngine System Boundary"
+        UC_Main(["Agile Specification Projection Workflow"])
+        UC_Step01(["AgileProjectionEngine ingests compiled AST and ICD contra..."])
+        UC_Step02(["MarkdownSpecProjector synthesizes Epics from top-level Pa..."])
+        UC_Step03(["MarkdownSpecProjector synthesizes Features from structura..."])
+        UC_Step04(["MarkdownSpecProjector synthesizes User Stories from Inter..."])
+        UC_Step05(["MarkdownSpecProjector synthesizes Use Cases with AST-anch..."])
+        UC_Step06(["FrontmatterIntegrityEncoder binds metadata and emits spec..."])
+    end
+    HumanEngineer(("HumanEngineer")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

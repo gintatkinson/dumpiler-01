@@ -49,20 +49,42 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class GrammarLoweringEngine
+    class GrammarLoweringEngine {
+        +ASTGraphPort ast_in (in)
+        +ASTStreamPort ast_out (out)
+    }
+    class KerMLTokenStream {
+        +ASTGraphPort ast_in (in)
+        +ASTStreamPort ast_out (out)
+        +Integer buffer_size
+    }
+    class SysMLv2GrammarParser {
+        +ASTGraphPort ast_in (in)
+        +ASTStreamPort ast_out (out)
+        +Integer recursion_limit
+    }
+    class ASTLoweringEngine {
+        +ASTGraphPort ast_in (in)
+        +ASTStreamPort ast_out (out)
+        +Integer pass_count
+    }
     DEAPCompilerSystem --> GrammarLoweringEngine : contains
+    GrammarLoweringEngine --> KerMLTokenStream : tokenStream
+    GrammarLoweringEngine --> SysMLv2GrammarParser : grammarParser
+    GrammarLoweringEngine --> ASTLoweringEngine : loweringEngine
+    GrammarLoweringEngine --> KerMLTokenStream : coordinates
+    GrammarLoweringEngine --> SysMLv2GrammarParser : coordinates
+    GrammarLoweringEngine --> ASTLoweringEngine : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> TokenIngest
+    TokenIngest --> ClassifierResolution
+    ClassifierResolution --> ConjugationResolution
+    ConjugationResolution --> TypeChecking
+    TypeChecking --> Complete
+    Complete --> [*]
 ```

@@ -48,21 +48,25 @@ The system architecture and formal verification invariants derive from `schema/m
 
 ```mermaid
 classDiagram
-    class DEAPCompilerSystem
-    class DEAPCompilerSystem
-    DEAPCompilerSystem --> DEAPCompilerSystem : contains
+    class DEAPCompilerSystem {
+        +CLIPort cli_in (in)
+        +RawSchemaStreamPort schema_in (in)
+        +CodeArtifactPort code_out (out)
+        +DiagnosticReportPort diag_out (out)
+        +PerformanceMetricsPort metrics_out (out)
+    }
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> SystemColdStart
+    SystemColdStart --> SubsystemDiscovery
+    SubsystemDiscovery --> PipelineExecution
+    PipelineExecution --> HealthDiagnosticsEvaluation
+    HealthDiagnosticsEvaluation --> SystemReady
+    HealthDiagnosticsEvaluation --> DegradedFailure
+    DegradedFailure --> [*]
+    SystemReady --> [*]
 ```

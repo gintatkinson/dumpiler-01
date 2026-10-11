@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["CIContinuousIntegrationRunner"] --> Target["SafetyAssuranceEngine"]
+graph TD
+    subgraph "SafetyAssuranceEngine System Boundary"
+        UC_Main(["Safety Assurance and Traceability Workflow"])
+        UC_Step01(["SafetyAssuranceEngine ingests metrology and state solver ..."])
+        UC_Step02(["BipartiteGraphBuilder builds the 7-tier traceability dire..."])
+        UC_Step03(["DisjointTierValidator verifies that edges connect strictl..."])
+        UC_Step04(["BidirectionalSweepEngine performs forward reachability sw..."])
+        UC_Step05(["BidirectionalSweepEngine performs backward reachability s..."])
+        UC_Step06(["SafetyAssuranceEngine verifies 100 percent closure of STP..."])
+    end
+    CIContinuousIntegrationRunner(("CIContinuousIntegrationRunner")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

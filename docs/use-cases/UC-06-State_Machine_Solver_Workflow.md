@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["CIContinuousIntegrationRunner"] --> Target["StateMachineSolverEngine"]
+graph TD
+    subgraph "StateMachineSolverEngine System Boundary"
+        UC_Main(["State Machine Solver Workflow"])
+        UC_Step01(["GrammarLoweringEngine streams state definitions to StateM..."])
+        UC_Step02(["StateHierarchyFlattener transforms composite states into ..."])
+        UC_Step03(["DiscreteTransitionSolver verifies determinism across tran..."])
+        UC_Step04(["ReachabilityMatrixEvaluator computes transitive closure o..."])
+        UC_Step05(["ReachabilityMatrixEvaluator confirms zero unreachable sta..."])
+        UC_Step06(["StateMachineSolverEngine emits verified StateSolverPort t..."])
+    end
+    CIContinuousIntegrationRunner(("CIContinuousIntegrationRunner")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

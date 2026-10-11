@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["HumanEngineer"] --> Target["CodeGenEngine"]
+graph TD
+    subgraph "CodeGenEngine System Boundary"
+        UC_Main(["Multi Target Code Gen Workflow"])
+        UC_Step01(["CodeGenEngine receives specifications from AgileProjectio..."])
+        UC_Step02(["TargetAstTranspiler maps abstract SysML classifiers into ..."])
+        UC_Step03(["TemplateRenderingEngine renders deterministic source code..."])
+        UC_Step04(["CodeArtifactFormatter runs language-specific formatters a..."])
+        UC_Step05(["CodeGenEngine emits formatted code artifacts to designate..."])
+        UC_Step06(["CompilerAssuranceEngine verifies artifact compilation and..."])
+    end
+    HumanEngineer(("HumanEngineer")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

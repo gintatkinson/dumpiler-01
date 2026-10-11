@@ -371,15 +371,15 @@ mod tests {
         let tmp = TempDir::new("reconcile");
         assert!(check_reconcile_backlog_tooling_exists(&tmp.path).is_err());
 
-        fs::create_dir_all(tmp.path.join("scripts")).unwrap();
-        let script_path = tmp.path.join("scripts/reconcile_backlog.py");
-        let mut f = File::create(&script_path).unwrap();
-        writeln!(f, "#!/usr/bin/env python3\nprint('reconcile')").unwrap();
+        fs::create_dir_all(tmp.path.join("target/release")).unwrap();
+        let bin_path = tmp.path.join("target/release/reconcile-backlog");
+        let mut f = File::create(&bin_path).unwrap();
+        writeln!(f, "#!/bin/sh\necho reconcile").unwrap();
 
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            fs::set_permissions(&script_path, fs::Permissions::from_mode(0o755)).unwrap();
+            fs::set_permissions(&bin_path, fs::Permissions::from_mode(0o755)).unwrap();
         }
 
         assert!(check_reconcile_backlog_tooling_exists(&tmp.path).is_ok());

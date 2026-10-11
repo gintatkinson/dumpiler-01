@@ -75,6 +75,14 @@ package SysML_Model {
         action def OA_06_3_Performance_Benchmarking;
         doc /* Compiler operational lifecycle state machine */
         state def CompilerLifecycleModes {
+            entry ;
+            transition InitialToBoot first entry then Bootstrapping;
+            transition BootToIngest first Bootstrapping then Ingesting;
+            transition IngestToCompile first Ingesting then Compiling;
+            transition CompileToVerify first Compiling then Verifying;
+            transition VerifyToEmit first Verifying then EmitSuccess;
+            transition CompileToFault first Compiling then FaultTerminated;
+            transition VerifyToFault first Verifying then FaultTerminated;
         }
         doc /* Syntactically invalid or semantically inconsistent AST payload causing parsing fault */
         item def MalformedASTPayload {
@@ -132,6 +140,16 @@ package SysML_Model {
         port def ICDInterconnectPort;
         port def SpecificationPort;
         port def DiagnosticPort;
+        doc /* Level 1 System of Interest Execution Lifecycle */
+        state def SystemExecutionLifecycle {
+            entry ;
+            transition InitialToColdStart first entry then SystemColdStart;
+            transition ColdStartToDiscovery first SystemColdStart then SubsystemDiscovery;
+            transition DiscoveryToPipeline first SubsystemDiscovery then PipelineExecution;
+            transition PipelineToDiagnostics first PipelineExecution then HealthDiagnosticsEvaluation;
+            transition DiagnosticsToReady first HealthDiagnosticsEvaluation then SystemReady;
+            transition DiagnosticsToDegraded first HealthDiagnosticsEvaluation then DegradedFailure;
+        }
         doc /* Level 1 System of Interest (SoI) Architecture Definition */
         part def DEAPCompilerSystem {
             port in cli_in : CLIPort;

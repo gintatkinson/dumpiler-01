@@ -1,6 +1,6 @@
 {
-  "sha256": "de9fd27fec3a64b53f29dd3028cb4815d47a8cb5aa4b0524795dbe73b9ca2b6a",
-  "total_lines": 6333,
+  "sha256": "a7f2b280c486b638783034deb9b85a19d2af7bd1b689e2f77df39830e54433dd",
+  "total_lines": 6351,
   "node_counts": {
     "action_defs": 51,
     "attribute_defs": 20,
@@ -21,7 +21,7 @@
     "port_defs": 121,
     "requirement_defs": 199,
     "risk_defs": 0,
-    "state_defs": 13,
+    "state_defs": 14,
     "test_case_defs": 0,
     "typedefs": 0,
     "use_case_defs": 12
@@ -365,6 +365,7 @@
     "SysML_Model",
     "SysMLv2GrammarParser",
     "SysmlGrammarLowering",
+    "SystemExecutionLifecycle",
     "SystemVision",
     "SystemVisionEngine",
     "SystemVisionLifecycleStatechart",
@@ -527,9 +528,9 @@
     },
     {
       "path": "schema/conops/operational_modes.sysml",
-      "sha256": "51ae89fdeb0c891bb4c656099bd633b603dfc7b06ce7fcee629c162b1d06989b",
-      "bytes": 346,
-      "lines": 12,
+      "sha256": "aa8515945ea6bd75860498db421e78ec7073cfa70be27f9d12d648e149ca66cf",
+      "bytes": 1012,
+      "lines": 41,
       "entities": 1
     },
     {
@@ -541,10 +542,10 @@
     },
     {
       "path": "schema/model.sysml",
-      "sha256": "41f9aca49746ff4fc8ce4578ec64a17f089996cf65e6ba7f2b372cf1bd714406",
-      "bytes": 3112,
-      "lines": 72,
-      "entities": 16
+      "sha256": "d5e3fe03e38557e32476e5c50ba25efc639b4d7f2fd7e981a07277a12600b6d3",
+      "bytes": 4118,
+      "lines": 107,
+      "entities": 17
     },
     {
       "path": "schema/subsystems/compiler_assurance/architecture.sysml",

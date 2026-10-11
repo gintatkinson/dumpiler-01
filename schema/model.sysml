@@ -31,6 +31,41 @@ package DEAP_Compiler_System {
     port def SpecificationPort;
     port def DiagnosticPort;
 
+    doc /* Level 1 System of Interest Execution Lifecycle */
+    state def SystemExecutionLifecycle {
+        entry;
+        state SystemColdStart;
+        state SubsystemDiscovery;
+        state PipelineExecution;
+        state HealthDiagnosticsEvaluation;
+        state SystemReady;
+        state DegradedFailure;
+
+        transition InitialToColdStart
+            first entry
+            then SystemColdStart;
+
+        transition ColdStartToDiscovery
+            first SystemColdStart
+            then SubsystemDiscovery;
+
+        transition DiscoveryToPipeline
+            first SubsystemDiscovery
+            then PipelineExecution;
+
+        transition PipelineToDiagnostics
+            first PipelineExecution
+            then HealthDiagnosticsEvaluation;
+
+        transition DiagnosticsToReady
+            first HealthDiagnosticsEvaluation
+            then SystemReady;
+
+        transition DiagnosticsToDegraded
+            first HealthDiagnosticsEvaluation
+            then DegradedFailure;
+    }
+
     doc /* Level 1 System of Interest (SoI) Architecture Definition */
     part def DEAPCompilerSystem {
         port in cli_in : CLIPort;

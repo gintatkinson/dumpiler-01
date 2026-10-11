@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["HumanEngineer"] --> Target["SystemVisionEngine"]
+graph TD
+    subgraph "SystemVisionEngine System Boundary"
+        UC_Main(["System Vision and Foundational Invariants"])
+        UC_Step01(["Operator dispatches compilation command with workspace sc..."])
+        UC_Step02(["SystemVisionEngine initializes compiler namespace UUID co..."])
+        UC_Step03(["InvariantBootstrapEngine asserts zero hardcoded domain co..."])
+        UC_Step04(["NamespaceUuidGenerator pre-computes topological UUIDv5 na..."])
+        UC_Step05(["DomainVocabularyValidator inspects grammar vocabulary tok..."])
+        UC_Step06(["SystemVisionEngine emits immutable CompilerRulePort descr..."])
+    end
+    HumanEngineer(("HumanEngineer")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

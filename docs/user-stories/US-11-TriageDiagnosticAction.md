@@ -3,11 +3,11 @@
 | **Issue ID** | #99 |
 | **Title** | User Story 11: Triage Diagnostic Action |
 | **Type** | user-story |
-| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
-| **SysML Interaction** | `TriageDiagnosticAction` |
+| **Parent Epic** | [EPIC-13-DiagnosticErrorCatalog](../epics/EPIC-13-DiagnosticErrorCatalog.md) |
+| **SysML Interaction** | `DiagnosticCatalogInteraction` |
 | **SysML Test Case** | `Test_TriageDiagnosticAction` |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+| **Specification Source** | [schema/subsystems/diagnostic_error_catalog/behavior.sysml](../../schema/subsystems/diagnostic_error_catalog/behavior.sysml) |
 
 # User Story 11: Triage Diagnostic Action
 
@@ -17,12 +17,12 @@
 sequenceDiagram
     autonumber
     actor HumanEngineer
-    participant DEAPCompilerSystem
+    participant UniversalIngestionEngine
     participant DiagnosticErrorCatalogEngine
-    HumanEngineer->>DEAPCompilerSystem: TriageDiagnosticAction()
-    DEAPCompilerSystem->>DiagnosticErrorCatalogEngine: TriageDiagnosticAction()
-    DiagnosticErrorCatalogEngine-->>DEAPCompilerSystem: OperationComplete
-    DEAPCompilerSystem-->>HumanEngineer: StatusReport
+    HumanEngineer->>UniversalIngestionEngine: TriageDiagnosticAction()
+    UniversalIngestionEngine->>DiagnosticErrorCatalogEngine: TriageDiagnosticAction()
+    DiagnosticErrorCatalogEngine-->>UniversalIngestionEngine: ReportDiagnostic
+    UniversalIngestionEngine-->>HumanEngineer: StatusReport
 ```
 
 ## Acceptance Criteria (BDD)
@@ -32,13 +32,14 @@ sequenceDiagram
 
 ## Required Features
 - [ ] [Feature 01: [ConOps] Human Engineer Interface](../features/FEAT-01-HumanEngineer.md)
-- [ ] [Feature 05: [Architecture] DEAP Compiler System Architecture](../features/FEAT-05-DEAPCompilerSystem.md)
+- [ ] [Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine](../features/FEAT-10-UniversalIngestionEngine.md)
 - [ ] [Feature 48: [Diagnostic Error Catalog] DiagnosticErrorCatalogEngine](../features/FEAT-48-DiagnosticErrorCatalogEngine.md)
 
 ## Source References
 Operational concept definitions and system sequence interaction models:
+- Subsystem Behavior Specification: `schema/subsystems/diagnostic_error_catalog/behavior.sysml`
 - ConOps Operational Activities: `schema/conops/activities.sysml`
 - System Architecture Model: `schema/model.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations
 
-Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
+Authoritative user story flows and interaction lifelines derive from `schema/subsystems/diagnostic_error_catalog/behavior.sysml` pursuant to ISO/IEC/IEEE 29148.

@@ -14,8 +14,23 @@
 ## UML Diagrams
 
 ```mermaid
-flowchart TD
-    Actor["CIContinuousIntegrationRunner"] --> Target["GrammarLoweringEngine"]
+graph TD
+    subgraph "GrammarLoweringEngine System Boundary"
+        UC_Main(["Sys ML Grammar Lowering Workflow"])
+        UC_Step01(["NodeArenaASTGraphEngine passes AST graph handle to Gramma..."])
+        UC_Step02(["KerMLTokenStream streams tokens into SysMLv2GrammarParser."])
+        UC_Step03(["SysMLv2GrammarParser parses package hierarchies, part def..."])
+        UC_Step04(["ASTLoweringEngine resolves feature usage directionality a..."])
+        UC_Step05(["ASTLoweringEngine validates classifier inheritance and ty..."])
+        UC_Step06(["GrammarLoweringEngine emits lowered ASTStreamPort to down..."])
+    end
+    CIContinuousIntegrationRunner(("CIContinuousIntegrationRunner")) --- UC_Main
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step01
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step02
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step03
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step04
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step05
+    UC_Main -. "&lt;&lt;include&gt;&gt;" .-> UC_Step06
 ```
 
 ## 1. Actors

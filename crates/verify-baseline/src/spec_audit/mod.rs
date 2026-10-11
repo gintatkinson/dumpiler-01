@@ -40,13 +40,18 @@ pub use markdown_ast::{
     MarkdownDoc, MermaidBlock, PlaceholderFinding, ProseSegment,
 };
 pub use metadata::{
-    has_concatenated_title_metadata, is_iso_date, is_semver, normalize_title, validate_filenames,
-    validate_metadata, validate_title_uniqueness,
+    check_filename_anti_stutter, check_title_anti_stutter, has_concatenated_title_metadata,
+    is_iso_date, is_semver, normalize_title, validate_filenames, validate_metadata,
+    validate_title_uniqueness,
 };
-pub use sections::{validate_sections, SectionRule, SectionRules};
+pub use sections::{
+    validate_sections, validate_use_case_anti_boilerplate, SectionRule, SectionRules,
+};
 pub use uml_validator::{
-    validate_class_diagram, validate_document_uml, validate_sequence_diagram,
-    validate_source_references, validate_state_diagram, ClassifierSymbolInfo, SysmlSymbolIndex,
+    validate_class_diagram, validate_document_uml, validate_epic_statechart_heterogeneity,
+    validate_parent_epic_alignment, validate_sequence_diagram, validate_source_references,
+    validate_state_diagram, validate_use_case_diagram_compliance, ClassifierSymbolInfo,
+    SysmlSymbolIndex,
 };
 pub use conops_audit::{
     check_conops_dir_exists, extract_markdown_tables, validate_conops, validate_conops_workspace,
@@ -536,14 +541,31 @@ pub fn run_spec_audit(options: &SpecAuditOptions) -> Result<SpecAuditSummary, Sp
                         None,
                     ));
                 }
+
+                if spec_type == "use_case" {
+                    let boilerplate_errors = validate_use_case_anti_boilerplate(&doc, &content, &rel_path);
+                    for err in boilerplate_errors {
+                        findings.push(SpecAuditFinding::new(
+                            "anti-boilerplate-gate",
+                            err,
+                            &rel_path,
+                            None,
+                        ));
+                    }
+                }
             }
 
             // Metadata gate
             if active_gates.metadata {
                 let meta_errors = validate_metadata(&spec_type, &doc, &content, &rel_path);
                 for err in meta_errors {
+                    let rule_id = if err.contains("stuttering prefix") || err.contains("repeating title prefix") {
+                        "anti-stutter-gate"
+                    } else {
+                        "specification-metadata-integrity"
+                    };
                     findings.push(SpecAuditFinding::new(
-                        "specification-metadata-integrity",
+                        rule_id,
                         err,
                         &rel_path,
                         None,
@@ -566,6 +588,18 @@ pub fn run_spec_audit(options: &SpecAuditOptions) -> Result<SpecAuditSummary, Sp
                         findings.push(SpecAuditFinding::new(
                             "uml-model-integrity",
                             err.to_string(),
+                            &rel_path,
+                            None,
+                        ));
+                    }
+                }
+
+                if spec_type == "use_case" {
+                    let uc_diag_errors = validate_use_case_diagram_compliance(&doc, &rel_path);
+                    for err in uc_diag_errors {
+                        findings.push(SpecAuditFinding::new(
+                            "use-case-diagram-compliance",
+                            err,
                             &rel_path,
                             None,
                         ));
@@ -649,13 +683,62 @@ pub fn run_spec_audit(options: &SpecAuditOptions) -> Result<SpecAuditSummary, Sp
                 let fname_slices: Vec<&str> = fnames.iter().map(|s| s.as_str()).collect();
                 let fn_errors = validate_filenames(spec_type, &fname_slices, dir_rel);
                 for err in fn_errors {
+                    let rule_id = if err.contains("stuttering prefix") {
+                        "anti-stutter-gate"
+                    } else {
+                        "spec-filename-convention"
+                    };
                     all_findings.push(SpecAuditFinding::new(
-                        "spec-filename-convention",
+                        rule_id,
                         err,
                         dir_rel,
                         None,
                     ));
                 }
+            }
+        }
+
+        let epics: Vec<(&str, &MarkdownDoc)> = file_outcomes
+            .iter()
+            .filter(|o| o.spec_type == "epic")
+            .map(|o| (o.rel_path.as_str(), &o.doc))
+            .collect();
+
+        let features: Vec<(&str, &MarkdownDoc)> = file_outcomes
+            .iter()
+            .filter(|o| o.spec_type == "feature")
+            .map(|o| (o.rel_path.as_str(), &o.doc))
+            .collect();
+
+        let stories: Vec<(&str, &MarkdownDoc)> = file_outcomes
+            .iter()
+            .filter(|o| o.spec_type == "user_story")
+            .map(|o| (o.rel_path.as_str(), &o.doc))
+            .collect();
+
+        // Cross-document: Epic Statechart Heterogeneity Gate
+        if active_gates.uml {
+            let epic_het_errors = validate_epic_statechart_heterogeneity(&epics);
+            for err in epic_het_errors {
+                all_findings.push(SpecAuditFinding::new(
+                    "epic-statechart-heterogeneity",
+                    err,
+                    "docs/epics",
+                    None,
+                ));
+            }
+        }
+
+        // Cross-document: Parent Epic Alignment Gate
+        if active_gates.metadata || active_gates.sections {
+            let parent_align_errors = validate_parent_epic_alignment(&stories, &features, &epics);
+            for err in parent_align_errors {
+                all_findings.push(SpecAuditFinding::new(
+                    "parent-epic-alignment",
+                    err,
+                    "docs/user-stories",
+                    None,
+                ));
             }
         }
 
@@ -789,5 +872,117 @@ mod tests {
         assert!(!summary.passed);
 
         let _ = fs::remove_dir_all(&temp_dir);
+    }
+
+    #[test]
+    fn test_gate_anti_stutter_detection() {
+        assert!(check_title_anti_stutter("Use Case 01: UC 01 System Vision").is_some());
+        assert!(check_title_anti_stutter("UC_XX_Workflow").is_some());
+        assert!(check_title_anti_stutter("Use Case 01: System Vision and Foundational Invariants").is_none());
+
+        assert!(check_filename_anti_stutter("UC-01-UC_01_System_Vision.md").is_some());
+        assert!(check_filename_anti_stutter("UC-01-System_Vision_and_Foundational_Invariants.md").is_none());
+    }
+
+    #[test]
+    fn test_gate_use_case_anti_boilerplate() {
+        let bad_content = r#"| Metadata Field | Value |
+|---|---|
+| Title | Use Case 01: System Vision |
+| Type | use_case |
+
+## Main Success Scenario
+1. Step one.
+2. Step two.
+
+## Alternate and Exception Flows
+5a. Condition fails.
+"#;
+        let bad_doc = parse_markdown(bad_content).unwrap();
+        let errors = validate_use_case_anti_boilerplate(&bad_doc, bad_content, "docs/use-cases/uc-01.md");
+        assert!(!errors.is_empty());
+        assert!(errors.iter().any(|e| e.contains("fewer than 5 steps")));
+        assert!(errors.iter().any(|e| e.contains("fewer than 3 exception cases")));
+    }
+
+    #[test]
+    fn test_gate_use_case_diagram_compliance() {
+        let bad_diagram = r#"| Metadata Field | Value |
+|---|---|
+| Title | Use Case 01: System Vision |
+| Type | use_case |
+
+```mermaid
+flowchart LR
+    Actor --> Action
+```
+"#;
+        let doc = parse_markdown(bad_diagram).unwrap();
+        let errors = validate_use_case_diagram_compliance(&doc, "docs/use-cases/uc-01.md");
+        assert!(!errors.is_empty());
+        assert!(errors.iter().any(|e| e.contains("lacks a system boundary subgraph")));
+    }
+
+    #[test]
+    fn test_gate_epic_statechart_heterogeneity() {
+        let epic1_content = r#"```mermaid
+stateDiagram-v2
+    [*] --> Bootstrapping
+    Bootstrapping --> Ingesting
+    Ingesting --> Compiling
+    Compiling --> Verifying
+    Verifying --> [*]
+```"#;
+        let epic2_content = r#"```mermaid
+stateDiagram-v2
+    [*] --> Bootstrapping
+    Bootstrapping --> Ingesting
+    Ingesting --> Compiling
+    Compiling --> Verifying
+    Verifying --> [*]
+```"#;
+        let doc1 = parse_markdown(epic1_content).unwrap();
+        let doc2 = parse_markdown(epic2_content).unwrap();
+        let epics = vec![
+            ("docs/epics/epic-01.md", &doc1),
+            ("docs/epics/epic-02.md", &doc2),
+        ];
+        let errors = validate_epic_statechart_heterogeneity(&epics);
+        assert!(!errors.is_empty());
+        assert!(errors.iter().any(|e| e.contains("share identical canned pipeline lifecycle statecharts")));
+    }
+
+    #[test]
+    fn test_gate_parent_epic_alignment() {
+        let story_content = r#"| Metadata Field | Value |
+|---|---|
+| Title | US 01: Invariant Checks |
+| Type | user_story |
+| Parent Epic | EPIC-02-ConOps |
+
+Links to [FEAT-06-SystemVisionEngine.md](../features/feat-06.md).
+"#;
+        let feat_content = r#"| Metadata Field | Value |
+|---|---|
+| Title | Feature 06: [System Vision] SystemVisionEngine |
+| Type | feature |
+| Parent Epic | EPIC-03-SystemVision |
+"#;
+        let epic_content = r#"| Metadata Field | Value |
+|---|---|
+| Title | Epic 03: System Vision |
+| Type | epic |
+"#;
+        let s_doc = parse_markdown(story_content).unwrap();
+        let f_doc = parse_markdown(feat_content).unwrap();
+        let e_doc = parse_markdown(epic_content).unwrap();
+
+        let stories = vec![("docs/user-stories/us-01.md", &s_doc)];
+        let features = vec![("docs/features/feat-06.md", &f_doc)];
+        let epics = vec![("docs/epics/epic-03.md", &e_doc)];
+
+        let errors = validate_parent_epic_alignment(&stories, &features, &epics);
+        assert!(!errors.is_empty());
+        assert!(errors.iter().any(|e| e.contains("Parent Epic Alignment Gate violation")));
     }
 }

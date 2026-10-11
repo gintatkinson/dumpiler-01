@@ -49,20 +49,39 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
 ```mermaid
 classDiagram
     class DEAPCompilerSystem
-    class AgileProjectionEngine
+    class AgileProjectionEngine {
+        +ICDInterconnectPort icd_in (in)
+        +SpecificationPort specs_out (out)
+    }
+    class MarkdownSpecProjector {
+        +ICDInterconnectPort icd_in (in)
+        +SpecificationPort specs_out (out)
+    }
+    class FrontmatterIntegrityEncoder {
+        +ICDInterconnectPort icd_in (in)
+        +SpecificationPort specs_out (out)
+    }
+    class BacklogChecklistReconciler {
+        +ICDInterconnectPort icd_in (in)
+        +SpecificationPort specs_out (out)
+    }
     DEAPCompilerSystem --> AgileProjectionEngine : contains
+    AgileProjectionEngine --> MarkdownSpecProjector : specProjector
+    AgileProjectionEngine --> FrontmatterIntegrityEncoder : fmEncoder
+    AgileProjectionEngine --> BacklogChecklistReconciler : checklistReconciler
+    AgileProjectionEngine --> MarkdownSpecProjector : coordinates
+    AgileProjectionEngine --> FrontmatterIntegrityEncoder : coordinates
+    AgileProjectionEngine --> BacklogChecklistReconciler : coordinates
 ```
 
 ## System State Machine Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Bootstrapping
-    Bootstrapping --> Ingesting : dispatch
-    Ingesting --> Compiling : parse_complete
-    Compiling --> Verifying : ast_lowered
-    Verifying --> EmitSuccess : pass
-    Compiling --> FaultTerminated : error
-    Verifying --> FaultTerminated : fail
-    EmitSuccess --> [*]
+    [*] --> SpecIngest
+    SpecIngest --> EpicProjection
+    EpicProjection --> FeatureProjection
+    FeatureProjection --> StoryProjection
+    StoryProjection --> ReconciliationComplete
+    ReconciliationComplete --> [*]
 ```
