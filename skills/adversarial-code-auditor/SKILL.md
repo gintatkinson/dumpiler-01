@@ -58,7 +58,7 @@ Critical and Important findings require a Mermaid diagram in Section 4. Select t
 
 Must use Mermaid fenced blocks (```` ```mermaid ````) with valid syntax. No ASCII art. Named lifelines. `alt/loop` fragments for branches. No isolated classes. `stateDiagram-v2` syntax. Trace to file:line from Section 3.
 
-**All Mermaid syntax constraints are defined in `rules/platform-independence.md` and MUST be observed in full.** Most importantly here: no semicolons in `Note` statements or message text, and no curly braces in class member lines. Step D check 7 enforces these mechanically.
+**All Mermaid syntax constraints are defined in `rules/platform-independence.md` and MUST be observed in full.** Most importantly here: no semicolons in `Note` statements or message text, and no curly braces in class member lines. Step D Check 7 mechanically enforces diagram header, code fence count parity, absence of semicolons in Note/message text, prohibition of curly braces in class members, and mandatory Mermaid blocks for Critical/Important findings.
 
 ### 1.6 Governance & Invariants
 
@@ -219,6 +219,32 @@ if grep -q '```mermaid' "$BODY_FILE"; then
     echo "$SEMICOLON_VIOLATIONS" >&2
     exit 1
   fi
+  # 4. Verify absence of forbidden curly braces in class diagram members
+  CURLY_BRACE_VIOLATIONS=$(awk '
+    /```mermaid/{in_mermaid=1; is_class_diag=0; next}
+    /```/{in_mermaid=0; is_class_diag=0}
+    in_mermaid && !/^[[:space:]]*%%/ {
+      line=$0
+      sub(/^[[:space:]]+/, "", line)
+      sub(/[[:space:]]+$/, "", line)
+      if (line ~ /^classDiagram/) {
+        is_class_diag=1
+      }
+      if (is_class_diag) {
+        if ((line ~ /\{/ || line ~ /\}/) && line !~ /^class[[:space:]]+[^{]+[[:space:]]*\{$/ && line != "{" && line != "}") {
+          print line
+        }
+      }
+    }
+  ' "$BODY_FILE")
+  if [ -n "$CURLY_BRACE_VIOLATIONS" ]; then
+    echo "check 7 FAILED: Curly braces prohibited in Mermaid class members:" >&2
+    echo "$CURLY_BRACE_VIOLATIONS" >&2
+    exit 1
+  fi
+elif grep -qE 'SEVERITY:[[:space:]]*(Critical|Important)' "$BODY_FILE"; then
+  echo "check 7 FAILED: Critical/Important finding must contain a Mermaid block" >&2
+  exit 1
 fi
 echo "check 7 passed"
 ```
