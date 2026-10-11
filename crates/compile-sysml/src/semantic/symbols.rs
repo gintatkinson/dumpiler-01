@@ -195,6 +195,22 @@ impl SymbolTable {
                                 return Some(sym);
                             }
                         }
+
+                        // Also check via the part's type definition if the part is a typed instance
+                        if let Some(part_sym) = self.symbols.get(part_q) {
+                            if let Some(ref type_name) = part_sym.type_name {
+                                if let Some(type_qnames) = self.by_name.get(type_name) {
+                                    for type_q in type_qnames {
+                                        let candidate_type_port_q = format!("{}::{}", type_q, port_name);
+                                        if let Some(sym) = self.symbols.get(&candidate_type_port_q) {
+                                            if sym.kind == SymbolKind::Port {
+                                                return Some(sym);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -203,6 +219,17 @@ impl SymbolTable {
             if let Some(sym) = self.symbols.get(&candidate_q) {
                 if sym.kind == SymbolKind::Port {
                     return Some(sym);
+                }
+            }
+
+            if let Some(part_qnames) = self.by_name.get(part) {
+                for part_q in part_qnames {
+                    let candidate_scoped_q = format!("{}::{}", part_q, port_ref);
+                    if let Some(sym) = self.symbols.get(&candidate_scoped_q) {
+                        if sym.kind == SymbolKind::Port {
+                            return Some(sym);
+                        }
+                    }
                 }
             }
         }

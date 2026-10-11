@@ -127,10 +127,18 @@ impl<'a> SemanticValidator<'a> {
     }
 
     fn validate_connections(&mut self) {
-        self.validate_connection_list(&self.pkg.connection_defs, None);
+        self.validate_package_connections(self.pkg);
+    }
 
-        for part in &self.pkg.part_defs {
+    fn validate_package_connections(&mut self, pkg: &PackageDef) {
+        self.validate_connection_list(&pkg.connection_defs, None);
+
+        for part in &pkg.part_defs {
             self.validate_part_connections(part);
+        }
+
+        for subpkg in &pkg.packages {
+            self.validate_package_connections(subpkg);
         }
     }
 
@@ -170,38 +178,53 @@ impl<'a> SemanticValidator<'a> {
                 let src_eff_dir = get_effective_direction(src);
                 let tgt_eff_dir = get_effective_direction(tgt);
 
-                match (src_eff_dir.as_str(), tgt_eff_dir.as_str()) {
-                    ("out", "in") | ("inout", "in") | ("out", "inout") | ("inout", "inout") => {
-                        // Compatible flow direction
+                // Boundary delegation:
+                // Inside a part definition, connecting an input boundary port of the enclosing part
+                // inward to a subpart's input port (in -> in), or an internal subpart's output port
+                // outward to an output boundary port (out -> out), represents valid delegation in SysML v2.
+                let is_src_boundary = part_scope.is_some() && !conn.source_port.contains('.');
+                let is_tgt_boundary = part_scope.is_some() && !conn.target_port.contains('.');
+
+                if is_src_boundary && !is_tgt_boundary && src_eff_dir == "in" && tgt_eff_dir == "in" {
+                    // Valid inward delegation: boundary in -> subpart in
+                } else if !is_src_boundary && is_tgt_boundary && src_eff_dir == "out" && tgt_eff_dir == "out" {
+                    // Valid outward delegation: subpart out -> boundary out
+                } else if is_src_boundary && is_tgt_boundary && src_eff_dir == "in" && tgt_eff_dir == "out" {
+                    // Valid boundary pass-through delegation: boundary in -> boundary out
+                } else {
+                    match (src_eff_dir.as_str(), tgt_eff_dir.as_str()) {
+                        ("out", "in") | ("inout", "in") | ("out", "inout") | ("inout", "inout") => {
+                            // Compatible flow direction
+                        }
+                        ("in", "out") => {
+                            self.diagnostics.push(SemanticDiagnostic::error(
+                                &conn.name,
+                                format!(
+                                    "Inverted flow direction in connection '{}': source port '{}' ({}) cannot feed target port '{}' ({})",
+                                    conn.name, conn.source_port, src_eff_dir, conn.target_port, tgt_eff_dir
+                                ),
+                            ));
+                        }
+                        ("in", "in") => {
+                            self.diagnostics.push(SemanticDiagnostic::error(
+                                &conn.name,
+                                format!(
+                                    "Invalid connection '{}': cannot connect input port '{}' to input port '{}'",
+                                    conn.name, conn.source_port, conn.target_port
+                                ),
+                            ));
+                        }
+                        ("out", "out") => {
+                            self.diagnostics.push(SemanticDiagnostic::error(
+                                &conn.name,
+                                format!(
+                                    "Invalid connection '{}': cannot connect output port '{}' to output port '{}'",
+                                    conn.name, conn.source_port, conn.target_port
+                                ),
+                            ));
+                        }
+                        _ => {}
                     }
-                    ("in", "out") => {
-                        self.diagnostics.push(SemanticDiagnostic::error(
-                            &conn.name,
-                            format!(
-                                "Inverted flow direction in connection '{}': source port '{}' ({}) cannot feed target port '{}' ({})",
-                                conn.name, conn.source_port, src_eff_dir, conn.target_port, tgt_eff_dir
-                            ),
-                        ));
-                    }
-                    ("in", "in") => {
-                        self.diagnostics.push(SemanticDiagnostic::error(
-                            &conn.name,
-                            format!(
-                                "Invalid connection '{}': cannot connect input port '{}' to input port '{}'",
-                                conn.name, conn.source_port, conn.target_port
-                            ),
-                        ));
-                    }
-                    ("out", "out") => {
-                        self.diagnostics.push(SemanticDiagnostic::error(
-                            &conn.name,
-                            format!(
-                                "Invalid connection '{}': cannot connect output port '{}' to output port '{}'",
-                                conn.name, conn.source_port, conn.target_port
-                            ),
-                        ));
-                    }
-                    _ => {}
                 }
             }
         }
@@ -752,4 +775,67 @@ mod tests {
             validator.errors()
         );
     }
+
+    #[test]
+    fn test_subpackage_connections_validated_for_dangling_ports() {
+        let subpkg = PackageDef {
+            name: "NestedSubsystem".to_string(),
+            part_defs: vec![
+                PartDef {
+                    name: "Worker".to_string(),
+                    ports: vec![
+                        PortDef {
+                            name: "out_stream".to_string(),
+                            direction: "out".to_string(),
+                            type_name: "StreamData".to_string(),
+                            ..Default::default()
+                        },
+                    ],
+                    connections: vec![
+                        ConnectionDef {
+                            name: "DanglingSubpartConn".to_string(),
+                            source_port: "out_stream".to_string(),
+                            target_port: "Worker.undefined_target_port".to_string(),
+                            ..Default::default()
+                        },
+                    ],
+                    ..Default::default()
+                },
+            ],
+            connection_defs: vec![
+                ConnectionDef {
+                    name: "DanglingPkgConn".to_string(),
+                    source_port: "Worker.out_stream".to_string(),
+                    target_port: "UndefinedPart.in_stream".to_string(),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+
+        let root = PackageDef {
+            name: "RootSystem".to_string(),
+            packages: vec![subpkg],
+            ..Default::default()
+        };
+
+        let mut validator = SemanticValidator::new(&root);
+        validator.validate();
+        assert!(
+            validator.has_errors(),
+            "Expected validation errors for dangling ports inside nested subpackage, but validator reported no errors"
+        );
+        let errors = validator.errors();
+        assert!(
+            errors.iter().any(|e| e.message.contains("references undefined target port 'Worker.undefined_target_port'")),
+            "Expected error for Worker.undefined_target_port, got: {:?}",
+            errors
+        );
+        assert!(
+            errors.iter().any(|e| e.message.contains("references undefined target port 'UndefinedPart.in_stream'")),
+            "Expected error for UndefinedPart.in_stream, got: {:?}",
+            errors
+        );
+    }
 }
+
