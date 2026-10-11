@@ -1,12 +1,12 @@
 {
-  "sha256": "c9bf60dc8e87940f385d3ac1c58e369d9870dd7b844a9cc750379bb419168f55",
-  "total_lines": 6679,
+  "sha256": "40a38df0d799de2b2246c01bc7da93a9633b14ddf76ddd8bfa3ce82b9a487f2a",
+  "total_lines": 6681,
   "node_counts": {
     "action_defs": 51,
     "attribute_defs": 20,
     "capability_defs": 14,
     "connection_defs": 16,
-    "constraint_defs": 144,
+    "constraint_defs": 145,
     "containers": 105,
     "groupings": 0,
     "hazard_defs": 0,
@@ -516,6 +516,7 @@
     "TemplateRenderingEngine",
     "TokenStreamPort",
     "TokenizeStreamAction",
+    "TraceabilityGraphInvariant",
     "TraceabilitySweepFSM",
     "TriageDiagnosticAction",
     "UC01UC01SystemVisionAndFoundationalInvariants",
@@ -872,10 +873,10 @@
     },
     {
       "path": "schema/subsystems/formal_safety_traceability/architecture.sysml",
-      "sha256": "a43a71d0ac74332abbf7dd758957c243e62b33b99d7e52a0a02cb8ef3b8671d2",
-      "bytes": 1485,
-      "lines": 40,
-      "entities": 5
+      "sha256": "96c619ff3e6fd3d0411d93d3005f265a761ed41e4380a041588e489bc32d513d",
+      "bytes": 1708,
+      "lines": 46,
+      "entities": 6
     },
     {
       "path": "schema/subsystems/formal_safety_traceability/behavior.sysml",

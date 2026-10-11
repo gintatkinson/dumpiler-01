@@ -2322,6 +2322,8 @@ package SysML_Model {
         import DEAP_Compiler_System::*;
         doc /* Action pipeline for constructing bipartite traceability graphs and verifying safety matrices */
         action def VerifySafetyTraceabilityAction(in metrology_in : MetrologyFlowPort, in state_in : StateSolverPort, out safety_out : SafetyPort);
+        doc /* Formal invariant for 7-tier bipartite DAG consistency */
+        constraint def TraceabilityGraphInvariant;
         doc /* UUIDv5: baeb1e4f-5b99-5168-853f-30537093be69 | Complexity: Class P (O( | Standard: IEEE 29148-2018 §8.4 / RFC 2119 | Diagnostics: E0199, E0400, E0402 */
         requirement def REQ_0128__7_Tier_Bipartite_Traceability_DAG_Architecture {
             id = "REQ-0128";

@@ -37,4 +37,10 @@ package FormalSafetyTraceability {
         port in diag_in : DiagnosticPort;
         port out safety_out : SafetyPort;
     }
+
+    doc /* Formal invariant for 7-tier bipartite DAG consistency */
+    constraint def TraceabilityGraphInvariant {
+        doc /* G_trace = (V_trace, E_trace), V_trace partitioned into 7 disjoint tiers T_1..T_7 */
+    }
 }
+

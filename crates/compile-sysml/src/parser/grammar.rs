@@ -724,9 +724,27 @@ impl<'a> SysmlParser<'a> {
         }
 
         let mut expression = String::new();
+        let mut final_doc = doc;
         if self.check(&TokenKind::OpenBrace) {
             self.advance();
             while !self.check(&TokenKind::CloseBrace) && !self.is_at_end() {
+                self.skip_trivia();
+                if self.check(&TokenKind::Doc) {
+                    self.advance();
+                    self.skip_trivia();
+                    if let Some(d) = self.take_doc_comment() {
+                        if final_doc.is_none() {
+                            final_doc = Some(d);
+                        }
+                    }
+                    continue;
+                }
+                if let Some(d) = self.take_doc_comment() {
+                    if final_doc.is_none() {
+                        final_doc = Some(d);
+                    }
+                    continue;
+                }
                 let stmt = self.read_until_semi();
                 if !stmt.trim().is_empty() {
                     if !expression.is_empty() {
@@ -745,7 +763,7 @@ impl<'a> SysmlParser<'a> {
             expression,
             parameters,
             is_assertion,
-            doc,
+            doc: final_doc,
             pre_conditions: Vec::new(),
             post_conditions: Vec::new(),
         })

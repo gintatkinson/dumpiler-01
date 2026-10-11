@@ -479,11 +479,16 @@ fn render_losses_hazards_topology(pkg: &PackageDef, ucas: &[UnsafeControlAction]
         if !uca_controllers.is_empty() {
             uca_controllers
         } else {
-            all_parts
+            let filtered: Vec<String> = all_parts
                 .iter()
                 .filter(|p| !p.name.starts_with('_'))
                 .map(|p| p.name.clone())
-                .collect()
+                .collect();
+            if filtered.is_empty() {
+                all_parts.iter().map(|p| p.name.clone()).collect()
+            } else {
+                filtered
+            }
         }
     };
 
