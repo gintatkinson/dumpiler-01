@@ -86,10 +86,16 @@ Deterministic state machine solver and safety monitor logic for AgileProjectionE
 Presentation interface binding and diagnostic event routing for AgileProjectionEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When AgileProjectionEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When AgileProjectionEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When AgileProjectionEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When AgileProjectionEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal AgileProjectionEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When AgileProjectionEngine evaluates constraint 'Invariant_REQ_0159_The_canonical_path_structure_SHA_1_digest_masking_and_diagnostic_triggers_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When AgileProjectionEngine evaluates constraint 'Invariant_REQ_0160_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When AgileProjectionEngine evaluates constraint 'Invariant_REQ_0161_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When AgileProjectionEngine evaluates constraint 'Invariant_REQ_0162_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When AgileProjectionEngine evaluates constraint 'Invariant_REQ_0163_The_state_abstraction_quotient_map_behavioral_reachability_weak_bisimulation_scenario_step_sequence_and_diagnostic_rules_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When AgileProjectionEngine evaluates constraint 'Invariant_REQ_0164_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When AgileProjectionEngine evaluates constraint 'Invariant_REQ_0165_The_attribute_schema_typing_invariants_metric_constraints_and_diagnostic_triggers_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When AgileProjectionEngine evaluates constraint 'Invariant_REQ_0166_Feature_Layer_2_projections_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When AgileProjectionEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

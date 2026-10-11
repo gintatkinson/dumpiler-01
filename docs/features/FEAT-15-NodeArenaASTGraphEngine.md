@@ -86,10 +86,16 @@ Deterministic state machine solver and safety monitor logic for NodeArenaASTGrap
 Presentation interface binding and diagnostic event routing for NodeArenaASTGraphEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When NodeArenaASTGraphEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When NodeArenaASTGraphEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When NodeArenaASTGraphEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When NodeArenaASTGraphEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal NodeArenaASTGraphEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When NodeArenaASTGraphEngine evaluates constraint 'Invariant_REQ_0034_Contiguous_Address_Arithmetic_and_Alignment_Invariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When NodeArenaASTGraphEngine evaluates constraint 'Invariant_REQ_0034_Zero_Pointer_Indirection_Depth_Invariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When NodeArenaASTGraphEngine evaluates constraint 'Invariant_REQ_0034_Asymptotic_Lowering_and_Constant_Time_Access_Invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When NodeArenaASTGraphEngine evaluates constraint 'Invariant_REQ_0034_Spatial_Cache_Line_Locality_Bound', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When NodeArenaASTGraphEngine evaluates constraint 'Invariant_REQ_0034_Capacity_and_Diagnostic_Invariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When NodeArenaASTGraphEngine evaluates constraint 'Invariant_REQ_0035_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When NodeArenaASTGraphEngine evaluates constraint 'Invariant_REQ_0035_Bit_packing_projection_and_decoding_projections_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When NodeArenaASTGraphEngine evaluates constraint 'Invariant_REQ_0035_FormalInvariant_2', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When NodeArenaASTGraphEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

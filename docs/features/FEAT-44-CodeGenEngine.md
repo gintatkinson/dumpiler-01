@@ -86,10 +86,16 @@ Deterministic state machine solver and safety monitor logic for CodeGenEngine.
 Presentation interface binding and diagnostic event routing for CodeGenEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When CodeGenEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When CodeGenEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When CodeGenEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When CodeGenEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal CodeGenEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When CodeGenEngine evaluates constraint 'Invariant_REQ_0175_CFG_SSA_bindings_and_diagnostic_triggers_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When CodeGenEngine evaluates constraint 'Invariant_REQ_0176_Memory_semantics_invariants_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When CodeGenEngine evaluates constraint 'Invariant_REQ_0177_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When CodeGenEngine evaluates constraint 'Invariant_REQ_0178_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When CodeGenEngine evaluates constraint 'Invariant_REQ_0179_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When CodeGenEngine evaluates constraint 'Invariant_REQ_0180_For_virtual_registers_and_dependency_DAG_invariants_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When CodeGenEngine evaluates constraint 'Invariant_REQ_0181_Continuous_and_discrete_dynamics_RK4_updates_and_stability_bounds_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When CodeGenEngine evaluates constraint 'Invariant_REQ_0182_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When CodeGenEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

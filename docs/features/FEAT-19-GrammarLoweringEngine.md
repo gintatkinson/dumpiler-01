@@ -86,10 +86,16 @@ Deterministic state machine solver and safety monitor logic for GrammarLoweringE
 Presentation interface binding and diagnostic event routing for GrammarLoweringEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When GrammarLoweringEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When GrammarLoweringEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When GrammarLoweringEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When GrammarLoweringEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal GrammarLoweringEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When GrammarLoweringEngine evaluates constraint 'Invariant_REQ_0054_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When GrammarLoweringEngine evaluates constraint 'Invariant_REQ_0054_Every_element_is_an_immutable_tuple', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When GrammarLoweringEngine evaluates constraint 'Invariant_REQ_0054_Relationship_endpoint_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When GrammarLoweringEngine evaluates constraint 'Invariant_REQ_0054_Ownership_forest_and_acyclicity_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When GrammarLoweringEngine evaluates constraint 'Invariant_REQ_0054_FormalInvariant_2', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When GrammarLoweringEngine evaluates constraint 'Invariant_REQ_0054_Annotation_non_interference', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When GrammarLoweringEngine evaluates constraint 'Invariant_REQ_0054_Diagnostic_trigger_mappings_per_REQ_0191', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When GrammarLoweringEngine evaluates constraint 'Invariant_REQ_0055_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When GrammarLoweringEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

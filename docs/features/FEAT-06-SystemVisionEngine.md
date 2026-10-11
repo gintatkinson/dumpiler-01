@@ -76,10 +76,16 @@ Deterministic state machine solver and safety monitor logic for SystemVisionEngi
 Presentation interface binding and diagnostic event routing for SystemVisionEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When SystemVisionEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When SystemVisionEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When SystemVisionEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When SystemVisionEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal SystemVisionEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When SystemVisionEngine evaluates constraint 'Invariant_REQ_0001_Universal_Symbol_Grounding_Invariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When SystemVisionEngine evaluates constraint 'Invariant_REQ_0001_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When SystemVisionEngine evaluates constraint 'Invariant_REQ_0001_The_compiler_pipeline_execution_is_modeled_as_a_total_deterministic_mapping', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When SystemVisionEngine evaluates constraint 'Invariant_REQ_0001_such_that_identical_input_schema_token_streams_yield_identical_abstract_syntax_tree_structures', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When SystemVisionEngine evaluates constraint 'Invariant_REQ_0001_Zero_Hardcoded_Domain_Concepts_Invariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When SystemVisionEngine evaluates constraint 'Invariant_REQ_0001_Synthetic_Identifier_RFC_4122_Bit_Invariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When SystemVisionEngine evaluates constraint 'Invariant_REQ_0002_For_any_canonical_topological_path_its_deterministic_anchor_identifier_is', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When SystemVisionEngine evaluates constraint 'Invariant_REQ_0002_The_target_provenance_domain_and_total_provenance_derivation_mapping_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When SystemVisionEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

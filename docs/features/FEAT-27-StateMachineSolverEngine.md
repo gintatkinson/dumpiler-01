@@ -86,10 +86,16 @@ Deterministic state machine solver and safety monitor logic for StateMachineSolv
 Presentation interface binding and diagnostic event routing for StateMachineSolverEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When StateMachineSolverEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When StateMachineSolverEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When StateMachineSolverEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When StateMachineSolverEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal StateMachineSolverEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When StateMachineSolverEngine evaluates constraint 'Invariant_REQ_0114_Occurrence_lifecycle_intervals_duration_consistency_hierarchical_containment_and_error_mappings_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When StateMachineSolverEngine evaluates constraint 'Invariant_REQ_0115_Axiomatic_interval_relations_bitmask_algebra_difference_lowering_and_diagnostic_rules', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When StateMachineSolverEngine evaluates constraint 'Invariant_REQ_0116_Qualitative_relation_bitmask_encoding_composition_evaluation_path_consistency_fixed_point_and_diagnostic_triggers', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When StateMachineSolverEngine evaluates constraint 'Invariant_REQ_0117_Temporal_invariants_ORD_Horn_classification_path_consistency_QF_RDL_lowering_and_diagnostics', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When StateMachineSolverEngine evaluates constraint 'Invariant_REQ_0118_Causal_precedence_DAG_construction_Tarjan_SCC_decomposition_temporal_consistency_and_topological_scheduling', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When StateMachineSolverEngine evaluates constraint 'Invariant_REQ_0119_Execution_DAG_topology_fork_join_synchronization_and_diagnostic_trigger_predicates', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When StateMachineSolverEngine evaluates constraint 'Invariant_REQ_0120_Statechart_tree_acyclicity_region_disjointness_configuration_validity_and_diagnostic_triggers', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When StateMachineSolverEngine evaluates constraint 'Invariant_REQ_0121_Event_queue_semantics_trigger_matching_and_diagnostic_triggers', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When StateMachineSolverEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

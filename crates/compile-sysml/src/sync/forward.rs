@@ -225,15 +225,85 @@ fn generate_json_schema(part: &PartDef) -> String {
     )
 }
 
-/// Generates Acceptance Criteria (BDD) dynamically from matching RequirementDef nodes.
-fn generate_feature_bdd(part: &PartDef, _reqs: &[&RequirementDef]) -> String {
-    format!(
-        "- [ ] AC-01: Given initialized execution environment, When {} processes inputs, Then state invariants are satisfied.\n\
-         - [ ] AC-02: Given boundary conditions across interface ports, When {} validates payloads, Then conformant outputs are emitted.\n\
-         - [ ] AC-03: Given exceptional or malformed input events, When {} detects anomalies, Then error recovery activates safely without panic.\n\
-         - [ ] AC-04: Given repeated execution passes with identical inputs, When {} executes deterministically, Then outputs are bitwise reproducible.",
-        part.name, part.name, part.name, part.name
-    )
+/// Generates Acceptance Criteria (BDD) dynamically from PartDef constraints and matching RequirementDef nodes.
+fn generate_feature_bdd(part: &PartDef, reqs: &[&RequirementDef]) -> String {
+    let mut criteria = Vec::new();
+
+    // Pattern A: Nominal domain state / signal handling
+    criteria.push(format!(
+        "- [ ] AC-01: Given nominal {} domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.",
+        part.name
+    ));
+
+    // Pattern B: Invariant / Constraint verification
+    let mut constraint_names: Vec<String> = Vec::new();
+    let mut seen_names = HashSet::new();
+
+    for c in &part.constraints {
+        let name = c.name.trim();
+        if !name.is_empty() && seen_names.insert(name.to_string()) {
+            constraint_names.push(name.to_string());
+        }
+    }
+
+    for req in reqs {
+        if !req.constraints.is_empty() {
+            for c in &req.constraints {
+                let name = c.name.trim();
+                if !name.is_empty() && seen_names.insert(name.to_string()) {
+                    constraint_names.push(name.to_string());
+                }
+            }
+        } else {
+            let name = req.name.trim();
+            if !name.is_empty() && seen_names.insert(name.to_string()) {
+                constraint_names.push(name.to_string());
+            } else if !req.req_id.trim().is_empty() && seen_names.insert(req.req_id.trim().to_string()) {
+                constraint_names.push(req.req_id.trim().to_string());
+            }
+        }
+    }
+
+    for req in &part.requirements {
+        if !req.constraints.is_empty() {
+            for c in &req.constraints {
+                let name = c.name.trim();
+                if !name.is_empty() && seen_names.insert(name.to_string()) {
+                    constraint_names.push(name.to_string());
+                }
+            }
+        } else {
+            let name = req.name.trim();
+            if !name.is_empty() && seen_names.insert(name.to_string()) {
+                constraint_names.push(name.to_string());
+            }
+        }
+    }
+
+    // Ensure granularity bounds: between 3 and 10 acceptance criteria total per feature.
+    // With Pattern A (1) and Pattern C (1), Pattern B must have between 1 and 8 criteria.
+    if constraint_names.is_empty() {
+        constraint_names.push("operational_invariants".to_string());
+    } else if constraint_names.len() > 8 {
+        constraint_names.truncate(8);
+    }
+
+    for c_name in &constraint_names {
+        let ac_num = criteria.len() + 1;
+        criteria.push(format!(
+            "- [ ] AC-{:02}: Given operational state, When {} evaluates constraint '{}', Then asserts invariant satisfaction without violation.",
+            ac_num, part.name, c_name
+        ));
+    }
+
+    // Pattern C: Failsafe / negative error recovery
+    let ac_num = criteria.len() + 1;
+    criteria.push(format!(
+        "- [ ] AC-{:02}: Given malformed input signals or boundary condition violation, When {} error handling is invoked, Then transitions safely to failsafe fallback state without corruption.",
+        ac_num, part.name
+    ));
+
+    criteria.join("\n")
 }
 
 /// Generates a valid Mermaid class diagram dynamically lowered from PartDef members and subparts.
@@ -1590,5 +1660,66 @@ mod tests {
         assert!(!gamma_uc.contains("AlphaAction"), "Gamma UC must NOT cross-wire to AlphaAction");
         assert!(!gamma_uc.contains("BetaAction"), "Gamma UC must NOT cross-wire to BetaAction");
     }
+
+    #[test]
+    fn test_feature_bdd_derived_from_constraints_and_requirements() {
+        use deap_core::sysml_ast::{ConstraintDef, RequirementDef};
+
+        let mut part = PartDef::default();
+        part.name = "TelemetryProcessor".to_string();
+        part.constraints.push(ConstraintDef {
+            name: "FrameRateLimit".to_string(),
+            expression: "frame_rate <= 60".to_string(),
+            ..Default::default()
+        });
+
+        let req = RequirementDef {
+            name: "LatencyBoundRequirement".to_string(),
+            req_id: "REQ-0100".to_string(),
+            constraints: vec![ConstraintDef {
+                name: "MaxLatencyInvariant".to_string(),
+                expression: "latency_ms < 5".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        let bdd = generate_feature_bdd(&part, &[&req]);
+
+        // Pattern A: Nominal domain state / signal handling
+        assert!(
+            bdd.contains("Given nominal TelemetryProcessor domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds."),
+            "Must contain Pattern A nominal domain state criterion, got:\n{}",
+            bdd
+        );
+
+        // Pattern B: Invariant / constraint verification
+        assert!(
+            bdd.contains("Given operational state, When TelemetryProcessor evaluates constraint 'FrameRateLimit', Then asserts invariant satisfaction without violation."),
+            "Must contain part constraint FrameRateLimit in Pattern B, got:\n{}",
+            bdd
+        );
+        assert!(
+            bdd.contains("Given operational state, When TelemetryProcessor evaluates constraint 'MaxLatencyInvariant', Then asserts invariant satisfaction without violation."),
+            "Must contain requirement constraint MaxLatencyInvariant in Pattern B, got:\n{}",
+            bdd
+        );
+
+        // Pattern C: Failsafe / negative error recovery
+        assert!(
+            bdd.contains("Given malformed input signals or boundary condition violation, When TelemetryProcessor error handling is invoked, Then transitions safely to failsafe fallback state without corruption."),
+            "Must contain Pattern C failsafe criterion, got:\n{}",
+            bdd
+        );
+
+        // Granularity bounds check (3 to 10 criteria)
+        let lines: Vec<&str> = bdd.lines().filter(|l| l.trim().starts_with("- [ ] AC-")).collect();
+        assert!(
+            lines.len() >= 3 && lines.len() <= 10,
+            "Criteria count must be between 3 and 10, got: {}",
+            lines.len()
+        );
+    }
 }
+
 

@@ -86,10 +86,13 @@ Deterministic state machine solver and safety monitor logic for DiagnosticErrorC
 Presentation interface binding and diagnostic event routing for DiagnosticErrorCatalogEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When DiagnosticErrorCatalogEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When DiagnosticErrorCatalogEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When DiagnosticErrorCatalogEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When DiagnosticErrorCatalogEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal DiagnosticErrorCatalogEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When DiagnosticErrorCatalogEngine evaluates constraint 'Invariant_REQ_0190_Diagnostic_records_and_filtering_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When DiagnosticErrorCatalogEngine evaluates constraint 'Invariant_REQ_0191_Diagnostic_taxonomy_partitioning_and_coordinates_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When DiagnosticErrorCatalogEngine evaluates constraint 'Invariant_REQ_0192_Tri_state_document_entity_reconciliation_AST_non_injection_and_prose_preservation_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When DiagnosticErrorCatalogEngine evaluates constraint 'Invariant_REQ_0193_Parsing_non_destructive_reconciliation_and_memory_mapped_mutation_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When DiagnosticErrorCatalogEngine evaluates constraint 'Invariant_REQ_0194_Bijective_synchronization_zero_divergence_equivalence_and_diagnostic_triggers_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given malformed input signals or boundary condition violation, When DiagnosticErrorCatalogEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

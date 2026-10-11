@@ -89,10 +89,9 @@ Deterministic state machine solver and safety monitor logic for KerMLTokenStream
 Presentation interface binding and diagnostic event routing for KerMLTokenStream.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When KerMLTokenStream processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When KerMLTokenStream validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When KerMLTokenStream detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When KerMLTokenStream executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal KerMLTokenStream domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When KerMLTokenStream evaluates constraint 'operational_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given malformed input signals or boundary condition violation, When KerMLTokenStream error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

@@ -62,10 +62,9 @@ Deterministic state machine solver and safety monitor logic for CIContinuousInte
 Presentation interface binding and diagnostic event routing for CIContinuousIntegrationRunner.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When CIContinuousIntegrationRunner processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When CIContinuousIntegrationRunner validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When CIContinuousIntegrationRunner detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When CIContinuousIntegrationRunner executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal CIContinuousIntegrationRunner domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When CIContinuousIntegrationRunner evaluates constraint 'operational_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given malformed input signals or boundary condition violation, When CIContinuousIntegrationRunner error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

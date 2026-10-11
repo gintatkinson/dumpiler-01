@@ -86,10 +86,13 @@ Deterministic state machine solver and safety monitor logic for CompilerAssuranc
 Presentation interface binding and diagnostic event routing for CompilerAssuranceEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When CompilerAssuranceEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When CompilerAssuranceEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When CompilerAssuranceEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When CompilerAssuranceEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal CompilerAssuranceEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When CompilerAssuranceEngine evaluates constraint 'Invariant_REQ_0195_Headless_CLI_dispatch_stream_partitioning_and_diagnostic_triggers_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When CompilerAssuranceEngine evaluates constraint 'Invariant_REQ_0196_Performance_assurance_gates_execution_latency_and_diagnostics_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When CompilerAssuranceEngine evaluates constraint 'Invariant_REQ_0197_Syntactic_admissibility_refutational_equivalence_and_solver_cutoff_bounds_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When CompilerAssuranceEngine evaluates constraint 'Invariant_REQ_0198_Total_execution_invariant_preservation_and_generative_mutation_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When CompilerAssuranceEngine evaluates constraint 'Invariant_REQ_0199_The_4_pass_conjunctive_equivalence_tolerance_thresholds_and_diagnostic_bindings_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given malformed input signals or boundary condition violation, When CompilerAssuranceEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

@@ -86,10 +86,16 @@ Deterministic state machine solver and safety monitor logic for MetrologyFlowEng
 Presentation interface binding and diagnostic event routing for MetrologyFlowEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When MetrologyFlowEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When MetrologyFlowEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When MetrologyFlowEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When MetrologyFlowEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal MetrologyFlowEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When MetrologyFlowEngine evaluates constraint 'Invariant_REQ_0098_Canonical_basis_vector_homomorphisms_homogeneity_predicates_and_diagnostic_emission_rules', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When MetrologyFlowEngine evaluates constraint 'Invariant_REQ_0099_Lattice_invariants_power_duality_and_diagnostics', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When MetrologyFlowEngine evaluates constraint 'Invariant_REQ_0100_Rational_arithmetic_and_topological_conservation_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When MetrologyFlowEngine evaluates constraint 'Invariant_REQ_0101_Dimensional_equivalence_additive_preservation_conversion_synthesis_and_diagnostic_rules', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When MetrologyFlowEngine evaluates constraint 'Invariant_REQ_0102_Metrological_signature_spaces_vector_arithmetic_scale_factors_and_error_predicates', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When MetrologyFlowEngine evaluates constraint 'Invariant_REQ_0103_Transcendental_argument_dimensionless_nullity_multi_argument_commensurability_and_UUIDv5_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When MetrologyFlowEngine evaluates constraint 'Invariant_REQ_0104_Rational_power_evaluation_radical_lowering_and_diagnostic_rules', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When MetrologyFlowEngine evaluates constraint 'Invariant_REQ_0105_Topological_partitioning_continuous_conductance_canonical_LCP_and_dimensional_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When MetrologyFlowEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

@@ -86,10 +86,16 @@ Deterministic state machine solver and safety monitor logic for ICDEngine.
 Presentation interface binding and diagnostic event routing for ICDEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When ICDEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When ICDEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When ICDEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When ICDEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal ICDEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When ICDEngine evaluates constraint 'Invariant_REQ_0145_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When ICDEngine evaluates constraint 'Invariant_REQ_0146_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When ICDEngine evaluates constraint 'Invariant_REQ_0147_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When ICDEngine evaluates constraint 'Invariant_REQ_0148_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When ICDEngine evaluates constraint 'Invariant_REQ_0149_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When ICDEngine evaluates constraint 'Invariant_REQ_0150_The_binding_tuple_layout_recurrence_packing_boundary_containment_and_byte_swapping_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When ICDEngine evaluates constraint 'Invariant_REQ_0151_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When ICDEngine evaluates constraint 'Invariant_REQ_0152_The_dimensional_vector_triad_equality_scale_adapter_validity_and_diagnostic_rules_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When ICDEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

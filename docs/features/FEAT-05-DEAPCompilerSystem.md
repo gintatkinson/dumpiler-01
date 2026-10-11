@@ -125,10 +125,16 @@ Deterministic state machine solver and safety monitor logic for DEAPCompilerSyst
 Presentation interface binding and diagnostic event routing for DEAPCompilerSystem.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When DEAPCompilerSystem processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When DEAPCompilerSystem validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When DEAPCompilerSystem detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When DEAPCompilerSystem executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal DEAPCompilerSystem domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When DEAPCompilerSystem evaluates constraint 'Invariant_REQ_0195_Headless_CLI_dispatch_stream_partitioning_and_diagnostic_triggers_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When DEAPCompilerSystem evaluates constraint 'Invariant_REQ_0128_Traceability_graph_partitioning_edge_relations_and_reachability_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When DEAPCompilerSystem evaluates constraint 'Invariant_REQ_0141_The_synthesized_RTA_architecture_arbitration_laws_and_diagnostic_trigger_rules_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When DEAPCompilerSystem evaluates constraint 'Invariant_REQ_0182_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When DEAPCompilerSystem evaluates constraint 'Invariant_REQ_0013_Upon_encountering_a_syntax_fault_at_token_index_in_state_the_skipping_operator_is_defined_as', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When DEAPCompilerSystem evaluates constraint 'Invariant_REQ_0013_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When DEAPCompilerSystem evaluates constraint 'Invariant_REQ_0013_The_Monotonic_Forward_Stream_Progress_Invariant_mandates', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When DEAPCompilerSystem evaluates constraint 'Invariant_REQ_0013_Strict_monotonicity_guarantees_bounded_termination', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When DEAPCompilerSystem error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

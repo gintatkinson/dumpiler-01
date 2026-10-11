@@ -83,10 +83,9 @@ Deterministic state machine solver and safety monitor logic for BacklogChecklist
 Presentation interface binding and diagnostic event routing for BacklogChecklistReconciler.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When BacklogChecklistReconciler processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When BacklogChecklistReconciler validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When BacklogChecklistReconciler detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When BacklogChecklistReconciler executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal BacklogChecklistReconciler domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When BacklogChecklistReconciler evaluates constraint 'operational_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given malformed input signals or boundary condition violation, When BacklogChecklistReconciler error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

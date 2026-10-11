@@ -107,10 +107,16 @@ Deterministic state machine solver and safety monitor logic for UniversalIngesti
 Presentation interface binding and diagnostic event routing for UniversalIngestionEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When UniversalIngestionEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When UniversalIngestionEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When UniversalIngestionEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When UniversalIngestionEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal UniversalIngestionEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When UniversalIngestionEngine evaluates constraint 'Invariant_REQ_0014_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When UniversalIngestionEngine evaluates constraint 'Invariant_REQ_0014_The_target_format_domain_is_defined_as', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When UniversalIngestionEngine evaluates constraint 'Invariant_REQ_0014_The_deterministic_format_classifier_function', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When UniversalIngestionEngine evaluates constraint 'Invariant_REQ_0014_Bounded_inspection_zero_regex_and_zero_backtracking', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When UniversalIngestionEngine evaluates constraint 'Invariant_REQ_0014_FormalInvariant_2', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When UniversalIngestionEngine evaluates constraint 'Invariant_REQ_0014_Total_function_determinism_and_diagnostic_emission', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When UniversalIngestionEngine evaluates constraint 'Invariant_REQ_0014_FormalInvariant_3', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When UniversalIngestionEngine evaluates constraint 'Invariant_REQ_0014_FormalInvariant_4', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When UniversalIngestionEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

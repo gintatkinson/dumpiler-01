@@ -79,10 +79,9 @@ Deterministic state machine solver and safety monitor logic for InvariantBootstr
 Presentation interface binding and diagnostic event routing for InvariantBootstrapEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When InvariantBootstrapEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When InvariantBootstrapEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When InvariantBootstrapEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When InvariantBootstrapEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal InvariantBootstrapEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When InvariantBootstrapEngine evaluates constraint 'operational_invariants', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given malformed input signals or boundary condition violation, When InvariantBootstrapEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

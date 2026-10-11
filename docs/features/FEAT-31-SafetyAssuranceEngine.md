@@ -97,10 +97,16 @@ Deterministic state machine solver and safety monitor logic for SafetyAssuranceE
 Presentation interface binding and diagnostic event routing for SafetyAssuranceEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given initialized execution environment, When SafetyAssuranceEngine processes inputs, Then state invariants are satisfied.
-- [ ] AC-02: Given boundary conditions across interface ports, When SafetyAssuranceEngine validates payloads, Then conformant outputs are emitted.
-- [ ] AC-03: Given exceptional or malformed input events, When SafetyAssuranceEngine detects anomalies, Then error recovery activates safely without panic.
-- [ ] AC-04: Given repeated execution passes with identical inputs, When SafetyAssuranceEngine executes deterministically, Then outputs are bitwise reproducible.
+- [ ] AC-01: Given nominal SafetyAssuranceEngine domain state, When command or input signals are received, Then updates internal state and signal outputs within declared bounds.
+- [ ] AC-02: Given operational state, When SafetyAssuranceEngine evaluates constraint 'Invariant_REQ_0128_Traceability_graph_partitioning_edge_relations_and_reachability_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-03: Given operational state, When SafetyAssuranceEngine evaluates constraint 'Invariant_REQ_0129_Upward_allocation_completeness_target_validity_coverage_metrics_and_diagnostic_triggers_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-04: Given operational state, When SafetyAssuranceEngine evaluates constraint 'Invariant_REQ_0130_Downward_realization_completeness_hierarchical_inheritance_and_diagnostic_mappings_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-05: Given operational state, When SafetyAssuranceEngine evaluates constraint 'Invariant_REQ_0131_Verification_witness_completeness_degree_constraints_certification_semantics_and_diagnostic_mappings_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-06: Given operational state, When SafetyAssuranceEngine evaluates constraint 'Invariant_REQ_0132_Traceability_reachability_active_subgraph_induction_and_diagnostic_mappings_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-07: Given operational state, When SafetyAssuranceEngine evaluates constraint 'Invariant_REQ_0133_Merkle_DAG_attestation_canonical_ordering_and_diagnostic_triggers_satisfy', Then asserts invariant satisfaction without violation.
+- [ ] AC-08: Given operational state, When SafetyAssuranceEngine evaluates constraint 'Invariant_REQ_0134_The_HCS_topology_satisfies', Then asserts invariant satisfaction without violation.
+- [ ] AC-09: Given operational state, When SafetyAssuranceEngine evaluates constraint 'Invariant_REQ_0135_FormalInvariant', Then asserts invariant satisfaction without violation.
+- [ ] AC-10: Given malformed input signals or boundary condition violation, When SafetyAssuranceEngine error handling is invoked, Then transitions safely to failsafe fallback state without corruption.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:
