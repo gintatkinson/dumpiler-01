@@ -98,7 +98,11 @@ impl SysmlSerializable for PortDef {
             lines.push(format!("{}}}", pad));
             lines.join("\n")
         } else {
-            format!("{}{}port {}{}{} : {};", doc, pad, dir, conj, self.name, self.type_name)
+            if self.name == self.type_name {
+                format!("{}{}port def {};", doc, pad, self.name)
+            } else {
+                format!("{}{}port {}{}{} : {};", doc, pad, dir, conj, self.name, self.type_name)
+            }
         }
     }
 }

@@ -1,26 +1,26 @@
 ---
-title: "Feature 01: [ConOps] Human Engineer Interface"
+title: "Feature 01: [Con Ops] HumanEngineer"
 version: "1.0.0"
 date: "2026-10-10"
 type: feature
 part: "HumanEngineer"
 part_def: "HumanEngineer"
-subsystem: "ConOps"
+subsystem: "Con Ops"
 issue_id: 10
 generation_mode: subagent
 ---
 
-# Feature 01: [ConOps] Human Engineer Interface
+# Feature 01: [Con Ops] HumanEngineer
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 01: [ConOps] Human Engineer Interface |
+| **Title** | Feature 01: [Con Ops] HumanEngineer |
 | **Version** | 1.0.0 |
 | **Date** | 2026-10-10 |
 | **Type** | feature |
 | **Part** | HumanEngineer |
-| **Subsystem** | ConOps |
+| **Subsystem** | Con Ops |
 | **Issue ID** | #10 |
 | **Generation Mode** | subagent |
 
@@ -37,8 +37,24 @@ classDiagram
 ### 1. Test Data Shape
 ```json
 {
-  "part": "HumanEngineer",
-  "status": "nominal"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HumanEngineerPayloadSchema",
+  "type": "object",
+  "properties": {
+    "part": {
+      "type": "string",
+      "const": "HumanEngineer"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["nominal", "degraded", "fault"]
+    }
+  },
+  "required": [
+    "part",
+    "status"
+  ],
+  "additionalProperties": false
 }
 ```
 
@@ -46,7 +62,7 @@ classDiagram
 Formal constraints and invariant guarantees enforced by HumanEngineer.
 
 ### 3. Visual Layout & Arrangement
-Logical layout, viewport containment, and container structure for HumanEngineer conforming to platform design tokens. Container boundaries enforce `@container` isolation rules.
+Logical layout, viewport containment, and container structure for HumanEngineer conforming to platform design tokens. Container boundaries enforce @container isolation rules.
 
 ### 4. Interactive Flow & States
 Operational lifecycle events and discrete state transitions for HumanEngineer.
@@ -61,10 +77,10 @@ Deterministic state machine solver and safety monitor logic for HumanEngineer.
 Presentation interface binding and diagnostic event routing for HumanEngineer.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given valid schema source S, When compiler parses input, Then lowers AST with positive provenance.
-- [ ] AC-02: Given formal constraints, When semantic validator executes, Then asserts invariant satisfaction.
-- [ ] AC-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
-- [ ] AC-04: Given repeated compilation passes, When executed on identical sources, Then outputs are bitwise deterministic.
+- [ ] AC-01: Given initialized execution environment, When HumanEngineer processes inputs, Then state invariants are satisfied.
+- [ ] AC-02: Given boundary conditions across interface ports, When HumanEngineer validates payloads, Then conformant outputs are emitted.
+- [ ] AC-03: Given exceptional or malformed input events, When HumanEngineer detects anomalies, Then error recovery activates safely without panic.
+- [ ] AC-04: Given repeated execution passes with identical inputs, When HumanEngineer executes deterministically, Then outputs are bitwise reproducible.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

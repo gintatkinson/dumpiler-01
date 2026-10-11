@@ -716,14 +716,17 @@ pub fn parse_attribute_defs(content: &str) -> Vec<AttributeDef> {
 /// Parse port definitions from SysML v2 source text.
 pub fn parse_port_defs(content: &str) -> Vec<PortDef> {
     let re = Regex::new(
-        r#"(?m)(?:doc\s*/\*(?P<doc>[\s\S]*?)\*/\s*)?(?:(?P<dir1>in|out|inout)\s+)?port(?:\s+def)?(?:\s+(?P<dir2>in|out|inout))?(?:\s+def)?\s+(?P<conj1>~)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<conj2>~)?(?P<type>[A-Za-z0-9_]+)\s*(?:\{[^{}]*\}|;)"#,
+        r#"(?m)(?:doc\s*/\*(?P<doc>[\s\S]*?)\*/\s*)?(?:(?P<dir1>in|out|inout)\s+)?port(?:\s+def)?(?:\s+(?P<dir2>in|out|inout))?(?:\s+def)?\s+(?P<conj1>~)?(?P<name>[A-Za-z0-9_]+)(?:\s*:\s*(?P<conj2>~)?(?P<type>[A-Za-z0-9_]+))?\s*(?:\{[^{}]*\}|;)"#,
     )
     .unwrap();
 
     let mut ports = Vec::new();
     for cap in re.captures_iter(content) {
         let name = cap["name"].to_string();
-        let type_name = cap["type"].to_string();
+        let type_name = cap
+            .name("type")
+            .map(|t| t.as_str().to_string())
+            .unwrap_or_else(|| name.clone());
         let direction = cap
             .name("dir1")
             .or_else(|| cap.name("dir2"))
@@ -747,16 +750,16 @@ pub fn parse_port_defs(content: &str) -> Vec<PortDef> {
 /// Parse action definitions from SysML v2 source text.
 pub fn parse_action_defs(content: &str) -> Vec<ActionDef> {
     let re = Regex::new(
-        r#"(?s)(?:doc\s*/\*(?P<doc>.*?)\*/\s*)?action\s+(?:def\s+)?(?P<name>[A-Za-z0-9_]+)\s*(?:\{(?P<body>.*?)\}|;)"#,
+        r#"(?s)(?:doc\s*/\*(?P<doc>.*?)\*/\s*)?\baction\b(?:\s+def)?\s+(?P<name>[A-Za-z0-9_]+)(?:\s*\((?P<params>.*?)\))?\s*(?:\{(?P<body>.*?)\}|;)"#,
     )
     .unwrap();
 
     let in_param_re = Regex::new(
-        r#"(?m)^\s*in\s+(?:attribute\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<type>[A-Za-z0-9_]+);"#,
+        r#"(?m)^\s*in\s+(?:attribute\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<type>[A-Za-z0-9_]+)"#,
     )
     .unwrap();
     let out_param_re = Regex::new(
-        r#"(?m)^\s*out\s+(?:attribute\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<type>[A-Za-z0-9_]+);"#,
+        r#"(?m)^\s*out\s+(?:attribute\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<type>[A-Za-z0-9_]+)"#,
     )
     .unwrap();
 
@@ -767,6 +770,28 @@ pub fn parse_action_defs(content: &str) -> Vec<ActionDef> {
 
         let mut in_params = Vec::new();
         let mut out_params = Vec::new();
+
+        if let Some(params) = cap.name("params") {
+            let params_str = params.as_str();
+            for part in params_str.split(',') {
+                let part_trim = part.trim();
+                if let Some(p_cap) = in_param_re.captures(part_trim) {
+                    in_params.push(AttributeDef {
+                        name: p_cap["name"].to_string(),
+                        type_name: p_cap["type"].to_string(),
+                        default_value: None,
+                        doc: None,
+                    });
+                } else if let Some(p_cap) = out_param_re.captures(part_trim) {
+                    out_params.push(AttributeDef {
+                        name: p_cap["name"].to_string(),
+                        type_name: p_cap["type"].to_string(),
+                        default_value: None,
+                        doc: None,
+                    });
+                }
+            }
+        }
 
         if let Some(body) = cap.name("body") {
             let body_str = body.as_str();

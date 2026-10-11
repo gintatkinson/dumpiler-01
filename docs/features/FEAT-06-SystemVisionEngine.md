@@ -1,7 +1,7 @@
 ---
-title: "Feature 06: [System Vision] System Vision Engine"
+title: "Feature 06: [System Vision] SystemVisionEngine"
 version: "1.0.0"
-date: "2026-10-10"
+date: "2026-10-11"
 type: feature
 part: "SystemVisionEngine"
 part_def: "SystemVisionEngine"
@@ -10,14 +10,14 @@ issue_id: 15
 generation_mode: subagent
 ---
 
-# Feature 06: [System Vision] System Vision Engine
+# Feature 06: [System Vision] SystemVisionEngine
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 06: [System Vision] System Vision Engine |
+| **Title** | Feature 06: [System Vision] SystemVisionEngine |
 | **Version** | 1.0.0 |
-| **Date** | 2026-10-10 |
+| **Date** | 2026-10-11 |
 | **Type** | feature |
 | **Part** | SystemVisionEngine |
 | **Subsystem** | System Vision |
@@ -37,8 +37,33 @@ classDiagram
 ### 1. Test Data Shape
 ```json
 {
-  "part": "SystemVisionEngine",
-  "status": "nominal"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SystemVisionEnginePayloadSchema",
+  "type": "object",
+  "properties": {
+    "part": {
+      "type": "string",
+      "const": "SystemVisionEngine"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["nominal", "degraded", "fault"]
+    },
+    "rules_out": {
+      "type": "object",
+      "properties": {
+        "direction": { "type": "string", "const": "out" },
+        "port_type": { "type": "string", "const": "CompilerRulePort" }
+      },
+      "required": ["direction", "port_type"]
+    }
+  },
+  "required": [
+    "part",
+    "status",
+    "rules_out"
+  ],
+  "additionalProperties": false
 }
 ```
 
@@ -46,7 +71,7 @@ classDiagram
 Formal constraints and invariant guarantees enforced by SystemVisionEngine.
 
 ### 3. Visual Layout & Arrangement
-Logical layout, viewport containment, and container structure for SystemVisionEngine conforming to platform design tokens. Container boundaries enforce `@container` isolation rules.
+Logical layout, viewport containment, and container structure for SystemVisionEngine conforming to platform design tokens. Container boundaries enforce @container isolation rules.
 
 ### 4. Interactive Flow & States
 Operational lifecycle events and discrete state transitions for SystemVisionEngine.
@@ -61,15 +86,15 @@ Deterministic state machine solver and safety monitor logic for SystemVisionEngi
 Presentation interface binding and diagnostic event routing for SystemVisionEngine.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given valid schema source S, When compiler parses input, Then lowers AST with positive provenance.
-- [ ] AC-02: Given formal constraints, When semantic validator executes, Then asserts invariant satisfaction.
-- [ ] AC-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
-- [ ] AC-04: Given repeated compilation passes, When executed on identical sources, Then outputs are bitwise deterministic.
+- [ ] AC-01: Given initialized execution environment, When SystemVisionEngine processes inputs, Then state invariants are satisfied.
+- [ ] AC-02: Given boundary conditions across interface ports, When SystemVisionEngine validates payloads, Then conformant outputs are emitted.
+- [ ] AC-03: Given exceptional or malformed input events, When SystemVisionEngine detects anomalies, Then error recovery activates safely without panic.
+- [ ] AC-04: Given repeated execution passes with identical inputs, When SystemVisionEngine executes deterministically, Then outputs are bitwise reproducible.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:
-- Subsystem Requirements: `schema/subsystems/subsystem_01_system_vision/requirements.sysml`
-- Subsystem Architecture: `schema/subsystems/subsystem_01_system_vision/architecture.sysml`
+- Subsystem Requirements: `schema/subsystems/system_vision/requirements.sysml`
+- Subsystem Architecture: `schema/subsystems/system_vision/architecture.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 15288:2023 §6.4.3 Architecture Definition Process
 
 Component behavior and interface definitions derive from `schema/model.sysml` pursuant to ISO/IEC/IEEE 15288.

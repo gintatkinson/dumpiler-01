@@ -1,26 +1,26 @@
 ---
-title: "Feature 04: [ConOps] Downstream Application Host Interface"
+title: "Feature 04: [Con Ops] DownstreamApplicationHost"
 version: "1.0.0"
 date: "2026-10-10"
 type: feature
 part: "DownstreamApplicationHost"
 part_def: "DownstreamApplicationHost"
-subsystem: "ConOps"
+subsystem: "Con Ops"
 issue_id: 13
 generation_mode: subagent
 ---
 
-# Feature 04: [ConOps] Downstream Application Host Interface
+# Feature 04: [Con Ops] DownstreamApplicationHost
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 04: [ConOps] Downstream Application Host Interface |
+| **Title** | Feature 04: [Con Ops] DownstreamApplicationHost |
 | **Version** | 1.0.0 |
 | **Date** | 2026-10-10 |
 | **Type** | feature |
 | **Part** | DownstreamApplicationHost |
-| **Subsystem** | ConOps |
+| **Subsystem** | Con Ops |
 | **Issue ID** | #13 |
 | **Generation Mode** | subagent |
 
@@ -37,8 +37,24 @@ classDiagram
 ### 1. Test Data Shape
 ```json
 {
-  "part": "DownstreamApplicationHost",
-  "status": "nominal"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DownstreamApplicationHostPayloadSchema",
+  "type": "object",
+  "properties": {
+    "part": {
+      "type": "string",
+      "const": "DownstreamApplicationHost"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["nominal", "degraded", "fault"]
+    }
+  },
+  "required": [
+    "part",
+    "status"
+  ],
+  "additionalProperties": false
 }
 ```
 
@@ -46,7 +62,7 @@ classDiagram
 Formal constraints and invariant guarantees enforced by DownstreamApplicationHost.
 
 ### 3. Visual Layout & Arrangement
-Logical layout, viewport containment, and container structure for DownstreamApplicationHost conforming to platform design tokens. Container boundaries enforce `@container` isolation rules.
+Logical layout, viewport containment, and container structure for DownstreamApplicationHost conforming to platform design tokens. Container boundaries enforce @container isolation rules.
 
 ### 4. Interactive Flow & States
 Operational lifecycle events and discrete state transitions for DownstreamApplicationHost.
@@ -61,10 +77,10 @@ Deterministic state machine solver and safety monitor logic for DownstreamApplic
 Presentation interface binding and diagnostic event routing for DownstreamApplicationHost.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given valid schema source S, When compiler parses input, Then lowers AST with positive provenance.
-- [ ] AC-02: Given formal constraints, When semantic validator executes, Then asserts invariant satisfaction.
-- [ ] AC-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
-- [ ] AC-04: Given repeated compilation passes, When executed on identical sources, Then outputs are bitwise deterministic.
+- [ ] AC-01: Given initialized execution environment, When DownstreamApplicationHost processes inputs, Then state invariants are satisfied.
+- [ ] AC-02: Given boundary conditions across interface ports, When DownstreamApplicationHost validates payloads, Then conformant outputs are emitted.
+- [ ] AC-03: Given exceptional or malformed input events, When DownstreamApplicationHost detects anomalies, Then error recovery activates safely without panic.
+- [ ] AC-04: Given repeated execution passes with identical inputs, When DownstreamApplicationHost executes deterministically, Then outputs are bitwise reproducible.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

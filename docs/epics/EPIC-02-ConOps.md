@@ -4,7 +4,7 @@ version: "1.0.0"
 date: "2026-10-10"
 type: epic
 package: "ConOps"
-subsystem: "ConOps"
+subsystem: "Con Ops"
 issue_id: 102
 generation_mode: subagent
 ---
@@ -19,59 +19,60 @@ generation_mode: subagent
 | **Date** | 2026-10-10 |
 | **Type** | epic |
 | **Package** | ConOps |
-| **Subsystem** | ConOps |
+| **Subsystem** | Con Ops |
 | **Issue ID** | #102 |
 | **Generation Mode** | subagent |
 
 ## 1. Context
-Concept of Operations specifications detailing external actor interactions, operational activities OA-01 through OA-06, and lifecycle execution modes.
-
-### Gate 24 Operational Allocations
-- /// OperationalAllocation: [OA-01] Universal Ingestion Engine
-- /// OperationalAllocation: [OA-02] Node Arena AST Graph Engine
-- /// OperationalAllocation: [OA-03] Grammar Lowering Engine
-- /// OperationalAllocation: [OA-04] Safety Assurance Engine
-- /// OperationalAllocation: [OA-05] Agile Projection Engine
-- /// OperationalAllocation: [OA-06] Compiler Assurance Engine
+ConOps Operational Activities
 
 ## 2. Requirements & Checklist
-- [ ] #10 - Feature 01: [ConOps] Human Engineer Interface
-- [ ] #11 - Feature 02: [ConOps] CI Continuous Integration Runner
-- [ ] #12 - Feature 03: [ConOps] Remote Artifact Registry Interface
-- [ ] #13 - Feature 04: [ConOps] Downstream Application Host Interface
-- [ ] #14 - Feature 05: [Architecture] DEAP Compiler System Architecture
-
+- [ ] #10 - Feature 01: [Con Ops] HumanEngineer
+- [ ] #11 - Feature 02: [Con Ops] CIContinuousIntegrationRunner
+- [ ] #12 - Feature 03: [Con Ops] RemoteArtifactRegistry
+- [ ] #13 - Feature 04: [Con Ops] DownstreamApplicationHost
+- [ ] #14 - Feature 05: [System Architecture] DEAPCompilerSystem
 
 ### Associated Use Cases & User Stories
 
 #### Associated Use Cases
-- [ ] #95 - [Use Case 01: System Vision and Schema Ingestion Workflow](../use-cases/UC-01-System_Vision_and_Schema_Ingestion_Workflow.md)
-- [ ] #96 - [Use Case 02: Grammar Lowering and AST Construction Workflow](../use-cases/UC-02-Grammar_Lowering_and_AST_Construction_Workflow.md)
-- [ ] #97 - [Use Case 03: Safety Assurance and STPA Verification Workflow](../use-cases/UC-03-Safety_Assurance_and_STPA_Verification_Workflow.md)
-- [ ] #98 - [Use Case 04: Downstream Specification and Backlog Projection Workflow](../use-cases/UC-04-Downstream_Specification_and_Backlog_Projection_Workflow.md)
-- [ ] #99 - [Use Case 05: Multi-Target CodeGen and Simulation Synthesis Workflow](../use-cases/UC-05-Multi_Target_CodeGen_and_Simulation_Synthesis_Workflow.md)
-- [ ] #100 - [Use Case 06: Baseline Conformance and Diagnostic Triage Workflow](../use-cases/UC-06-Baseline_Conformance_and_Diagnostic_Triage_Workflow.md)
-
+- [ ] #95 - [Use Case 01: UC 01 System Vision and Foundational Invariants](../use-cases/UC-01-UC_01_System_Vision_and_Foundational_Invariants.md)
+- [ ] #96 - [Use Case 02: UC 02 Universal Schema Ingestion Workflow](../use-cases/UC-02-UC_02_Universal_Schema_Ingestion_Workflow.md)
+- [ ] #97 - [Use Case 03: UC 03 Node Arena Memory Management Workflow](../use-cases/UC-03-UC_03_Node_Arena_Memory_Management_Workflow.md)
+- [ ] #98 - [Use Case 04: UC 04 Sys ML Grammar Lowering Workflow](../use-cases/UC-04-UC_04_SysML_Grammar_Lowering_Workflow.md)
+- [ ] #99 - [Use Case 05: UC 05 Physical Metrology and Flow Conservation Workflow](../use-cases/UC-05-UC_05_Physical_Metrology_and_Flow_Conservation_Workflow.md)
+- [ ] #100 - [Use Case 06: UC 06 State Machine Solver Workflow](../use-cases/UC-06-UC_06_State_Machine_Solver_Workflow.md)
+- [ ] #101 - [Use Case 07: UC 07 Safety Assurance and Traceability Workflow](../use-cases/UC-07-UC_07_Safety_Assurance_and_Traceability_Workflow.md)
+- [ ] #102 - [Use Case 08: UC 08 ICD Interconnect Contract Generation Workflow](../use-cases/UC-08-UC_08_ICD_Interconnect_Contract_Generation_Workflow.md)
+- [ ] #103 - [Use Case 09: UC 09 Agile Specification Projection Workflow](../use-cases/UC-09-UC_09_Agile_Specification_Projection_Workflow.md)
+- [ ] #104 - [Use Case 10: UC 10 Multi Target Code Gen Workflow](../use-cases/UC-10-UC_10_Multi_Target_CodeGen_Workflow.md)
+- [ ] #105 - [Use Case 11: UC 11 Diagnostic Catalog Triage Workflow](../use-cases/UC-11-UC_11_Diagnostic_Catalog_Triage_Workflow.md)
+- [ ] #106 - [Use Case 12: UC 12 Compiler Performance Assurance Workflow](../use-cases/UC-12-UC_12_Compiler_Performance_Assurance_Workflow.md)
 
 #### Associated User Stories
-- [ ] #89 - [User Story 01: Ingest OEM Documentation and Schema Artifacts](../user-stories/US-01-Ingest_OEM_Artifacts.md)
-- [ ] #90 - [User Story 02: Parse SysML v2 AST and Construct Arena Graph](../user-stories/US-02-Parse_SysML_AST.md)
-- [ ] #91 - [User Story 03: Validate Model Semantics and Typing Constraints](../user-stories/US-03-Validate_Model_Semantics.md)
-- [ ] #92 - [User Story 04: Transpile Safety Assurance and STPA Matrices](../user-stories/US-04-Transpile_Safety_Artifacts.md)
-- [ ] #93 - [User Story 05: Synthesize Downstream Agile Backlog Projections](../user-stories/US-05-Synthesize_Downstream_Projections.md)
-- [ ] #94 - [User Story 06: Verify Multi-File Baseline Parity and Governance Gates](../user-stories/US-06-Verify_Baseline_Parity.md)
+- [ ] #89 - [User Story 01: Bootstrap System Vision Action](../user-stories/US-01-BootstrapSystemVisionAction.md)
+- [ ] #90 - [User Story 02: Ingest Schema Action](../user-stories/US-02-IngestSchemaAction.md)
+- [ ] #91 - [User Story 03: Allocate Node Action](../user-stories/US-03-AllocateNodeAction.md)
+- [ ] #92 - [User Story 04: Lower Sys MLAction](../user-stories/US-04-LowerSysMLAction.md)
+- [ ] #93 - [User Story 05: Solve Flows Action](../user-stories/US-05-SolveFlowsAction.md)
+- [ ] #94 - [User Story 06: Solve State Dynamics Action](../user-stories/US-06-SolveStateDynamicsAction.md)
+- [ ] #95 - [User Story 07: Verify Safety Traceability Action](../user-stories/US-07-VerifySafetyTraceabilityAction.md)
+- [ ] #96 - [User Story 08: Synthesize ICDContracts Action](../user-stories/US-08-SynthesizeICDContractsAction.md)
+- [ ] #97 - [User Story 09: Project Agile Specifications Action](../user-stories/US-09-ProjectAgileSpecificationsAction.md)
+- [ ] #98 - [User Story 10: Synthesize Code Action](../user-stories/US-10-SynthesizeCodeAction.md)
+- [ ] #99 - [User Story 11: Triage Diagnostic Action](../user-stories/US-11-TriageDiagnosticAction.md)
+- [ ] #100 - [User Story 12: Verify Compiler Assurance Action](../user-stories/US-12-VerifyCompilerAssuranceAction.md)
 
 ## 3. Architecture
-External operational interfaces binding human systems engineers and continuous integration runners to the compiler lifecycle.
+Subsystem structural composition, port allocations, and directional data connectors realized by HumanEngineer.
 
 ## 4. Operational Considerations
-Operator command dispatch, automated verification pipelines, and remote registry artifact synchronization.
+Deterministic compilation passes, error containment, and provable polynomial complexity execution.
 
 ## 5. Security & Governance
-Operational integrity boundaries, tamper-resistant artifact registration, and failure mode containment.
+Safety-critical invariant satisfaction, formal trace matrix closure, and zero hardcoded domain semantics.
 
 ## 6. Source References
-Authoritative operational concepts and systems engineering standards:
 - ConOps Operational Activities: `schema/conops/activities.sysml`
 - ConOps External Actors: `schema/conops/actors.sysml`
 - Normative Systems Engineering Standard: ISO/IEC/IEEE 29148:2018 §6.4.2 Concept of Operations

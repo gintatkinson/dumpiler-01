@@ -1,26 +1,26 @@
 ---
-title: "Feature 03: [ConOps] Remote Artifact Registry Interface"
+title: "Feature 03: [Con Ops] RemoteArtifactRegistry"
 version: "1.0.0"
 date: "2026-10-10"
 type: feature
 part: "RemoteArtifactRegistry"
 part_def: "RemoteArtifactRegistry"
-subsystem: "ConOps"
+subsystem: "Con Ops"
 issue_id: 12
 generation_mode: subagent
 ---
 
-# Feature 03: [ConOps] Remote Artifact Registry Interface
+# Feature 03: [Con Ops] RemoteArtifactRegistry
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 03: [ConOps] Remote Artifact Registry Interface |
+| **Title** | Feature 03: [Con Ops] RemoteArtifactRegistry |
 | **Version** | 1.0.0 |
 | **Date** | 2026-10-10 |
 | **Type** | feature |
 | **Part** | RemoteArtifactRegistry |
-| **Subsystem** | ConOps |
+| **Subsystem** | Con Ops |
 | **Issue ID** | #12 |
 | **Generation Mode** | subagent |
 
@@ -37,8 +37,24 @@ classDiagram
 ### 1. Test Data Shape
 ```json
 {
-  "part": "RemoteArtifactRegistry",
-  "status": "nominal"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RemoteArtifactRegistryPayloadSchema",
+  "type": "object",
+  "properties": {
+    "part": {
+      "type": "string",
+      "const": "RemoteArtifactRegistry"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["nominal", "degraded", "fault"]
+    }
+  },
+  "required": [
+    "part",
+    "status"
+  ],
+  "additionalProperties": false
 }
 ```
 
@@ -46,7 +62,7 @@ classDiagram
 Formal constraints and invariant guarantees enforced by RemoteArtifactRegistry.
 
 ### 3. Visual Layout & Arrangement
-Logical layout, viewport containment, and container structure for RemoteArtifactRegistry conforming to platform design tokens. Container boundaries enforce `@container` isolation rules.
+Logical layout, viewport containment, and container structure for RemoteArtifactRegistry conforming to platform design tokens. Container boundaries enforce @container isolation rules.
 
 ### 4. Interactive Flow & States
 Operational lifecycle events and discrete state transitions for RemoteArtifactRegistry.
@@ -61,10 +77,10 @@ Deterministic state machine solver and safety monitor logic for RemoteArtifactRe
 Presentation interface binding and diagnostic event routing for RemoteArtifactRegistry.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given valid schema source S, When compiler parses input, Then lowers AST with positive provenance.
-- [ ] AC-02: Given formal constraints, When semantic validator executes, Then asserts invariant satisfaction.
-- [ ] AC-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
-- [ ] AC-04: Given repeated compilation passes, When executed on identical sources, Then outputs are bitwise deterministic.
+- [ ] AC-01: Given initialized execution environment, When RemoteArtifactRegistry processes inputs, Then state invariants are satisfied.
+- [ ] AC-02: Given boundary conditions across interface ports, When RemoteArtifactRegistry validates payloads, Then conformant outputs are emitted.
+- [ ] AC-03: Given exceptional or malformed input events, When RemoteArtifactRegistry detects anomalies, Then error recovery activates safely without panic.
+- [ ] AC-04: Given repeated execution passes with identical inputs, When RemoteArtifactRegistry executes deterministically, Then outputs are bitwise reproducible.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

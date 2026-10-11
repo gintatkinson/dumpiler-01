@@ -445,16 +445,17 @@ impl<'a> SysmlParser<'a> {
         }
 
         let name = self.expect_ident()?;
-        self.expect(&TokenKind::Colon)?;
-
-        let is_conjugated = if self.check(&TokenKind::Tilde) {
+        let mut is_conjugated = false;
+        let type_name = if self.check(&TokenKind::Colon) || self.check(&TokenKind::ColonGt) {
             self.advance();
-            true
+            if self.check(&TokenKind::Tilde) {
+                self.advance();
+                is_conjugated = true;
+            }
+            self.expect_ident()?
         } else {
-            false
+            name.clone()
         };
-
-        let type_name = self.expect_ident()?;
         let mut port = PortDef {
             name,
             type_name,

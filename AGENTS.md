@@ -54,14 +54,20 @@ Immediately following installation and on EVERY new session startup, before acce
 - No task is complete until all changes are successfully pushed to and verified on the remote tracking branch.
 - You must verify that `git diff origin/<branch>` is empty before generating the walkthrough and final report.
 
+## User Intent Integrity & Verbatim Pass-Through Mandate
+- **ALWAYS enforce:** Agents and coordinators are strictly prohibited from overriding, altering, rewriting, summarizing, or substituting the user's stated intentions, prompt text, or architectural parameters under any circumstances.
+- When the user provides a task prompt (including `/teamwork-preview`), that prompt MUST be preserved and passed to executing agents verbatim.
+- Coordinators are strictly forbidden from rewriting user prompts, injecting synthetic constraints, or altering the execution scope in background thought blocks.
+- Subagents must ingest repository rules directly from disk (`.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md`) rather than requiring prompt modification by the coordinator.
+
 ## Mandatory Subagent Dispatch for Research, Specification & Implementation Loops
 - Direct execution of technology stack research (Step 1.5), specification generation, or micro-task implementations (Step 3) within the coordinator's primary conversation context is strictly forbidden to prevent context bloat.
 - **Subagent Dispatch Loop Requirements**:
-  1. **Fresh Context**: Every subagent MUST begin with a fresh, isolated context without inherited session state.
-  2. **Role & Curated Prompt**: Assign a clear role and pass only relevant task scope, files, schema fragments, and guidelines.
-  3. **Mandatory Single-Item Scope**: Every subagent dispatch MUST target at most 1 specification item (max 1 Epic, 1 Feature, 1 User Story, or 1 Use Case).
-  4. **Mandatory Skill-Reading Instruction**: Prompt MUST instruct the subagent to execute `view_file` on active `SKILL.md` by explicit path as its first step.
-  5. **Subagent Self-Rejection Gate**: Subagents enforce pre-flight checks and reject summarized, truncated, or steered prompts.
+  1. **Verbatim User Payload Mandate**: The subagent prompt payload MUST contain the user's exact instructions verbatim. The coordinator is strictly prohibited from altering, summarizing, or wrapping the user's prompt with synthetic boilerplate.
+  2. **Autonomous On-Disk Governance Initialization**: Every subagent must autonomously execute `view_file` on `.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md` as its first step, without requiring prompt modification by the coordinator.
+  3. **Single-Prompt Serial Dispatch Rule**: Coordinators must dispatch exactly ONE subagent with ONE prompt at a time. Multi-agent concurrent dispatches are prohibited unless explicitly structured and approved by the user.
+  4. **Mandatory Teamwork Preview Gate**: When `/teamwork-preview` is invoked, the coordinator MUST present the full execution plan and verbatim prompt in the chat, halt, and await human approval before dispatching any subagent.
+  5. **Mandatory Single-Item Scope**: Every subagent dispatch MUST target at most 1 specification item (max 1 Epic, 1 Feature, 1 User Story, or 1 Use Case) or 1 single bounded micro-task (2-5 minutes).
   6. **Enforce 3-Layer Definition of Done**: The full 3-layer semantic chain ((1) Domain State & Data Model, (2) Logic & State Management, (3) Presentation & Actuator Interface Binding) is mandatory per specification item. Each micro-task must state deliverables or the task number closing each layer; writing `N/A` is forbidden.
   7. **Runtime Dispatch Capability**: Use whichever context-isolated dispatch tool the active runtime provides. If unavailable, halt and escalate as a blocker.
   8. **Authorization**: Append `PROCEED` (case-insensitive) to authorize subagents to use modifying tools.

@@ -1,5 +1,5 @@
 ---
-title: "Feature 05: [Architecture] DEAP Compiler System Architecture"
+title: "Feature 05: [System Architecture] DEAPCompilerSystem"
 version: "1.0.0"
 date: "2026-10-10"
 type: feature
@@ -10,12 +10,12 @@ issue_id: 14
 generation_mode: subagent
 ---
 
-# Feature 05: [Architecture] DEAP Compiler System Architecture
+# Feature 05: [System Architecture] DEAPCompilerSystem
 
 ## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 05: [Architecture] DEAP Compiler System Architecture |
+| **Title** | Feature 05: [System Architecture] DEAPCompilerSystem |
 | **Version** | 1.0.0 |
 | **Date** | 2026-10-10 |
 | **Type** | feature |
@@ -37,8 +37,69 @@ classDiagram
 ### 1. Test Data Shape
 ```json
 {
-  "part": "DEAPCompilerSystem",
-  "status": "nominal"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DEAPCompilerSystemPayloadSchema",
+  "type": "object",
+  "properties": {
+    "part": {
+      "type": "string",
+      "const": "DEAPCompilerSystem"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["nominal", "degraded", "fault"]
+    },
+    "cli_in": {
+      "type": "object",
+      "properties": {
+        "direction": { "type": "string", "const": "in" },
+        "port_type": { "type": "string", "const": "CLIPort" }
+      },
+      "required": ["direction", "port_type"]
+    },
+    "schema_in": {
+      "type": "object",
+      "properties": {
+        "direction": { "type": "string", "const": "in" },
+        "port_type": { "type": "string", "const": "RawSchemaStreamPort" }
+      },
+      "required": ["direction", "port_type"]
+    },
+    "code_out": {
+      "type": "object",
+      "properties": {
+        "direction": { "type": "string", "const": "out" },
+        "port_type": { "type": "string", "const": "CodeArtifactPort" }
+      },
+      "required": ["direction", "port_type"]
+    },
+    "diag_out": {
+      "type": "object",
+      "properties": {
+        "direction": { "type": "string", "const": "out" },
+        "port_type": { "type": "string", "const": "DiagnosticReportPort" }
+      },
+      "required": ["direction", "port_type"]
+    },
+    "metrics_out": {
+      "type": "object",
+      "properties": {
+        "direction": { "type": "string", "const": "out" },
+        "port_type": { "type": "string", "const": "PerformanceMetricsPort" }
+      },
+      "required": ["direction", "port_type"]
+    }
+  },
+  "required": [
+    "part",
+    "status",
+    "cli_in",
+    "schema_in",
+    "code_out",
+    "diag_out",
+    "metrics_out"
+  ],
+  "additionalProperties": false
 }
 ```
 
@@ -46,7 +107,7 @@ classDiagram
 Formal constraints and invariant guarantees enforced by DEAPCompilerSystem.
 
 ### 3. Visual Layout & Arrangement
-Logical layout, viewport containment, and container structure for DEAPCompilerSystem conforming to platform design tokens. Container boundaries enforce `@container` isolation rules.
+Logical layout, viewport containment, and container structure for DEAPCompilerSystem conforming to platform design tokens. Container boundaries enforce @container isolation rules.
 
 ### 4. Interactive Flow & States
 Operational lifecycle events and discrete state transitions for DEAPCompilerSystem.
@@ -61,10 +122,10 @@ Deterministic state machine solver and safety monitor logic for DEAPCompilerSyst
 Presentation interface binding and diagnostic event routing for DEAPCompilerSystem.
 
 ## Acceptance Criteria (BDD)
-- [ ] AC-01: Given valid schema source S, When compiler parses input, Then lowers AST with positive provenance.
-- [ ] AC-02: Given formal constraints, When semantic validator executes, Then asserts invariant satisfaction.
-- [ ] AC-03: Given malformed inputs, When error recovery activates, Then emits structured diagnostics without panic.
-- [ ] AC-04: Given repeated compilation passes, When executed on identical sources, Then outputs are bitwise deterministic.
+- [ ] AC-01: Given initialized execution environment, When DEAPCompilerSystem processes inputs, Then state invariants are satisfied.
+- [ ] AC-02: Given boundary conditions across interface ports, When DEAPCompilerSystem validates payloads, Then conformant outputs are emitted.
+- [ ] AC-03: Given exceptional or malformed input events, When DEAPCompilerSystem detects anomalies, Then error recovery activates safely without panic.
+- [ ] AC-04: Given repeated execution passes with identical inputs, When DEAPCompilerSystem executes deterministically, Then outputs are bitwise reproducible.
 
 ## Source References
 Formal component specifications and normative systems engineering requirements:

@@ -1,21 +1,44 @@
 doc /* Abstract Model-Based Systems Engineering (MBSE) Compiler System Architecture */
 package DEAP_Compiler_System {
     import ConOps::*;
-    import Subsystem_1_System_Vision::*;
-    import Subsystem_2_Universal_Schema_Ingestion_Engine::*;
-    import Subsystem_3_Core_Metamodel_Node_Arena::*;
-    import Subsystem_4_Complete_SysMLv2_KerML_Grammar::*;
-    import Subsystem_5_7D_Physical_Metrology_Flow_Networks::*;
-    import Subsystem_6_Spatio_Temporal_State_Solvers::*;
-    import Subsystem_7_Formal_Safety_Traceability_Verification::*;
-    import Subsystem_8_Level_1C_ICD_Interconnect_Contracts::*;
-    import Subsystem_9_Downstream_Specification_Projections::*;
-    import Subsystem_10_Multi_Target_CodeGen_Simulation_Bindings::*;
-    import Subsystem_11_Standardized_Diagnostic_Error_Catalog::*;
-    import Subsystem_12_Compiler_Performance_CLI_Assurance::*;
+    import SystemVision::*;
+    import UniversalSchemaIngestion::*;
+    import CoreMetamodelNodeArena::*;
+    import SysmlGrammarLowering::*;
+    import PhysicalMetrologyFlows::*;
+    import SpatioTemporalStateSolvers::*;
+    import FormalSafetyTraceability::*;
+    import InterconnectContracts::*;
+    import DownstreamAgileProjections::*;
+    import MultiTargetCodegen::*;
+    import DiagnosticErrorCatalog::*;
+    import CompilerAssurance::*;
+
+    doc /* Common Port Definitions */
+    port def CLIPort;
+    port def RawSchemaStreamPort;
+    port def CodeArtifactPort;
+    port def DiagnosticReportPort;
+    port def PerformanceMetricsPort;
+    port def CompilerRulePort;
+    port def TokenStreamPort;
+    port def ASTGraphPort;
+    port def ASTStreamPort;
+    port def MetrologyFlowPort;
+    port def StateSolverPort;
+    port def SafetyPort;
+    port def ICDInterconnectPort;
+    port def SpecificationPort;
+    port def DiagnosticPort;
 
     doc /* Level 1 System of Interest (SoI) Architecture Definition */
     part def DEAPCompilerSystem {
+        port in cli_in : CLIPort;
+        port in schema_in : RawSchemaStreamPort;
+        port out code_out : CodeArtifactPort;
+        port out diag_out : DiagnosticReportPort;
+        port out metrics_out : PerformanceMetricsPort;
+
         part systemVision : SystemVisionEngine;
         part universalIngestion : UniversalIngestionEngine;
         part nodeArenaASTGraph : NodeArenaASTGraphEngine;
@@ -29,13 +52,21 @@ package DEAP_Compiler_System {
         part diagnosticCatalog : DiagnosticErrorCatalogEngine;
         part compilerAssurance : CompilerAssuranceEngine;
 
+        connect cli_in to compilerAssurance.cli_in;
+        connect compilerAssurance.metrics_out to metrics_out;
+        connect schema_in to universalIngestion.schema_in;
+        connect systemVision.rules_out to universalIngestion.rules_in;
         connect universalIngestion.token_out to nodeArenaASTGraph.token_in;
         connect nodeArenaASTGraph.ast_graph_out to grammarLowering.ast_in;
         connect grammarLowering.ast_out to metrologyFlow.ast_in;
         connect grammarLowering.ast_out to stateMachineSolver.ast_in;
+        connect metrologyFlow.metrology_out to safetyAssurance.metrology_in;
         connect stateMachineSolver.state_out to safetyAssurance.state_in;
         connect safetyAssurance.safety_out to icdEngine.safety_in;
         connect icdEngine.icd_out to agileProjection.icd_in;
         connect agileProjection.specs_out to codeGen.specs_in;
+        connect codeGen.code_out to code_out;
+        connect universalIngestion.diag_out to diagnosticCatalog.diag_in;
+        connect diagnosticCatalog.diag_out to diag_out;
     }
 }
