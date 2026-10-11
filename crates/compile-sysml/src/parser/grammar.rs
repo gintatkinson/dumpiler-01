@@ -574,13 +574,19 @@ impl<'a> SysmlParser<'a> {
                     self.advance();
                     is_out = true;
                 }
-                if self.check(&TokenKind::Attribute) {
+                if self.check(&TokenKind::Attribute) || self.check(&TokenKind::Item) {
                     self.advance();
                 }
                 let param_name = self.expect_ident()?;
                 let param_type = if self.check(&TokenKind::Colon) {
                     self.advance();
-                    self.expect_ident()?
+                    let mut type_name = self.expect_ident()?;
+                    while self.check(&TokenKind::DoubleColon) {
+                        self.advance();
+                        type_name.push_str("::");
+                        type_name.push_str(&self.expect_ident()?);
+                    }
+                    type_name
                 } else {
                     "Real".to_string()
                 };
@@ -606,6 +612,7 @@ impl<'a> SysmlParser<'a> {
             self.advance();
             while !self.check(&TokenKind::CloseBrace) && !self.is_at_end() {
                 self.skip_trivia();
+                let _ = self.take_doc_comment();
                 if self.check(&TokenKind::Perform) {
                     self.advance();
                     performer = Some(self.read_until_semi());
@@ -615,13 +622,19 @@ impl<'a> SysmlParser<'a> {
                 } else if self.check(&TokenKind::In) || self.check(&TokenKind::Out) {
                     let is_out = self.check(&TokenKind::Out);
                     self.advance();
-                    if self.check(&TokenKind::Attribute) {
+                    if self.check(&TokenKind::Attribute) || self.check(&TokenKind::Item) {
                         self.advance();
                     }
                     let p_name = self.expect_ident()?;
                     let p_type = if self.check(&TokenKind::Colon) {
                         self.advance();
-                        self.expect_ident()?
+                        let mut type_name = self.expect_ident()?;
+                        while self.check(&TokenKind::DoubleColon) {
+                            self.advance();
+                            type_name.push_str("::");
+                            type_name.push_str(&self.expect_ident()?);
+                        }
+                        type_name
                     } else {
                         "Real".to_string()
                     };

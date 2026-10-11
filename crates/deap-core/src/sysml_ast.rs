@@ -755,11 +755,11 @@ pub fn parse_action_defs(content: &str) -> Vec<ActionDef> {
     .unwrap();
 
     let in_param_re = Regex::new(
-        r#"(?m)^\s*in\s+(?:attribute\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<type>[A-Za-z0-9_]+)"#,
+        r#"(?m)^\s*in\s+(?:(?:attribute|item)\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<type>[A-Za-z0-9_]+(?:::[A-Za-z0-9_]+)*)"#,
     )
     .unwrap();
     let out_param_re = Regex::new(
-        r#"(?m)^\s*out\s+(?:attribute\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<type>[A-Za-z0-9_]+)"#,
+        r#"(?m)^\s*out\s+(?:(?:attribute|item)\s+)?(?P<name>[A-Za-z0-9_]+)\s*:\s*(?P<type>[A-Za-z0-9_]+(?:::[A-Za-z0-9_]+)*)"#,
     )
     .unwrap();
 
