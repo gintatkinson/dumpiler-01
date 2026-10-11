@@ -1,27 +1,14 @@
----
-title: "Epic 01: System Architecture and Compiler Primacy"
-version: "1.0.0"
-date: "2026-10-10"
-type: epic
-package: "DEAP_Compiler_System"
-subsystem: "System Architecture"
-issue_id: 101
-generation_mode: subagent
----
-
-# Epic 01: System Architecture and Compiler Primacy
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #101 |
 | **Title** | Epic 01: System Architecture and Compiler Primacy |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-10 |
 | **Type** | epic |
 | **Package** | DEAP_Compiler_System |
 | **Subsystem** | System Architecture |
-| **Issue ID** | #101 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 01: System Architecture and Compiler Primacy
 
 ## 1. Context
 Abstract Model-Based Systems Engineering (MBSE) Compiler System Architecture

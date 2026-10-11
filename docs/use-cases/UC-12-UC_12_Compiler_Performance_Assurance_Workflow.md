@@ -1,31 +1,15 @@
----
-title: "Use Case 12: UC 12 Compiler Performance Assurance Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_12_Compiler_Performance_Assurance_Workflow"
-subject: "CompilerAssuranceEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 106
-generation_mode: subagent
----
-
-# Use Case 12: UC 12 Compiler Performance Assurance Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 12: UC 12 Compiler Performance Assurance Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_12_Compiler_Performance_Assurance_Workflow |
-| **Subject** | CompilerAssuranceEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #106 |
+| **Title** | Use Case 12: UC 12 Compiler Performance Assurance Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | CompilerAssuranceEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 12: UC 12 Compiler Performance Assurance Workflow
 
 ## UML Diagrams
 

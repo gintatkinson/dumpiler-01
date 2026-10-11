@@ -1,31 +1,15 @@
----
-title: "Use Case 05: UC 05 Physical Metrology and Flow Conservation Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_05_Physical_Metrology_and_Flow_Conservation_Workflow"
-subject: "MetrologyFlowEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 99
-generation_mode: subagent
----
-
-# Use Case 05: UC 05 Physical Metrology and Flow Conservation Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 05: UC 05 Physical Metrology and Flow Conservation Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_05_Physical_Metrology_and_Flow_Conservation_Workflow |
-| **Subject** | MetrologyFlowEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #99 |
+| **Title** | Use Case 05: UC 05 Physical Metrology and Flow Conservation Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | MetrologyFlowEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 05: UC 05 Physical Metrology and Flow Conservation Workflow
 
 ## UML Diagrams
 

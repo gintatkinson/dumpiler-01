@@ -1,28 +1,15 @@
----
-title: "Feature 33: [Formal Safety Traceability] DisjointTierValidator"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "DisjointTierValidator"
-part_def: "DisjointTierValidator"
-subsystem: "Formal Safety Traceability"
-issue_id: 42
-generation_mode: subagent
----
-
-# Feature 33: [Formal Safety Traceability] DisjointTierValidator
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 33: [Formal Safety Traceability] DisjointTierValidator |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | DisjointTierValidator |
-| **Subsystem** | Formal Safety Traceability |
 | **Issue ID** | #42 |
+| **Title** | Feature 33: [Formal Safety Traceability] DisjointTierValidator |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-09-FormalSafetyTraceability](../epics/EPIC-09-FormalSafetyTraceability.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `FormalSafetyTraceability::DisjointTierValidator` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/formal_safety_traceability/architecture.sysml](../../schema/subsystems/formal_safety_traceability/architecture.sysml) |
+
+# Feature 33: [Formal Safety Traceability] DisjointTierValidator
 
 ## UML Class Diagram
 

@@ -1,31 +1,15 @@
----
-title: "Use Case 06: UC 06 State Machine Solver Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_06_State_Machine_Solver_Workflow"
-subject: "StateMachineSolverEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 100
-generation_mode: subagent
----
-
-# Use Case 06: UC 06 State Machine Solver Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 06: UC 06 State Machine Solver Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_06_State_Machine_Solver_Workflow |
-| **Subject** | StateMachineSolverEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #100 |
+| **Title** | Use Case 06: UC 06 State Machine Solver Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | StateMachineSolverEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 06: UC 06 State Machine Solver Workflow
 
 ## UML Diagrams
 

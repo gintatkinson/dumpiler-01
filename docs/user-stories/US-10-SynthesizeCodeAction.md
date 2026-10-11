@@ -1,28 +1,15 @@
----
-title: "User Story 10: Synthesize Code Action"
-version: "1.0.0"
-date: "2026-10-11"
-type: user-story
-epic: "EPIC-02-ConOps"
-interaction: "SynthesizeCodeAction"
-subject: "CodeGenEngine"
-issue_id: 98
-generation_mode: subagent
----
-
-# User Story 10: Synthesize Code Action
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | User Story 10: Synthesize Code Action |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | user-story |
-| **Interaction** | SynthesizeCodeAction |
-| **Subject** | CodeGenEngine |
 | **Issue ID** | #98 |
+| **Title** | User Story 10: Synthesize Code Action |
+| **Type** | user-story |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **SysML Interaction** | `SynthesizeCodeAction` |
+| **SysML Test Case** | `Test_SynthesizeCodeAction` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# User Story 10: Synthesize Code Action
 
 ## UML Sequence Diagram
 

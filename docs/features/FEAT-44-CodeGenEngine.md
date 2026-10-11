@@ -1,28 +1,15 @@
----
-title: "Feature 44: [Multi Target Codegen] CodeGenEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "CodeGenEngine"
-part_def: "CodeGenEngine"
-subsystem: "Multi Target Codegen"
-issue_id: 53
-generation_mode: subagent
----
-
-# Feature 44: [Multi Target Codegen] CodeGenEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 44: [Multi Target Codegen] CodeGenEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | CodeGenEngine |
-| **Subsystem** | Multi Target Codegen |
 | **Issue ID** | #53 |
+| **Title** | Feature 44: [Multi Target Codegen] CodeGenEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-12-MultiTargetCodegen](../epics/EPIC-12-MultiTargetCodegen.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `MultiTargetCodegen::CodeGenEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/multi_target_codegen/architecture.sysml](../../schema/subsystems/multi_target_codegen/architecture.sysml) |
+
+# Feature 44: [Multi Target Codegen] CodeGenEngine
 
 ## UML Class Diagram
 

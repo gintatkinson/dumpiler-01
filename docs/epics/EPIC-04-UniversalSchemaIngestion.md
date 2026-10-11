@@ -1,27 +1,14 @@
----
-title: "Epic 04: Universal Schema Ingestion"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "UniversalSchemaIngestion"
-subsystem: "Universal Schema Ingestion"
-issue_id: 104
-generation_mode: subagent
----
-
-# Epic 04: Universal Schema Ingestion
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #104 |
 | **Title** | Epic 04: Universal Schema Ingestion |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | UniversalSchemaIngestion |
 | **Subsystem** | Universal Schema Ingestion |
-| **Issue ID** | #104 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 04: Universal Schema Ingestion
 
 ## 1. Context
 Structural Architecture for Subsystem 2 Universal Schema Ingestion Engine

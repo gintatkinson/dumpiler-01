@@ -1,28 +1,15 @@
----
-title: "Feature 05: [System Architecture] DEAPCompilerSystem"
-version: "1.0.0"
-date: "2026-10-10"
-type: feature
-part: "DEAPCompilerSystem"
-part_def: "DEAPCompilerSystem"
-subsystem: "System Architecture"
-issue_id: 14
-generation_mode: subagent
----
-
-# Feature 05: [System Architecture] DEAPCompilerSystem
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 05: [System Architecture] DEAPCompilerSystem |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-10 |
-| **Type** | feature |
-| **Part** | DEAPCompilerSystem |
-| **Subsystem** | System Architecture |
 | **Issue ID** | #14 |
+| **Title** | Feature 05: [System Architecture] DEAPCompilerSystem |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-01-SysML_Model](../epics/EPIC-01-SysML_Model.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DEAP_Compiler_System::DEAPCompilerSystem` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Feature 05: [System Architecture] DEAPCompilerSystem
 
 ## UML Class Diagram
 

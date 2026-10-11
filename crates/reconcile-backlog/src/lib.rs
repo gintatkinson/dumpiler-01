@@ -3,6 +3,7 @@
 //! Realises: [Issue Tracker as Canonical SSOT, Zero Fallback Placeholders, Automated Spec Reconciliation]
 
 pub mod checklist;
+pub mod create_issue;
 pub mod frontmatter;
 pub mod tracker;
 

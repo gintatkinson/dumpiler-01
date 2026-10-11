@@ -1,27 +1,14 @@
----
-title: "Epic 08: Spatio Temporal State Solvers"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "SpatioTemporalStateSolvers"
-subsystem: "Spatio Temporal State Solvers"
-issue_id: 108
-generation_mode: subagent
----
-
-# Epic 08: Spatio Temporal State Solvers
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #108 |
 | **Title** | Epic 08: Spatio Temporal State Solvers |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | SpatioTemporalStateSolvers |
 | **Subsystem** | Spatio Temporal State Solvers |
-| **Issue ID** | #108 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 08: Spatio Temporal State Solvers
 
 ## 1. Context
 Structural Architecture for Subsystem 6 Spatio Temporal State Solvers

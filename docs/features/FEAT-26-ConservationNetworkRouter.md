@@ -1,28 +1,15 @@
----
-title: "Feature 26: [Physical Metrology Flows] ConservationNetworkRouter"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "ConservationNetworkRouter"
-part_def: "ConservationNetworkRouter"
-subsystem: "Physical Metrology Flows"
-issue_id: 35
-generation_mode: subagent
----
-
-# Feature 26: [Physical Metrology Flows] ConservationNetworkRouter
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 26: [Physical Metrology Flows] ConservationNetworkRouter |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | ConservationNetworkRouter |
-| **Subsystem** | Physical Metrology Flows |
 | **Issue ID** | #35 |
+| **Title** | Feature 26: [Physical Metrology Flows] ConservationNetworkRouter |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-07-PhysicalMetrologyFlows](../epics/EPIC-07-PhysicalMetrologyFlows.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `PhysicalMetrologyFlows::ConservationNetworkRouter` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/physical_metrology_flows/architecture.sysml](../../schema/subsystems/physical_metrology_flows/architecture.sysml) |
+
+# Feature 26: [Physical Metrology Flows] ConservationNetworkRouter
 
 ## UML Class Diagram
 

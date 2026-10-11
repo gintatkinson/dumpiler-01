@@ -1,28 +1,15 @@
----
-title: "Feature 06: [System Vision] SystemVisionEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "SystemVisionEngine"
-part_def: "SystemVisionEngine"
-subsystem: "System Vision"
-issue_id: 15
-generation_mode: subagent
----
-
-# Feature 06: [System Vision] SystemVisionEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 06: [System Vision] SystemVisionEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | SystemVisionEngine |
-| **Subsystem** | System Vision |
 | **Issue ID** | #15 |
+| **Title** | Feature 06: [System Vision] SystemVisionEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-03-SystemVision](../epics/EPIC-03-SystemVision.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SystemVision::SystemVisionEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/system_vision/architecture.sysml](../../schema/subsystems/system_vision/architecture.sysml) |
+
+# Feature 06: [System Vision] SystemVisionEngine
 
 ## UML Class Diagram
 

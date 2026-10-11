@@ -1,31 +1,15 @@
----
-title: "Use Case 04: UC 04 Sys ML Grammar Lowering Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_04_SysML_Grammar_Lowering_Workflow"
-subject: "GrammarLoweringEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 98
-generation_mode: subagent
----
-
-# Use Case 04: UC 04 Sys ML Grammar Lowering Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 04: UC 04 Sys ML Grammar Lowering Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_04_SysML_Grammar_Lowering_Workflow |
-| **Subject** | GrammarLoweringEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #98 |
+| **Title** | Use Case 04: UC 04 Sys ML Grammar Lowering Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | GrammarLoweringEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 04: UC 04 Sys ML Grammar Lowering Workflow
 
 ## UML Diagrams
 

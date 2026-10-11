@@ -1,27 +1,14 @@
----
-title: "Epic 11: Downstream Agile Projections"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "DownstreamAgileProjections"
-subsystem: "Downstream Agile Projections"
-issue_id: 111
-generation_mode: subagent
----
-
-# Epic 11: Downstream Agile Projections
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #111 |
 | **Title** | Epic 11: Downstream Agile Projections |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | DownstreamAgileProjections |
 | **Subsystem** | Downstream Agile Projections |
-| **Issue ID** | #111 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 11: Downstream Agile Projections
 
 ## 1. Context
 Structural Architecture for Subsystem 9 Downstream Specification Projections

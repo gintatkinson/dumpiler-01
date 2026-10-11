@@ -1,28 +1,15 @@
----
-title: "Feature 51: [Diagnostic Error Catalog] DiagnosticReportFormatter"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "DiagnosticReportFormatter"
-part_def: "DiagnosticReportFormatter"
-subsystem: "Diagnostic Error Catalog"
-issue_id: 60
-generation_mode: subagent
----
-
-# Feature 51: [Diagnostic Error Catalog] DiagnosticReportFormatter
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 51: [Diagnostic Error Catalog] DiagnosticReportFormatter |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | DiagnosticReportFormatter |
-| **Subsystem** | Diagnostic Error Catalog |
 | **Issue ID** | #60 |
+| **Title** | Feature 51: [Diagnostic Error Catalog] DiagnosticReportFormatter |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-13-DiagnosticErrorCatalog](../epics/EPIC-13-DiagnosticErrorCatalog.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DiagnosticErrorCatalog::DiagnosticReportFormatter` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/diagnostic_error_catalog/architecture.sysml](../../schema/subsystems/diagnostic_error_catalog/architecture.sysml) |
+
+# Feature 51: [Diagnostic Error Catalog] DiagnosticReportFormatter
 
 ## UML Class Diagram
 

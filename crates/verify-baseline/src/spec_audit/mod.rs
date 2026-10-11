@@ -540,7 +540,7 @@ pub fn run_spec_audit(options: &SpecAuditOptions) -> Result<SpecAuditSummary, Sp
 
             // Metadata gate
             if active_gates.metadata {
-                let meta_errors = validate_metadata(&spec_type, &doc, &rel_path);
+                let meta_errors = validate_metadata(&spec_type, &doc, &content, &rel_path);
                 for err in meta_errors {
                     findings.push(SpecAuditFinding::new(
                         "specification-metadata-integrity",

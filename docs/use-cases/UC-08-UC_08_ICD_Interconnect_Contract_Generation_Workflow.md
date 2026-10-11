@@ -1,31 +1,15 @@
----
-title: "Use Case 08: UC 08 ICD Interconnect Contract Generation Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_08_ICD_Interconnect_Contract_Generation_Workflow"
-subject: "ICDEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 102
-generation_mode: subagent
----
-
-# Use Case 08: UC 08 ICD Interconnect Contract Generation Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 08: UC 08 ICD Interconnect Contract Generation Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_08_ICD_Interconnect_Contract_Generation_Workflow |
-| **Subject** | ICDEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #102 |
+| **Title** | Use Case 08: UC 08 ICD Interconnect Contract Generation Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | ICDEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 08: UC 08 ICD Interconnect Contract Generation Workflow
 
 ## UML Diagrams
 

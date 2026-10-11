@@ -1,28 +1,15 @@
----
-title: "Feature 46: [Multi Target Codegen] TemplateRenderingEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "TemplateRenderingEngine"
-part_def: "TemplateRenderingEngine"
-subsystem: "Multi Target Codegen"
-issue_id: 55
-generation_mode: subagent
----
-
-# Feature 46: [Multi Target Codegen] TemplateRenderingEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 46: [Multi Target Codegen] TemplateRenderingEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | TemplateRenderingEngine |
-| **Subsystem** | Multi Target Codegen |
 | **Issue ID** | #55 |
+| **Title** | Feature 46: [Multi Target Codegen] TemplateRenderingEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-12-MultiTargetCodegen](../epics/EPIC-12-MultiTargetCodegen.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `MultiTargetCodegen::TemplateRenderingEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/multi_target_codegen/architecture.sysml](../../schema/subsystems/multi_target_codegen/architecture.sysml) |
+
+# Feature 46: [Multi Target Codegen] TemplateRenderingEngine
 
 ## UML Class Diagram
 

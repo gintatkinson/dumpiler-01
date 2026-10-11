@@ -1,31 +1,15 @@
----
-title: "Use Case 11: UC 11 Diagnostic Catalog Triage Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_11_Diagnostic_Catalog_Triage_Workflow"
-subject: "DiagnosticErrorCatalogEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 105
-generation_mode: subagent
----
-
-# Use Case 11: UC 11 Diagnostic Catalog Triage Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 11: UC 11 Diagnostic Catalog Triage Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_11_Diagnostic_Catalog_Triage_Workflow |
-| **Subject** | DiagnosticErrorCatalogEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #105 |
+| **Title** | Use Case 11: UC 11 Diagnostic Catalog Triage Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | DiagnosticErrorCatalogEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 11: UC 11 Diagnostic Catalog Triage Workflow
 
 ## UML Diagrams
 

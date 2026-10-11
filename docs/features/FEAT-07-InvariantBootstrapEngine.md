@@ -1,28 +1,15 @@
----
-title: "Feature 07: [System Vision] InvariantBootstrapEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "InvariantBootstrapEngine"
-part_def: "InvariantBootstrapEngine"
-subsystem: "System Vision"
-issue_id: 16
-generation_mode: subagent
----
-
-# Feature 07: [System Vision] InvariantBootstrapEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 07: [System Vision] InvariantBootstrapEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | InvariantBootstrapEngine |
-| **Subsystem** | System Vision |
 | **Issue ID** | #16 |
+| **Title** | Feature 07: [System Vision] InvariantBootstrapEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-03-SystemVision](../epics/EPIC-03-SystemVision.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SystemVision::InvariantBootstrapEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/system_vision/architecture.sysml](../../schema/subsystems/system_vision/architecture.sysml) |
+
+# Feature 07: [System Vision] InvariantBootstrapEngine
 
 ## UML Class Diagram
 

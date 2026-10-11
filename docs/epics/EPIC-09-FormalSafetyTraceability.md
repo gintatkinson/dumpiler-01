@@ -1,27 +1,14 @@
----
-title: "Epic 09: Formal Safety Traceability"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "FormalSafetyTraceability"
-subsystem: "Formal Safety Traceability"
-issue_id: 109
-generation_mode: subagent
----
-
-# Epic 09: Formal Safety Traceability
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #109 |
 | **Title** | Epic 09: Formal Safety Traceability |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | FormalSafetyTraceability |
 | **Subsystem** | Formal Safety Traceability |
-| **Issue ID** | #109 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 09: Formal Safety Traceability
 
 ## 1. Context
 Structural Architecture for Subsystem 7 Formal Safety Traceability Verification

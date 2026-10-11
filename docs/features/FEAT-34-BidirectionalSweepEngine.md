@@ -1,28 +1,15 @@
----
-title: "Feature 34: [Formal Safety Traceability] BidirectionalSweepEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "BidirectionalSweepEngine"
-part_def: "BidirectionalSweepEngine"
-subsystem: "Formal Safety Traceability"
-issue_id: 43
-generation_mode: subagent
----
-
-# Feature 34: [Formal Safety Traceability] BidirectionalSweepEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 34: [Formal Safety Traceability] BidirectionalSweepEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | BidirectionalSweepEngine |
-| **Subsystem** | Formal Safety Traceability |
 | **Issue ID** | #43 |
+| **Title** | Feature 34: [Formal Safety Traceability] BidirectionalSweepEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-09-FormalSafetyTraceability](../epics/EPIC-09-FormalSafetyTraceability.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `FormalSafetyTraceability::BidirectionalSweepEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/formal_safety_traceability/architecture.sysml](../../schema/subsystems/formal_safety_traceability/architecture.sysml) |
+
+# Feature 34: [Formal Safety Traceability] BidirectionalSweepEngine
 
 ## UML Class Diagram
 

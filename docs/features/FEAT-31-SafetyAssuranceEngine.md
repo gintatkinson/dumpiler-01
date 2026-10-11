@@ -1,28 +1,15 @@
----
-title: "Feature 31: [Formal Safety Traceability] SafetyAssuranceEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "SafetyAssuranceEngine"
-part_def: "SafetyAssuranceEngine"
-subsystem: "Formal Safety Traceability"
-issue_id: 40
-generation_mode: subagent
----
-
-# Feature 31: [Formal Safety Traceability] SafetyAssuranceEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 31: [Formal Safety Traceability] SafetyAssuranceEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | SafetyAssuranceEngine |
-| **Subsystem** | Formal Safety Traceability |
 | **Issue ID** | #40 |
+| **Title** | Feature 31: [Formal Safety Traceability] SafetyAssuranceEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-09-FormalSafetyTraceability](../epics/EPIC-09-FormalSafetyTraceability.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `FormalSafetyTraceability::SafetyAssuranceEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/formal_safety_traceability/architecture.sysml](../../schema/subsystems/formal_safety_traceability/architecture.sysml) |
+
+# Feature 31: [Formal Safety Traceability] SafetyAssuranceEngine
 
 ## UML Class Diagram
 

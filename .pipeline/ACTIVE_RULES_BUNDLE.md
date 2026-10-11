@@ -77,7 +77,7 @@ fragmentation issue #289 fixed for the Mermaid rules. The per-trigger requiremen
 themselves are data, not prose, and live in `rules/behavioral_triggers.json`.
 
 These rules are mechanically enforced, offline, by
-`./target/release/verify-baseline` (Gate 27: Behavioral Trigger Coverage). Before issue #304 they were enforced and
+`./target/release/verify-baseline`. Before issue #304 they were enforced and
 stated in no document at all -- the orphan-enforcement shape recorded as #299 -- so a
 subagent drafting a User Story could not have known the requirement existed.
 
@@ -117,7 +117,7 @@ vocabulary is platform-specific, so this file is its normative home and
 `.pipeline/profiles/<platform>.md` supplies the vocabulary. That division follows
 `rules/platform-independence.md` § *Where platform-specific details belong*.
 
-Enforced offline by `./target/release/verify-baseline` (Gates 7, 8, 9, 10, 12, 13, 14, 15, 17, 18, 19, 20). Every rule below was
+Enforced offline by `./target/release/verify-baseline`. Every rule below was
 enforced before issue #304 and stated in no document -- the orphan-enforcement shape
 recorded as issue #299 -- so nothing generating code into a downstream workspace could
 have been told what it had to satisfy.
@@ -383,7 +383,7 @@ Enforcing strict schema contracts, open multi-domain threat modeling, mathematic
 - If the functional constitution file exists in the repository, you MUST read it before starting work. Do not skip it.
 - If you are implementing a feature and no implementation profile exists for the target platform, HALT and ask the human to create one.
 - If a proposed change conflicts with any constitution document, HALT and escalate to the human.
-- Specification workers/modules MUST NOT read implementation profiles -- they operate on functional specs only.
+- Specification subagents/modules MUST NOT read implementation profiles -- they operate on functional specs only.
 - Upstream compiler and spec-core workspaces operate strictly at Tier 1 and must never parse or enforce Tier 3 platform implementation profiles.
 - You MUST read `.agents/AGENTS.md` before writing or modifying any file. Its *Strict Planning Gate* requires an approved implementation plan and overrides any rule that treats an authorization keyword alone as sufficient. See `rules/user-authorization-lock.md` § *Precedence*.
 - `.pipeline` and `.agents` are hidden directories and generic glob tools may exclude them. You MUST read `.agents/AGENTS.md`, `.pipeline/constitution.md` and `.pipeline/profiles/` directly by their explicit paths. A file absent from this list and hidden from glob is effectively invisible -- that is how the strictest authorization rule came to be missed.
@@ -901,7 +901,7 @@ A single set of functional specs can drive implementations on React, Flutter, .N
 ## Hard constraints
 
 - **Coordinator Direct Writing & Research Lock**: The coordinator agent is strictly forbidden from directly writing or modifying target functional specifications (Epics, Features, User Stories, Use Cases) or codebase source files, and is locked from directly conducting technology stack research (Step 1.5). All codebase write and update operations must be delegated to spawned implementer subagents, and all tech stack research must be delegated to a dedicated research subagent (role: `Codebase Researcher`).
-- **Specification Phase Boundary**: Spec workers and specification subagents are strictly forbidden from reading, writing, or referencing implementation profiles, implementation plans, or target source code files. They must operate strictly within logical, functional, and platform-independent boundaries.
+- **Specification Phase Boundary**: Specification subagents are strictly forbidden from reading, writing, or referencing implementation profiles, implementation plans, or target source code files. They must operate strictly within logical, functional, and platform-independent boundaries.
 - **Implementation Phase Boundary**: Implementation subagents and micro-task implementers are strictly forbidden from generating or directly modifying upstream specification files (Epics, Features, User Stories, Use Cases) unless explicitly authorized via a synchronized backlog reconciliation task.
 - **Strict Subagent Tool Locking**: Spawned subagents must only execute tools that fall within their explicit domain (e.g., spec subagents do not run build/test commands or modify code, and implementation subagents do not edit high-level specifications).
 - **Subagent Cleanup**: The coordinator MUST immediately terminate or reclaim any spawned subagents once the subagent's task is completed and the work is integrated, using whichever capability the active runtime provides. Concrete per-runtime tool names are listed only in `.agents/AGENTS.md` § *Mandatory Subagent Dispatch for Research, Specification & Implementation Loops*; where the runtime reclaims subagents automatically on completion, confirming completion satisfies this rule (issue #312). Subagents must never be left in an idle or dormant state.
@@ -953,7 +953,7 @@ Parallel feature work causes context drift, merge conflicts, and incomplete veri
 
 # Rule: Specification Metadata Integrity & Native Markdown Metadata Tables
 
-**ALWAYS enforce:** All engineering specification files across the repository (`docs/epics/`, `docs/features/`, `docs/user-stories/`, and `docs/use-cases/`) MUST start at lines 1–10 with a native CommonMark two-column Markdown Metadata Table. Raw `--- ... ---` YAML frontmatter blocks are strictly forbidden in specification markdown documents.
+**ALWAYS enforce:** All engineering specification files across the repository (`docs/epics/`, `docs/features/`, `docs/user-stories/`, and `docs/use-cases/`) MUST start at lines 1-10 with a native CommonMark two-column Markdown Metadata Table. Raw `--- ... ---` YAML frontmatter blocks are strictly forbidden in specification markdown documents.
 
 ## Scope and Normative Authority
 
@@ -973,7 +973,7 @@ This standard applies unconditionally to all specification documents residing un
    - All metadata previously carried in YAML frontmatter blocks MUST be converted to native CommonMark two-column tables.
 
 2. **Native CommonMark Two-Column Metadata Table**:
-   - Every specification document MUST begin within lines 1–10 (optionally preceded only by copyright comments) with a native CommonMark two-column table with the exact header:
+   - Every specification document MUST begin within lines 1-10 (optionally preceded only by copyright comments) with a native CommonMark two-column table with the exact header:
      ```markdown
      | Attribute | Specification Detail |
      | :--- | :--- |
@@ -1086,10 +1086,11 @@ Use Cases define formal operational capabilities (`use case def`), subject bound
   - `Issue ID`: Tracker issue identifier or integer ID.
   - `Title`: Full use case title (e.g., `uc-001-assemble-and-verify-subsystem`).
   - `Type`: Literal string `use-case`.
-  - `Parent Epic`: Identifier or relative link to parent Epic.
-  - `Schema Containers`: SysML use case element or container definition (e.g., `AssembleAndVerifySubsystem`).
+  - `Primary Actor`: Primary executing actor or role (e.g., `HumanEngineer`).
+  - `Scope`: Target system boundary or component (e.g., `DEAPCompilerSystem`).
+  - `Level`: Operational abstraction tier (e.g., `User Goal`).
   - `Generation Mode`: Mode of generation (e.g., `subagent`).
-  - `Specification Source`: Document-relative link to the source model (e.g., `[schema/SystemModel.sysml](../../schema/SystemModel.sysml)`).
+  - `Specification Source`: Document-relative link to the authoritative source model (e.g., `[schema/conops/activities.sysml](../../schema/conops/activities.sysml)`).
 
 #### Use Case Metadata Table Example:
 ```markdown
@@ -1098,10 +1099,11 @@ Use Cases define formal operational capabilities (`use case def`), subject bound
 | **Issue ID** | 50 |
 | **Title** | uc-001-assemble-and-verify-subsystem |
 | **Type** | use-case |
-| **Parent Epic** | [EPIC-001](../epics/EPIC-001.md) |
-| **Schema Containers** | `SystemModelDefinitions::AssembleAndVerifySubsystem` |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | DEAPCompilerSystem |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
-| **Specification Source** | [schema/SystemModel.sysml](../../schema/SystemModel.sysml) |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
 ```
 
 ---
@@ -1152,7 +1154,7 @@ When `/teamwork-preview` is invoked, the coordinator MUST present the full execu
 Every subagent dispatch prompt MUST target at most 1 specification item (max 1 Epic, 1 Feature, 1 User Story, or 1 Use Case) or 1 single bounded micro-task (2-5 minutes). Multi-item or batch execution prompts are strictly prohibited.
 
 ### 6. Mandatory Defect Filing Directives
-Prompts launching workers, auditors, or validators MUST explicitly instruct the subagent to file defects via both `gh issue create` (GitHub) and `glab issue create` (GitLab). Issue auto-closing keywords or issue close commands (`gh issue close`, `glab issue close`) in prompts or commit messages are strictly forbidden.
+Prompts launching subagents, auditors, or validators MUST explicitly instruct the subagent to file defects via both `gh issue create` (GitHub) and `glab issue create` (GitLab). Issue auto-closing keywords or issue close commands (`gh issue close`, `glab issue close`) in prompts or commit messages are strictly forbidden.
 
 ### 7. Trailing Authorization Token
 The coordinator MUST append the authorization token `PROCEED` (case-insensitive) to the end of the subagent prompt payload to authorize tool execution in the subagent's isolated context.
@@ -1509,9 +1511,9 @@ complete, and every UML diagram it carries must be a valid model rather than a p
 
 **This file is the single normative home for the model-integrity constraints enforced by
 `./target/release/verify-baseline` (Gate 1: UML Model Structure & Stereotypes).** They span all four backlog document types, so
-stating them in any one worker skill would fragment them across four files with disjoint
+stating them in any one specification skill would fragment them across four files with disjoint
 subsets -- the failure issue #289 fixed for the Mermaid rules by designating one home.
-The worker skills own the *templates*; this file owns the *rules* the templates exist to
+The specification skills own the *templates*; this file owns the *rules* the templates exist to
 satisfy.
 
 Three rules enforced here are **not** restated below, because they already have a

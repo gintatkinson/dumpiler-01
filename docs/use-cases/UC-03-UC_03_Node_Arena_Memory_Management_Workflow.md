@@ -1,31 +1,15 @@
----
-title: "Use Case 03: UC 03 Node Arena Memory Management Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_03_Node_Arena_Memory_Management_Workflow"
-subject: "NodeArenaASTGraphEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 97
-generation_mode: subagent
----
-
-# Use Case 03: UC 03 Node Arena Memory Management Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 03: UC 03 Node Arena Memory Management Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_03_Node_Arena_Memory_Management_Workflow |
-| **Subject** | NodeArenaASTGraphEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #97 |
+| **Title** | Use Case 03: UC 03 Node Arena Memory Management Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | NodeArenaASTGraphEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 03: UC 03 Node Arena Memory Management Workflow
 
 ## UML Diagrams
 

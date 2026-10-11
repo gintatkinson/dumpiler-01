@@ -1,28 +1,15 @@
----
-title: "Feature 41: [Downstream Agile Projections] MarkdownSpecProjector"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "MarkdownSpecProjector"
-part_def: "MarkdownSpecProjector"
-subsystem: "Downstream Agile Projections"
-issue_id: 50
-generation_mode: subagent
----
-
-# Feature 41: [Downstream Agile Projections] MarkdownSpecProjector
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 41: [Downstream Agile Projections] MarkdownSpecProjector |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | MarkdownSpecProjector |
-| **Subsystem** | Downstream Agile Projections |
 | **Issue ID** | #50 |
+| **Title** | Feature 41: [Downstream Agile Projections] MarkdownSpecProjector |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-11-DownstreamAgileProjections](../epics/EPIC-11-DownstreamAgileProjections.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DownstreamAgileProjections::MarkdownSpecProjector` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/downstream_agile_projections/architecture.sysml](../../schema/subsystems/downstream_agile_projections/architecture.sysml) |
+
+# Feature 41: [Downstream Agile Projections] MarkdownSpecProjector
 
 ## UML Class Diagram
 

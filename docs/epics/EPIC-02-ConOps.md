@@ -1,27 +1,14 @@
----
-title: "Epic 02: Concept of Operations Operational Activities"
-version: "1.0.0"
-date: "2026-10-10"
-type: epic
-package: "ConOps"
-subsystem: "Con Ops"
-issue_id: 102
-generation_mode: subagent
----
-
-# Epic 02: Concept of Operations Operational Activities
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #102 |
 | **Title** | Epic 02: Concept of Operations Operational Activities |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-10 |
 | **Type** | epic |
 | **Package** | ConOps |
 | **Subsystem** | Con Ops |
-| **Issue ID** | #102 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 02: Concept of Operations Operational Activities
 
 ## 1. Context
 ConOps Operational Activities

@@ -1,28 +1,15 @@
----
-title: "User Story 01: Bootstrap System Vision Action"
-version: "1.0.0"
-date: "2026-10-11"
-type: user-story
-epic: "EPIC-02-ConOps"
-interaction: "BootstrapSystemVisionAction"
-subject: "SystemVisionEngine"
-issue_id: 89
-generation_mode: subagent
----
-
-# User Story 01: Bootstrap System Vision Action
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | User Story 01: Bootstrap System Vision Action |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | user-story |
-| **Interaction** | BootstrapSystemVisionAction |
-| **Subject** | SystemVisionEngine |
 | **Issue ID** | #89 |
+| **Title** | User Story 01: Bootstrap System Vision Action |
+| **Type** | user-story |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **SysML Interaction** | `BootstrapSystemVisionAction` |
+| **SysML Test Case** | `Test_BootstrapSystemVisionAction` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# User Story 01: Bootstrap System Vision Action
 
 ## UML Sequence Diagram
 

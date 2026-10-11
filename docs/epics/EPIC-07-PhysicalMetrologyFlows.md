@@ -1,27 +1,14 @@
----
-title: "Epic 07: Physical Metrology Flows"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "PhysicalMetrologyFlows"
-subsystem: "Physical Metrology Flows"
-issue_id: 107
-generation_mode: subagent
----
-
-# Epic 07: Physical Metrology Flows
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #107 |
 | **Title** | Epic 07: Physical Metrology Flows |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | PhysicalMetrologyFlows |
 | **Subsystem** | Physical Metrology Flows |
-| **Issue ID** | #107 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 07: Physical Metrology Flows
 
 ## 1. Context
 Structural Architecture for Subsystem 5 7D Physical Metrology Flow Networks

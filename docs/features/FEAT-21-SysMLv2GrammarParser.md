@@ -1,28 +1,15 @@
----
-title: "Feature 21: [Sysml Grammar Lowering] SysMLv2GrammarParser"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "SysMLv2GrammarParser"
-part_def: "SysMLv2GrammarParser"
-subsystem: "Sysml Grammar Lowering"
-issue_id: 30
-generation_mode: subagent
----
-
-# Feature 21: [Sysml Grammar Lowering] SysMLv2GrammarParser
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 21: [Sysml Grammar Lowering] SysMLv2GrammarParser |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | SysMLv2GrammarParser |
-| **Subsystem** | Sysml Grammar Lowering |
 | **Issue ID** | #30 |
+| **Title** | Feature 21: [Sysml Grammar Lowering] SysMLv2GrammarParser |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-06-SysmlGrammarLowering](../epics/EPIC-06-SysmlGrammarLowering.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SysmlGrammarLowering::SysMLv2GrammarParser` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/sysml_grammar_lowering/architecture.sysml](../../schema/subsystems/sysml_grammar_lowering/architecture.sysml) |
+
+# Feature 21: [Sysml Grammar Lowering] SysMLv2GrammarParser
 
 ## UML Class Diagram
 

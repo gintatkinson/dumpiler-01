@@ -1,28 +1,15 @@
----
-title: "Feature 37: [Interconnect Contracts] InterfaceMatrixBuilder"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "InterfaceMatrixBuilder"
-part_def: "InterfaceMatrixBuilder"
-subsystem: "Interconnect Contracts"
-issue_id: 46
-generation_mode: subagent
----
-
-# Feature 37: [Interconnect Contracts] InterfaceMatrixBuilder
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 37: [Interconnect Contracts] InterfaceMatrixBuilder |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | InterfaceMatrixBuilder |
-| **Subsystem** | Interconnect Contracts |
 | **Issue ID** | #46 |
+| **Title** | Feature 37: [Interconnect Contracts] InterfaceMatrixBuilder |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-10-InterconnectContracts](../epics/EPIC-10-InterconnectContracts.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `InterconnectContracts::InterfaceMatrixBuilder` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/interconnect_contracts/architecture.sysml](../../schema/subsystems/interconnect_contracts/architecture.sysml) |
+
+# Feature 37: [Interconnect Contracts] InterfaceMatrixBuilder
 
 ## UML Class Diagram
 

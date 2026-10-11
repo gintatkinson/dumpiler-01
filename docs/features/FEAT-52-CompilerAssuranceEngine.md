@@ -1,28 +1,15 @@
----
-title: "Feature 52: [Compiler Assurance] CompilerAssuranceEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "CompilerAssuranceEngine"
-part_def: "CompilerAssuranceEngine"
-subsystem: "Compiler Assurance"
-issue_id: 61
-generation_mode: subagent
----
-
-# Feature 52: [Compiler Assurance] CompilerAssuranceEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 52: [Compiler Assurance] CompilerAssuranceEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | CompilerAssuranceEngine |
-| **Subsystem** | Compiler Assurance |
 | **Issue ID** | #61 |
+| **Title** | Feature 52: [Compiler Assurance] CompilerAssuranceEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-14-CompilerAssurance](../epics/EPIC-14-CompilerAssurance.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `CompilerAssurance::CompilerAssuranceEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/compiler_assurance/architecture.sysml](../../schema/subsystems/compiler_assurance/architecture.sysml) |
+
+# Feature 52: [Compiler Assurance] CompilerAssuranceEngine
 
 ## UML Class Diagram
 

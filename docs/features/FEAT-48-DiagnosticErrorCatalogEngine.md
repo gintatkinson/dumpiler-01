@@ -1,28 +1,15 @@
----
-title: "Feature 48: [Diagnostic Error Catalog] DiagnosticErrorCatalogEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "DiagnosticErrorCatalogEngine"
-part_def: "DiagnosticErrorCatalogEngine"
-subsystem: "Diagnostic Error Catalog"
-issue_id: 57
-generation_mode: subagent
----
-
-# Feature 48: [Diagnostic Error Catalog] DiagnosticErrorCatalogEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 48: [Diagnostic Error Catalog] DiagnosticErrorCatalogEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | DiagnosticErrorCatalogEngine |
-| **Subsystem** | Diagnostic Error Catalog |
 | **Issue ID** | #57 |
+| **Title** | Feature 48: [Diagnostic Error Catalog] DiagnosticErrorCatalogEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-13-DiagnosticErrorCatalog](../epics/EPIC-13-DiagnosticErrorCatalog.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DiagnosticErrorCatalog::DiagnosticErrorCatalogEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/diagnostic_error_catalog/architecture.sysml](../../schema/subsystems/diagnostic_error_catalog/architecture.sysml) |
+
+# Feature 48: [Diagnostic Error Catalog] DiagnosticErrorCatalogEngine
 
 ## UML Class Diagram
 

@@ -1,28 +1,15 @@
----
-title: "Feature 47: [Multi Target Codegen] CodeArtifactFormatter"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "CodeArtifactFormatter"
-part_def: "CodeArtifactFormatter"
-subsystem: "Multi Target Codegen"
-issue_id: 56
-generation_mode: subagent
----
-
-# Feature 47: [Multi Target Codegen] CodeArtifactFormatter
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 47: [Multi Target Codegen] CodeArtifactFormatter |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | CodeArtifactFormatter |
-| **Subsystem** | Multi Target Codegen |
 | **Issue ID** | #56 |
+| **Title** | Feature 47: [Multi Target Codegen] CodeArtifactFormatter |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-12-MultiTargetCodegen](../epics/EPIC-12-MultiTargetCodegen.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `MultiTargetCodegen::CodeArtifactFormatter` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/multi_target_codegen/architecture.sysml](../../schema/subsystems/multi_target_codegen/architecture.sysml) |
+
+# Feature 47: [Multi Target Codegen] CodeArtifactFormatter
 
 ## UML Class Diagram
 

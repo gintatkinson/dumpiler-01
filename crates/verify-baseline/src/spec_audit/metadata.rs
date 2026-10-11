@@ -313,9 +313,56 @@ pub fn normalize_title(title: &str) -> String {
 /// Preconditions: `doc` has been parsed.
 /// Postconditions: Returns list of error findings for missing or malformed metadata.
 /// Algorithmic Complexity: O(M) where M is the count of metadata attributes.
-pub fn validate_metadata(spec_type: &str, doc: &MarkdownDoc, rel_path: &str) -> Vec<String> {
+pub fn validate_metadata(
+    spec_type: &str,
+    doc: &MarkdownDoc,
+    content: &str,
+    rel_path: &str,
+) -> Vec<String> {
     let mut errors = Vec::new();
     let norm_type = spec_type.to_lowercase();
+
+    // 1. Flag raw YAML frontmatter as strictly forbidden
+    if content.trim_start().starts_with("---") || doc.frontmatter.is_some() {
+        errors.push(format!(
+            "{}: Raw YAML frontmatter ('--- ... ---') is strictly forbidden. Specifications must use a native CommonMark metadata table at lines 1-10 per rules/specification-metadata-integrity.md.",
+            rel_path
+        ));
+    }
+
+    // 2. Verify CommonMark metadata table at lines 1-10 with exact header
+    let lines: Vec<&str> = content.lines().take(10).collect();
+    let header_pos = lines
+        .iter()
+        .position(|l| l.trim() == "| Attribute | Specification Detail |");
+    match header_pos {
+        Some(pos) => {
+            for (idx, prev_line) in lines[..pos].iter().enumerate() {
+                let t = prev_line.trim();
+                if !t.is_empty() && !t.starts_with("<!--") {
+                    errors.push(format!(
+                        "{}: Specification metadata table must begin within lines 1-10 (line {} contains unexpected text before metadata table).",
+                        rel_path,
+                        idx + 1
+                    ));
+                    break;
+                }
+            }
+            if pos + 1 >= lines.len() || lines[pos + 1].trim() != "| :--- | :--- |" {
+                errors.push(format!(
+                    "{}: Invalid metadata table separator row at line {}. Expected '| :--- | :--- |'.",
+                    rel_path,
+                    pos + 2
+                ));
+            }
+        }
+        None => {
+            errors.push(format!(
+                "{}: Missing native CommonMark metadata table at lines 1-10 with exact header '| Attribute | Specification Detail |'.",
+                rel_path
+            ));
+        }
+    }
 
     let get_field = |key: &str| -> Option<&str> {
         doc.table_metadata
@@ -328,7 +375,7 @@ pub fn validate_metadata(spec_type: &str, doc: &MarkdownDoc, rel_path: &str) -> 
             })
     };
 
-    // 1. Mandatory issue_id
+    // 3. Mandatory issue_id
     match get_field("issue_id") {
         Some(val) if !val.trim().is_empty() => {}
         _ => {
@@ -336,7 +383,7 @@ pub fn validate_metadata(spec_type: &str, doc: &MarkdownDoc, rel_path: &str) -> 
         }
     }
 
-    // 2. Mandatory type
+    // 4. Mandatory type
     match get_field("type") {
         Some(val) if !val.trim().is_empty() => {}
         _ => {
@@ -344,7 +391,7 @@ pub fn validate_metadata(spec_type: &str, doc: &MarkdownDoc, rel_path: &str) -> 
         }
     }
 
-    // 3. Mandatory title
+    // 5. Mandatory title
     let title_opt = get_field("title").or_else(|| {
         doc.headings
             .iter()
@@ -366,7 +413,29 @@ pub fn validate_metadata(spec_type: &str, doc: &MarkdownDoc, rel_path: &str) -> 
         }
     }
 
-    // 4. Epic-specific mandatory fields: package and subsystem
+    // 6. Mandatory generation_mode
+    match get_field("generation_mode") {
+        Some(val) if !val.trim().is_empty() => {}
+        _ => {
+            errors.push(format!(
+                "{}: Missing mandatory metadata field 'generation_mode'.",
+                rel_path
+            ));
+        }
+    }
+
+    // 7. Mandatory specification_source
+    match get_field("specification_source") {
+        Some(val) if !val.trim().is_empty() => {}
+        _ => {
+            errors.push(format!(
+                "{}: Missing mandatory metadata field 'specification_source'.",
+                rel_path
+            ));
+        }
+    }
+
+    // 8. Spec-type specific mandatory attributes per rules/specification-metadata-integrity.md
     if norm_type.contains("epic") {
         match get_field("package") {
             Some(val) if !val.trim().is_empty() => {}
@@ -380,9 +449,66 @@ pub fn validate_metadata(spec_type: &str, doc: &MarkdownDoc, rel_path: &str) -> 
                 errors.push(format!("{}: Epic is missing mandatory 'subsystem' metadata.", rel_path));
             }
         }
+    } else if norm_type.contains("feature") {
+        match get_field("parent_epic") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: Feature is missing mandatory 'parent_epic' metadata.", rel_path));
+            }
+        }
+        match get_field("interface_type") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: Feature is missing mandatory 'interface_type' metadata.", rel_path));
+            }
+        }
+        match get_field("schema_containers") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: Feature is missing mandatory 'schema_containers' metadata.", rel_path));
+            }
+        }
+    } else if norm_type.contains("user_story") || norm_type.contains("user-story") {
+        match get_field("parent_epic") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: User story is missing mandatory 'parent_epic' metadata.", rel_path));
+            }
+        }
+        match get_field("sysml_interaction") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: User story is missing mandatory 'sysml_interaction' metadata.", rel_path));
+            }
+        }
+        match get_field("sysml_test_case") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: User story is missing mandatory 'sysml_test_case' metadata.", rel_path));
+            }
+        }
+    } else if norm_type.contains("use_case") || norm_type.contains("use-case") {
+        match get_field("primary_actor") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: Use case is missing mandatory 'primary_actor' metadata.", rel_path));
+            }
+        }
+        match get_field("scope") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: Use case is missing mandatory 'scope' metadata.", rel_path));
+            }
+        }
+        match get_field("level") {
+            Some(val) if !val.trim().is_empty() => {}
+            _ => {
+                errors.push(format!("{}: Use case is missing mandatory 'level' metadata.", rel_path));
+            }
+        }
     }
 
-    // 5. Date validation if present
+    // 9. Date validation if present
     if let Some(date_val) = get_field("date").or_else(|| get_field("release_date")) {
         if !date_val.trim().is_empty() && !is_iso_date(date_val) {
             errors.push(format!(
@@ -392,7 +518,7 @@ pub fn validate_metadata(spec_type: &str, doc: &MarkdownDoc, rel_path: &str) -> 
         }
     }
 
-    // 6. Semver validation if present
+    // 10. Semver validation if present
     if let Some(ver_val) = get_field("version") {
         if !ver_val.trim().is_empty() && !is_semver(ver_val) {
             errors.push(format!(

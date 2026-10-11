@@ -1,28 +1,15 @@
----
-title: "Feature 53: [Compiler Assurance] CliCommandDispatcher"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "CliCommandDispatcher"
-part_def: "CliCommandDispatcher"
-subsystem: "Compiler Assurance"
-issue_id: 62
-generation_mode: subagent
----
-
-# Feature 53: [Compiler Assurance] CliCommandDispatcher
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 53: [Compiler Assurance] CliCommandDispatcher |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | CliCommandDispatcher |
-| **Subsystem** | Compiler Assurance |
 | **Issue ID** | #62 |
+| **Title** | Feature 53: [Compiler Assurance] CliCommandDispatcher |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-14-CompilerAssurance](../epics/EPIC-14-CompilerAssurance.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `CompilerAssurance::CliCommandDispatcher` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/compiler_assurance/architecture.sysml](../../schema/subsystems/compiler_assurance/architecture.sysml) |
+
+# Feature 53: [Compiler Assurance] CliCommandDispatcher
 
 ## UML Class Diagram
 

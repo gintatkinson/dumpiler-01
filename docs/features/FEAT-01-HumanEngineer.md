@@ -1,28 +1,15 @@
----
-title: "Feature 01: [Con Ops] HumanEngineer"
-version: "1.0.0"
-date: "2026-10-10"
-type: feature
-part: "HumanEngineer"
-part_def: "HumanEngineer"
-subsystem: "Con Ops"
-issue_id: 10
-generation_mode: subagent
----
-
-# Feature 01: [Con Ops] HumanEngineer
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 01: [Con Ops] HumanEngineer |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-10 |
-| **Type** | feature |
-| **Part** | HumanEngineer |
-| **Subsystem** | Con Ops |
 | **Issue ID** | #10 |
+| **Title** | Feature 01: [Con Ops] HumanEngineer |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `ConOps::HumanEngineer` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/actors.sysml](../../schema/conops/actors.sysml) |
+
+# Feature 01: [Con Ops] HumanEngineer
 
 ## UML Class Diagram
 

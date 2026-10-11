@@ -1,28 +1,15 @@
----
-title: "Feature 20: [Sysml Grammar Lowering] KerMLTokenStream"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "KerMLTokenStream"
-part_def: "KerMLTokenStream"
-subsystem: "Sysml Grammar Lowering"
-issue_id: 29
-generation_mode: subagent
----
-
-# Feature 20: [Sysml Grammar Lowering] KerMLTokenStream
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 20: [Sysml Grammar Lowering] KerMLTokenStream |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | KerMLTokenStream |
-| **Subsystem** | Sysml Grammar Lowering |
 | **Issue ID** | #29 |
+| **Title** | Feature 20: [Sysml Grammar Lowering] KerMLTokenStream |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-06-SysmlGrammarLowering](../epics/EPIC-06-SysmlGrammarLowering.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SysmlGrammarLowering::KerMLTokenStream` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/sysml_grammar_lowering/architecture.sysml](../../schema/subsystems/sysml_grammar_lowering/architecture.sysml) |
+
+# Feature 20: [Sysml Grammar Lowering] KerMLTokenStream
 
 ## UML Class Diagram
 

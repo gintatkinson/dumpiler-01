@@ -1,27 +1,14 @@
----
-title: "Epic 10: Interconnect Contracts"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "InterconnectContracts"
-subsystem: "Interconnect Contracts"
-issue_id: 110
-generation_mode: subagent
----
-
-# Epic 10: Interconnect Contracts
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #110 |
 | **Title** | Epic 10: Interconnect Contracts |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | InterconnectContracts |
 | **Subsystem** | Interconnect Contracts |
-| **Issue ID** | #110 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 10: Interconnect Contracts
 
 ## 1. Context
 Structural Architecture for Subsystem 8 Level 1C ICD Interconnect Contracts

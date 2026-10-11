@@ -1,27 +1,14 @@
----
-title: "Epic 05: Core Metamodel Node Arena"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "CoreMetamodelNodeArena"
-subsystem: "Core Metamodel Node Arena"
-issue_id: 105
-generation_mode: subagent
----
-
-# Epic 05: Core Metamodel Node Arena
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #105 |
 | **Title** | Epic 05: Core Metamodel Node Arena |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | CoreMetamodelNodeArena |
 | **Subsystem** | Core Metamodel Node Arena |
-| **Issue ID** | #105 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 05: Core Metamodel Node Arena
 
 ## 1. Context
 Structural Architecture for Subsystem 3 Core Metamodel Node Arena

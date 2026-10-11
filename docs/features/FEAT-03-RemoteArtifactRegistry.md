@@ -1,28 +1,15 @@
----
-title: "Feature 03: [Con Ops] RemoteArtifactRegistry"
-version: "1.0.0"
-date: "2026-10-10"
-type: feature
-part: "RemoteArtifactRegistry"
-part_def: "RemoteArtifactRegistry"
-subsystem: "Con Ops"
-issue_id: 12
-generation_mode: subagent
----
-
-# Feature 03: [Con Ops] RemoteArtifactRegistry
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 03: [Con Ops] RemoteArtifactRegistry |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-10 |
-| **Type** | feature |
-| **Part** | RemoteArtifactRegistry |
-| **Subsystem** | Con Ops |
 | **Issue ID** | #12 |
+| **Title** | Feature 03: [Con Ops] RemoteArtifactRegistry |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `ConOps::RemoteArtifactRegistry` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/actors.sysml](../../schema/conops/actors.sysml) |
+
+# Feature 03: [Con Ops] RemoteArtifactRegistry
 
 ## UML Class Diagram
 

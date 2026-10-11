@@ -1,28 +1,15 @@
----
-title: "Feature 50: [Diagnostic Error Catalog] SourceLocationMapper"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "SourceLocationMapper"
-part_def: "SourceLocationMapper"
-subsystem: "Diagnostic Error Catalog"
-issue_id: 59
-generation_mode: subagent
----
-
-# Feature 50: [Diagnostic Error Catalog] SourceLocationMapper
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 50: [Diagnostic Error Catalog] SourceLocationMapper |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | SourceLocationMapper |
-| **Subsystem** | Diagnostic Error Catalog |
 | **Issue ID** | #59 |
+| **Title** | Feature 50: [Diagnostic Error Catalog] SourceLocationMapper |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-13-DiagnosticErrorCatalog](../epics/EPIC-13-DiagnosticErrorCatalog.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DiagnosticErrorCatalog::SourceLocationMapper` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/diagnostic_error_catalog/architecture.sysml](../../schema/subsystems/diagnostic_error_catalog/architecture.sysml) |
+
+# Feature 50: [Diagnostic Error Catalog] SourceLocationMapper
 
 ## UML Class Diagram
 

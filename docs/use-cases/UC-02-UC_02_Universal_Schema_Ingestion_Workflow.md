@@ -1,31 +1,15 @@
----
-title: "Use Case 02: UC 02 Universal Schema Ingestion Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_02_Universal_Schema_Ingestion_Workflow"
-subject: "UniversalIngestionEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 96
-generation_mode: subagent
----
-
-# Use Case 02: UC 02 Universal Schema Ingestion Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 02: UC 02 Universal Schema Ingestion Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_02_Universal_Schema_Ingestion_Workflow |
-| **Subject** | UniversalIngestionEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #96 |
+| **Title** | Use Case 02: UC 02 Universal Schema Ingestion Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | UniversalIngestionEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 02: UC 02 Universal Schema Ingestion Workflow
 
 ## UML Diagrams
 

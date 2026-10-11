@@ -1,28 +1,15 @@
----
-title: "Feature 17: [Core Metamodel Node Arena] NodeTableIndex"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "NodeTableIndex"
-part_def: "NodeTableIndex"
-subsystem: "Core Metamodel Node Arena"
-issue_id: 26
-generation_mode: subagent
----
-
-# Feature 17: [Core Metamodel Node Arena] NodeTableIndex
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 17: [Core Metamodel Node Arena] NodeTableIndex |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | NodeTableIndex |
-| **Subsystem** | Core Metamodel Node Arena |
 | **Issue ID** | #26 |
+| **Title** | Feature 17: [Core Metamodel Node Arena] NodeTableIndex |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-05-CoreMetamodelNodeArena](../epics/EPIC-05-CoreMetamodelNodeArena.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `CoreMetamodelNodeArena::NodeTableIndex` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/core_metamodel_node_arena/architecture.sysml](../../schema/subsystems/core_metamodel_node_arena/architecture.sysml) |
+
+# Feature 17: [Core Metamodel Node Arena] NodeTableIndex
 
 ## UML Class Diagram
 

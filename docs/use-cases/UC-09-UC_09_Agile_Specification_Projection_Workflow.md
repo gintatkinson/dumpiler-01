@@ -1,31 +1,15 @@
----
-title: "Use Case 09: UC 09 Agile Specification Projection Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_09_Agile_Specification_Projection_Workflow"
-subject: "AgileProjectionEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 103
-generation_mode: subagent
----
-
-# Use Case 09: UC 09 Agile Specification Projection Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 09: UC 09 Agile Specification Projection Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_09_Agile_Specification_Projection_Workflow |
-| **Subject** | AgileProjectionEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #103 |
+| **Title** | Use Case 09: UC 09 Agile Specification Projection Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | AgileProjectionEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 09: UC 09 Agile Specification Projection Workflow
 
 ## UML Diagrams
 

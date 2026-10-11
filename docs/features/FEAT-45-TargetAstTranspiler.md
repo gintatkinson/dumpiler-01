@@ -1,28 +1,15 @@
----
-title: "Feature 45: [Multi Target Codegen] TargetAstTranspiler"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "TargetAstTranspiler"
-part_def: "TargetAstTranspiler"
-subsystem: "Multi Target Codegen"
-issue_id: 54
-generation_mode: subagent
----
-
-# Feature 45: [Multi Target Codegen] TargetAstTranspiler
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 45: [Multi Target Codegen] TargetAstTranspiler |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | TargetAstTranspiler |
-| **Subsystem** | Multi Target Codegen |
 | **Issue ID** | #54 |
+| **Title** | Feature 45: [Multi Target Codegen] TargetAstTranspiler |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-12-MultiTargetCodegen](../epics/EPIC-12-MultiTargetCodegen.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `MultiTargetCodegen::TargetAstTranspiler` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/multi_target_codegen/architecture.sysml](../../schema/subsystems/multi_target_codegen/architecture.sysml) |
+
+# Feature 45: [Multi Target Codegen] TargetAstTranspiler
 
 ## UML Class Diagram
 

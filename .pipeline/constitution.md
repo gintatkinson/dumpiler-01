@@ -91,7 +91,7 @@ graph TD
 - See top-level section [Architecture: Three-Tier Platform Isolation](#architecture-three-tier-platform-isolation) for tier isolation rules and boundary guidelines.
 
 ### Unique Backlog Identifiers
-- All local specification files MUST include a permanent unique identifier (`issue_id: <int>`) in their YAML frontmatter, mapped directly to their remote issue number.
+- All local specification files MUST include a permanent unique identifier (`issue_id: <int>`) in their CommonMark metadata table at lines 1-10 instead of YAML frontmatter, mapped directly to their remote issue number.
 - Matching by title normalization is the primary selector used by the backlog reconciliation tool. To prevent collisions, all specification files of the same spec type MUST have unique normalised titles, as enforced by `verify-baseline` and rules/tracker-source-of-truth.md.
 
 ### 1.9 Zero-Mocking Live Persistence Mandate
@@ -104,8 +104,8 @@ graph TD
 ## Specification Standards
 
 ### Granularity Bounds
-- An Epic SHOULD contain 3-15 Features. Epics exceeding 15 Features MUST be split by the schema-specification-engineering worker during Step 1 decomposition; Epics with fewer than 3 Features MUST be reviewed for consolidation. Enforced by schema-specification-engineering decomposition heuristics.
-- A Feature SHOULD carry 3-10 acceptance criteria. Features exceeding 10 acceptance criteria MUST be split into targeted sub-features; Features with fewer than 3 acceptance criteria MUST be expanded to ensure full scenario coverage. Enforced by `verify-baseline` and spec worker review gates.
+- An Epic SHOULD contain 3-15 Features. Epics exceeding 15 Features MUST be split by the schema-specification-engineering subagent during Step 1 decomposition; Epics with fewer than 3 Features MUST be reviewed for consolidation. Enforced by schema-specification-engineering decomposition heuristics.
+- A Feature SHOULD carry 3-10 acceptance criteria. Features exceeding 10 acceptance criteria MUST be split into targeted sub-features; Features with fewer than 3 acceptance criteria MUST be expanded to ensure full scenario coverage. Enforced by `verify-baseline` and spec subagent review gates.
 
 ### Epic Granularity
 - One Epic per major functional domain or protocol module.
@@ -149,7 +149,7 @@ graph TD
 - Implementation work: `feat/<issue-number>-<short-description>` branches.
 
 ### Documentation & Repository Artifact Management Standards
-- All generated markdown files include YAML frontmatter.
+- All generated markdown files include native CommonMark two-column metadata tables at lines 1-10.
 - All generated markdown files include a "Source References" section at the bottom.
 - No orphan documents -- every file must be linked from at least one tracker issue.
 - **Repository Artifact Management Mandate (Zero-Ephemeral Storage)**: All engineering artifacts, design blueprints, solution documents, architectural specifications, implementation plans, and reports MUST be created, managed, and committed directly within the active Git repository (e.g. under `docs/architecture/`, `docs/reports/`, `docs/designs/`, or `schema/`). Storing primary architectural decisions, solution documents, or engineering specifications exclusively in ephemeral application cache directories outside the repository (such as `<appDataDir>/brain/<conversation-id>/`) is strictly prohibited. Every artifact establishing architectural baselines, safety rationales, or implementation contracts must be version-controlled in Git in lockstep with the decision, ensuring full provenance, cross-session durability, and subagent accessibility.

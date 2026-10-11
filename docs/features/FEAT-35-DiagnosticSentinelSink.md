@@ -1,28 +1,15 @@
----
-title: "Feature 35: [Formal Safety Traceability] DiagnosticSentinelSink"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "DiagnosticSentinelSink"
-part_def: "DiagnosticSentinelSink"
-subsystem: "Formal Safety Traceability"
-issue_id: 44
-generation_mode: subagent
----
-
-# Feature 35: [Formal Safety Traceability] DiagnosticSentinelSink
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 35: [Formal Safety Traceability] DiagnosticSentinelSink |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | DiagnosticSentinelSink |
-| **Subsystem** | Formal Safety Traceability |
 | **Issue ID** | #44 |
+| **Title** | Feature 35: [Formal Safety Traceability] DiagnosticSentinelSink |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-09-FormalSafetyTraceability](../epics/EPIC-09-FormalSafetyTraceability.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `FormalSafetyTraceability::DiagnosticSentinelSink` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/formal_safety_traceability/architecture.sysml](../../schema/subsystems/formal_safety_traceability/architecture.sysml) |
+
+# Feature 35: [Formal Safety Traceability] DiagnosticSentinelSink
 
 ## UML Class Diagram
 

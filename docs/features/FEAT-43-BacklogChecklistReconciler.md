@@ -1,28 +1,15 @@
----
-title: "Feature 43: [Downstream Agile Projections] BacklogChecklistReconciler"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "BacklogChecklistReconciler"
-part_def: "BacklogChecklistReconciler"
-subsystem: "Downstream Agile Projections"
-issue_id: 52
-generation_mode: subagent
----
-
-# Feature 43: [Downstream Agile Projections] BacklogChecklistReconciler
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 43: [Downstream Agile Projections] BacklogChecklistReconciler |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | BacklogChecklistReconciler |
-| **Subsystem** | Downstream Agile Projections |
 | **Issue ID** | #52 |
+| **Title** | Feature 43: [Downstream Agile Projections] BacklogChecklistReconciler |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-11-DownstreamAgileProjections](../epics/EPIC-11-DownstreamAgileProjections.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DownstreamAgileProjections::BacklogChecklistReconciler` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/downstream_agile_projections/architecture.sysml](../../schema/subsystems/downstream_agile_projections/architecture.sysml) |
+
+# Feature 43: [Downstream Agile Projections] BacklogChecklistReconciler
 
 ## UML Class Diagram
 

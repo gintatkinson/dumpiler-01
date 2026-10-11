@@ -1,28 +1,15 @@
----
-title: "Feature 49: [Diagnostic Error Catalog] ErrorCodeRegistry"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "ErrorCodeRegistry"
-part_def: "ErrorCodeRegistry"
-subsystem: "Diagnostic Error Catalog"
-issue_id: 58
-generation_mode: subagent
----
-
-# Feature 49: [Diagnostic Error Catalog] ErrorCodeRegistry
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 49: [Diagnostic Error Catalog] ErrorCodeRegistry |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | ErrorCodeRegistry |
-| **Subsystem** | Diagnostic Error Catalog |
 | **Issue ID** | #58 |
+| **Title** | Feature 49: [Diagnostic Error Catalog] ErrorCodeRegistry |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-13-DiagnosticErrorCatalog](../epics/EPIC-13-DiagnosticErrorCatalog.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DiagnosticErrorCatalog::ErrorCodeRegistry` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/diagnostic_error_catalog/architecture.sysml](../../schema/subsystems/diagnostic_error_catalog/architecture.sysml) |
+
+# Feature 49: [Diagnostic Error Catalog] ErrorCodeRegistry
 
 ## UML Class Diagram
 

@@ -1,28 +1,15 @@
----
-title: "Feature 27: [Spatio Temporal State Solvers] StateMachineSolverEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "StateMachineSolverEngine"
-part_def: "StateMachineSolverEngine"
-subsystem: "Spatio Temporal State Solvers"
-issue_id: 36
-generation_mode: subagent
----
-
-# Feature 27: [Spatio Temporal State Solvers] StateMachineSolverEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 27: [Spatio Temporal State Solvers] StateMachineSolverEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | StateMachineSolverEngine |
-| **Subsystem** | Spatio Temporal State Solvers |
 | **Issue ID** | #36 |
+| **Title** | Feature 27: [Spatio Temporal State Solvers] StateMachineSolverEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-08-SpatioTemporalStateSolvers](../epics/EPIC-08-SpatioTemporalStateSolvers.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SpatioTemporalStateSolvers::StateMachineSolverEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/spatio_temporal_state_solvers/architecture.sysml](../../schema/subsystems/spatio_temporal_state_solvers/architecture.sysml) |
+
+# Feature 27: [Spatio Temporal State Solvers] StateMachineSolverEngine
 
 ## UML Class Diagram
 

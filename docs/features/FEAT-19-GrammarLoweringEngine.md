@@ -1,28 +1,15 @@
----
-title: "Feature 19: [Sysml Grammar Lowering] GrammarLoweringEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "GrammarLoweringEngine"
-part_def: "GrammarLoweringEngine"
-subsystem: "Sysml Grammar Lowering"
-issue_id: 28
-generation_mode: subagent
----
-
-# Feature 19: [Sysml Grammar Lowering] GrammarLoweringEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 19: [Sysml Grammar Lowering] GrammarLoweringEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | GrammarLoweringEngine |
-| **Subsystem** | Sysml Grammar Lowering |
 | **Issue ID** | #28 |
+| **Title** | Feature 19: [Sysml Grammar Lowering] GrammarLoweringEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-06-SysmlGrammarLowering](../epics/EPIC-06-SysmlGrammarLowering.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SysmlGrammarLowering::GrammarLoweringEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/sysml_grammar_lowering/architecture.sysml](../../schema/subsystems/sysml_grammar_lowering/architecture.sysml) |
+
+# Feature 19: [Sysml Grammar Lowering] GrammarLoweringEngine
 
 ## UML Class Diagram
 

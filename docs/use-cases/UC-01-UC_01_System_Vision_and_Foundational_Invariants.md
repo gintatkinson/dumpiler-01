@@ -1,31 +1,15 @@
----
-title: "Use Case 01: UC 01 System Vision and Foundational Invariants"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_01_System_Vision_and_Foundational_Invariants"
-subject: "SystemVisionEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 95
-generation_mode: subagent
----
-
-# Use Case 01: UC 01 System Vision and Foundational Invariants
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 01: UC 01 System Vision and Foundational Invariants |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_01_System_Vision_and_Foundational_Invariants |
-| **Subject** | SystemVisionEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #95 |
+| **Title** | Use Case 01: UC 01 System Vision and Foundational Invariants |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | SystemVisionEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 01: UC 01 System Vision and Foundational Invariants
 
 ## UML Diagrams
 

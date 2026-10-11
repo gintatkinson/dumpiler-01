@@ -1,28 +1,15 @@
----
-title: "Feature 22: [Sysml Grammar Lowering] ASTLoweringEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "ASTLoweringEngine"
-part_def: "ASTLoweringEngine"
-subsystem: "Sysml Grammar Lowering"
-issue_id: 31
-generation_mode: subagent
----
-
-# Feature 22: [Sysml Grammar Lowering] ASTLoweringEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 22: [Sysml Grammar Lowering] ASTLoweringEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | ASTLoweringEngine |
-| **Subsystem** | Sysml Grammar Lowering |
 | **Issue ID** | #31 |
+| **Title** | Feature 22: [Sysml Grammar Lowering] ASTLoweringEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-06-SysmlGrammarLowering](../epics/EPIC-06-SysmlGrammarLowering.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SysmlGrammarLowering::ASTLoweringEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/sysml_grammar_lowering/architecture.sysml](../../schema/subsystems/sysml_grammar_lowering/architecture.sysml) |
+
+# Feature 22: [Sysml Grammar Lowering] ASTLoweringEngine
 
 ## UML Class Diagram
 

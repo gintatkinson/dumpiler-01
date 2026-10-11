@@ -1,28 +1,15 @@
----
-title: "Feature 24: [Physical Metrology Flows] DimensionalUnitChecker"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "DimensionalUnitChecker"
-part_def: "DimensionalUnitChecker"
-subsystem: "Physical Metrology Flows"
-issue_id: 33
-generation_mode: subagent
----
-
-# Feature 24: [Physical Metrology Flows] DimensionalUnitChecker
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 24: [Physical Metrology Flows] DimensionalUnitChecker |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | DimensionalUnitChecker |
-| **Subsystem** | Physical Metrology Flows |
 | **Issue ID** | #33 |
+| **Title** | Feature 24: [Physical Metrology Flows] DimensionalUnitChecker |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-07-PhysicalMetrologyFlows](../epics/EPIC-07-PhysicalMetrologyFlows.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `PhysicalMetrologyFlows::DimensionalUnitChecker` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/physical_metrology_flows/architecture.sysml](../../schema/subsystems/physical_metrology_flows/architecture.sysml) |
+
+# Feature 24: [Physical Metrology Flows] DimensionalUnitChecker
 
 ## UML Class Diagram
 

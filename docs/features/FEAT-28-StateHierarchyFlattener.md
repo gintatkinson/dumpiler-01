@@ -1,28 +1,15 @@
----
-title: "Feature 28: [Spatio Temporal State Solvers] StateHierarchyFlattener"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "StateHierarchyFlattener"
-part_def: "StateHierarchyFlattener"
-subsystem: "Spatio Temporal State Solvers"
-issue_id: 37
-generation_mode: subagent
----
-
-# Feature 28: [Spatio Temporal State Solvers] StateHierarchyFlattener
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 28: [Spatio Temporal State Solvers] StateHierarchyFlattener |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | StateHierarchyFlattener |
-| **Subsystem** | Spatio Temporal State Solvers |
 | **Issue ID** | #37 |
+| **Title** | Feature 28: [Spatio Temporal State Solvers] StateHierarchyFlattener |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-08-SpatioTemporalStateSolvers](../epics/EPIC-08-SpatioTemporalStateSolvers.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SpatioTemporalStateSolvers::StateHierarchyFlattener` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/spatio_temporal_state_solvers/architecture.sysml](../../schema/subsystems/spatio_temporal_state_solvers/architecture.sysml) |
+
+# Feature 28: [Spatio Temporal State Solvers] StateHierarchyFlattener
 
 ## UML Class Diagram
 

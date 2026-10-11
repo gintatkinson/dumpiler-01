@@ -1,28 +1,15 @@
----
-title: "Feature 11: [Universal Schema Ingestion] FormatClassifier"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "FormatClassifier"
-part_def: "FormatClassifier"
-subsystem: "Universal Schema Ingestion"
-issue_id: 20
-generation_mode: subagent
----
-
-# Feature 11: [Universal Schema Ingestion] FormatClassifier
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 11: [Universal Schema Ingestion] FormatClassifier |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | FormatClassifier |
-| **Subsystem** | Universal Schema Ingestion |
 | **Issue ID** | #20 |
+| **Title** | Feature 11: [Universal Schema Ingestion] FormatClassifier |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-04-UniversalSchemaIngestion](../epics/EPIC-04-UniversalSchemaIngestion.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `UniversalSchemaIngestion::FormatClassifier` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/universal_schema_ingestion/architecture.sysml](../../schema/subsystems/universal_schema_ingestion/architecture.sysml) |
+
+# Feature 11: [Universal Schema Ingestion] FormatClassifier
 
 ## UML Class Diagram
 

@@ -1,27 +1,14 @@
----
-title: "Epic 14: Compiler Assurance"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "CompilerAssurance"
-subsystem: "Compiler Assurance"
-issue_id: 114
-generation_mode: subagent
----
-
-# Epic 14: Compiler Assurance
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #114 |
 | **Title** | Epic 14: Compiler Assurance |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | CompilerAssurance |
 | **Subsystem** | Compiler Assurance |
-| **Issue ID** | #114 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 14: Compiler Assurance
 
 ## 1. Context
 Structural Architecture for Subsystem 12 Compiler Performance CLI Assurance

@@ -1,28 +1,15 @@
----
-title: "Feature 39: [Interconnect Contracts] ContractSerializer"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "ContractSerializer"
-part_def: "ContractSerializer"
-subsystem: "Interconnect Contracts"
-issue_id: 48
-generation_mode: subagent
----
-
-# Feature 39: [Interconnect Contracts] ContractSerializer
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 39: [Interconnect Contracts] ContractSerializer |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | ContractSerializer |
-| **Subsystem** | Interconnect Contracts |
 | **Issue ID** | #48 |
+| **Title** | Feature 39: [Interconnect Contracts] ContractSerializer |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-10-InterconnectContracts](../epics/EPIC-10-InterconnectContracts.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `InterconnectContracts::ContractSerializer` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/interconnect_contracts/architecture.sysml](../../schema/subsystems/interconnect_contracts/architecture.sysml) |
+
+# Feature 39: [Interconnect Contracts] ContractSerializer
 
 ## UML Class Diagram
 

@@ -1,28 +1,15 @@
----
-title: "User Story 07: Verify Safety Traceability Action"
-version: "1.0.0"
-date: "2026-10-11"
-type: user-story
-epic: "EPIC-02-ConOps"
-interaction: "VerifySafetyTraceabilityAction"
-subject: "SafetyAssuranceEngine"
-issue_id: 95
-generation_mode: subagent
----
-
-# User Story 07: Verify Safety Traceability Action
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | User Story 07: Verify Safety Traceability Action |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | user-story |
-| **Interaction** | VerifySafetyTraceabilityAction |
-| **Subject** | SafetyAssuranceEngine |
 | **Issue ID** | #95 |
+| **Title** | User Story 07: Verify Safety Traceability Action |
+| **Type** | user-story |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **SysML Interaction** | `VerifySafetyTraceabilityAction` |
+| **SysML Test Case** | `Test_VerifySafetyTraceabilityAction` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# User Story 07: Verify Safety Traceability Action
 
 ## UML Sequence Diagram
 

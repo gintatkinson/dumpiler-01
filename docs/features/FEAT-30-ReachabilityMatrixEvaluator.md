@@ -1,28 +1,15 @@
----
-title: "Feature 30: [Spatio Temporal State Solvers] ReachabilityMatrixEvaluator"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "ReachabilityMatrixEvaluator"
-part_def: "ReachabilityMatrixEvaluator"
-subsystem: "Spatio Temporal State Solvers"
-issue_id: 39
-generation_mode: subagent
----
-
-# Feature 30: [Spatio Temporal State Solvers] ReachabilityMatrixEvaluator
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 30: [Spatio Temporal State Solvers] ReachabilityMatrixEvaluator |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | ReachabilityMatrixEvaluator |
-| **Subsystem** | Spatio Temporal State Solvers |
 | **Issue ID** | #39 |
+| **Title** | Feature 30: [Spatio Temporal State Solvers] ReachabilityMatrixEvaluator |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-08-SpatioTemporalStateSolvers](../epics/EPIC-08-SpatioTemporalStateSolvers.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SpatioTemporalStateSolvers::ReachabilityMatrixEvaluator` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/spatio_temporal_state_solvers/architecture.sysml](../../schema/subsystems/spatio_temporal_state_solvers/architecture.sysml) |
+
+# Feature 30: [Spatio Temporal State Solvers] ReachabilityMatrixEvaluator
 
 ## UML Class Diagram
 

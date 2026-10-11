@@ -1,28 +1,15 @@
----
-title: "Feature 25: [Physical Metrology Flows] FlowConservationSolver"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "FlowConservationSolver"
-part_def: "FlowConservationSolver"
-subsystem: "Physical Metrology Flows"
-issue_id: 34
-generation_mode: subagent
----
-
-# Feature 25: [Physical Metrology Flows] FlowConservationSolver
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 25: [Physical Metrology Flows] FlowConservationSolver |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | FlowConservationSolver |
-| **Subsystem** | Physical Metrology Flows |
 | **Issue ID** | #34 |
+| **Title** | Feature 25: [Physical Metrology Flows] FlowConservationSolver |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-07-PhysicalMetrologyFlows](../epics/EPIC-07-PhysicalMetrologyFlows.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `PhysicalMetrologyFlows::FlowConservationSolver` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/physical_metrology_flows/architecture.sysml](../../schema/subsystems/physical_metrology_flows/architecture.sysml) |
+
+# Feature 25: [Physical Metrology Flows] FlowConservationSolver
 
 ## UML Class Diagram
 

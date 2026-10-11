@@ -1,27 +1,14 @@
----
-title: "Epic 12: Multi Target Codegen"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "MultiTargetCodegen"
-subsystem: "Multi Target Codegen"
-issue_id: 112
-generation_mode: subagent
----
-
-# Epic 12: Multi Target Codegen
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #112 |
 | **Title** | Epic 12: Multi Target Codegen |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | MultiTargetCodegen |
 | **Subsystem** | Multi Target Codegen |
-| **Issue ID** | #112 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 12: Multi Target Codegen
 
 ## 1. Context
 Structural Architecture for Subsystem 10 Multi Target CodeGen Simulation Bindings

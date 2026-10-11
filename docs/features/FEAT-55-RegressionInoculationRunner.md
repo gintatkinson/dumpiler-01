@@ -1,28 +1,15 @@
----
-title: "Feature 55: [Compiler Assurance] RegressionInoculationRunner"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "RegressionInoculationRunner"
-part_def: "RegressionInoculationRunner"
-subsystem: "Compiler Assurance"
-issue_id: 64
-generation_mode: subagent
----
-
-# Feature 55: [Compiler Assurance] RegressionInoculationRunner
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 55: [Compiler Assurance] RegressionInoculationRunner |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | RegressionInoculationRunner |
-| **Subsystem** | Compiler Assurance |
 | **Issue ID** | #64 |
+| **Title** | Feature 55: [Compiler Assurance] RegressionInoculationRunner |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-14-CompilerAssurance](../epics/EPIC-14-CompilerAssurance.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `CompilerAssurance::RegressionInoculationRunner` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/compiler_assurance/architecture.sysml](../../schema/subsystems/compiler_assurance/architecture.sysml) |
+
+# Feature 55: [Compiler Assurance] RegressionInoculationRunner
 
 ## UML Class Diagram
 

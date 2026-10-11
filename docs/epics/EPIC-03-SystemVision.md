@@ -1,27 +1,14 @@
----
-title: "Epic 03: System Vision"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "SystemVision"
-subsystem: "System Vision"
-issue_id: 103
-generation_mode: subagent
----
-
-# Epic 03: System Vision
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #103 |
 | **Title** | Epic 03: System Vision |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | SystemVision |
 | **Subsystem** | System Vision |
-| **Issue ID** | #103 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 03: System Vision
 
 ## 1. Context
 Structural Architecture for Subsystem 1 System Vision

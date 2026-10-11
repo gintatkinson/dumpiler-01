@@ -1,28 +1,15 @@
----
-title: "Feature 12: [Universal Schema Ingestion] CommonMarkTableLexer"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "CommonMarkTableLexer"
-part_def: "CommonMarkTableLexer"
-subsystem: "Universal Schema Ingestion"
-issue_id: 21
-generation_mode: subagent
----
-
-# Feature 12: [Universal Schema Ingestion] CommonMarkTableLexer
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 12: [Universal Schema Ingestion] CommonMarkTableLexer |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | CommonMarkTableLexer |
-| **Subsystem** | Universal Schema Ingestion |
 | **Issue ID** | #21 |
+| **Title** | Feature 12: [Universal Schema Ingestion] CommonMarkTableLexer |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-04-UniversalSchemaIngestion](../epics/EPIC-04-UniversalSchemaIngestion.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `UniversalSchemaIngestion::CommonMarkTableLexer` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/universal_schema_ingestion/architecture.sysml](../../schema/subsystems/universal_schema_ingestion/architecture.sysml) |
+
+# Feature 12: [Universal Schema Ingestion] CommonMarkTableLexer
 
 ## UML Class Diagram
 

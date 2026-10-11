@@ -1,31 +1,15 @@
----
-title: "Use Case 10: UC 10 Multi Target Code Gen Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_10_Multi_Target_CodeGen_Workflow"
-subject: "CodeGenEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 104
-generation_mode: subagent
----
-
-# Use Case 10: UC 10 Multi Target Code Gen Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 10: UC 10 Multi Target Code Gen Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_10_Multi_Target_CodeGen_Workflow |
-| **Subject** | CodeGenEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #104 |
+| **Title** | Use Case 10: UC 10 Multi Target Code Gen Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | CodeGenEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 10: UC 10 Multi Target Code Gen Workflow
 
 ## UML Diagrams
 

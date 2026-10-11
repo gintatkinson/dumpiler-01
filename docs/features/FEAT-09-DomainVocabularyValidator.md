@@ -1,28 +1,15 @@
----
-title: "Feature 09: [System Vision] DomainVocabularyValidator"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "DomainVocabularyValidator"
-part_def: "DomainVocabularyValidator"
-subsystem: "System Vision"
-issue_id: 18
-generation_mode: subagent
----
-
-# Feature 09: [System Vision] DomainVocabularyValidator
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 09: [System Vision] DomainVocabularyValidator |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | DomainVocabularyValidator |
-| **Subsystem** | System Vision |
 | **Issue ID** | #18 |
+| **Title** | Feature 09: [System Vision] DomainVocabularyValidator |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-03-SystemVision](../epics/EPIC-03-SystemVision.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SystemVision::DomainVocabularyValidator` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/system_vision/architecture.sysml](../../schema/subsystems/system_vision/architecture.sysml) |
+
+# Feature 09: [System Vision] DomainVocabularyValidator
 
 ## UML Class Diagram
 

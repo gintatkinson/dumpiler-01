@@ -1,28 +1,15 @@
----
-title: "Feature 29: [Spatio Temporal State Solvers] DiscreteTransitionSolver"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "DiscreteTransitionSolver"
-part_def: "DiscreteTransitionSolver"
-subsystem: "Spatio Temporal State Solvers"
-issue_id: 38
-generation_mode: subagent
----
-
-# Feature 29: [Spatio Temporal State Solvers] DiscreteTransitionSolver
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 29: [Spatio Temporal State Solvers] DiscreteTransitionSolver |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | DiscreteTransitionSolver |
-| **Subsystem** | Spatio Temporal State Solvers |
 | **Issue ID** | #38 |
+| **Title** | Feature 29: [Spatio Temporal State Solvers] DiscreteTransitionSolver |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-08-SpatioTemporalStateSolvers](../epics/EPIC-08-SpatioTemporalStateSolvers.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `SpatioTemporalStateSolvers::DiscreteTransitionSolver` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/spatio_temporal_state_solvers/architecture.sysml](../../schema/subsystems/spatio_temporal_state_solvers/architecture.sysml) |
+
+# Feature 29: [Spatio Temporal State Solvers] DiscreteTransitionSolver
 
 ## UML Class Diagram
 

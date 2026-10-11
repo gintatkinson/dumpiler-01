@@ -1,28 +1,15 @@
----
-title: "User Story 12: Verify Compiler Assurance Action"
-version: "1.0.0"
-date: "2026-10-11"
-type: user-story
-epic: "EPIC-02-ConOps"
-interaction: "VerifyCompilerAssuranceAction"
-subject: "CompilerAssuranceEngine"
-issue_id: 100
-generation_mode: subagent
----
-
-# User Story 12: Verify Compiler Assurance Action
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | User Story 12: Verify Compiler Assurance Action |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | user-story |
-| **Interaction** | VerifyCompilerAssuranceAction |
-| **Subject** | CompilerAssuranceEngine |
 | **Issue ID** | #100 |
+| **Title** | User Story 12: Verify Compiler Assurance Action |
+| **Type** | user-story |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **SysML Interaction** | `VerifyCompilerAssuranceAction` |
+| **SysML Test Case** | `Test_VerifyCompilerAssuranceAction` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# User Story 12: Verify Compiler Assurance Action
 
 ## UML Sequence Diagram
 

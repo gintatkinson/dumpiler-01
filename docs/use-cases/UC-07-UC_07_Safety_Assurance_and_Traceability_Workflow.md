@@ -1,31 +1,15 @@
----
-title: "Use Case 07: UC 07 Safety Assurance and Traceability Workflow"
-version: "1.0.0"
-date: "2026-10-11"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "UC_07_Safety_Assurance_and_Traceability_Workflow"
-subject: "SafetyAssuranceEngine"
-actors:
-  - "HumanEngineer"
-issue_id: 101
-generation_mode: subagent
----
-
-# Use Case 07: UC 07 Safety Assurance and Traceability Workflow
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Use Case 07: UC 07 Safety Assurance and Traceability Workflow |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | use-case |
-| **Use Case Def** | UC_07_Safety_Assurance_and_Traceability_Workflow |
-| **Subject** | SafetyAssuranceEngine |
-| **Actors** | HumanEngineer |
 | **Issue ID** | #101 |
+| **Title** | Use Case 07: UC 07 Safety Assurance and Traceability Workflow |
+| **Type** | use-case |
+| **Primary Actor** | HumanEngineer |
+| **Scope** | SafetyAssuranceEngine |
+| **Level** | User Goal |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# Use Case 07: UC 07 Safety Assurance and Traceability Workflow
 
 ## UML Diagrams
 

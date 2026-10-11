@@ -1,28 +1,15 @@
----
-title: "Feature 54: [Compiler Assurance] PerformanceProfiler"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "PerformanceProfiler"
-part_def: "PerformanceProfiler"
-subsystem: "Compiler Assurance"
-issue_id: 63
-generation_mode: subagent
----
-
-# Feature 54: [Compiler Assurance] PerformanceProfiler
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 54: [Compiler Assurance] PerformanceProfiler |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | PerformanceProfiler |
-| **Subsystem** | Compiler Assurance |
 | **Issue ID** | #63 |
+| **Title** | Feature 54: [Compiler Assurance] PerformanceProfiler |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-14-CompilerAssurance](../epics/EPIC-14-CompilerAssurance.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `CompilerAssurance::PerformanceProfiler` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/compiler_assurance/architecture.sysml](../../schema/subsystems/compiler_assurance/architecture.sysml) |
+
+# Feature 54: [Compiler Assurance] PerformanceProfiler
 
 ## UML Class Diagram
 

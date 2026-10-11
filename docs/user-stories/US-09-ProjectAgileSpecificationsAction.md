@@ -1,28 +1,15 @@
----
-title: "User Story 09: Project Agile Specifications Action"
-version: "1.0.0"
-date: "2026-10-11"
-type: user-story
-epic: "EPIC-02-ConOps"
-interaction: "ProjectAgileSpecificationsAction"
-subject: "AgileProjectionEngine"
-issue_id: 97
-generation_mode: subagent
----
-
-# User Story 09: Project Agile Specifications Action
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | User Story 09: Project Agile Specifications Action |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | user-story |
-| **Interaction** | ProjectAgileSpecificationsAction |
-| **Subject** | AgileProjectionEngine |
 | **Issue ID** | #97 |
+| **Title** | User Story 09: Project Agile Specifications Action |
+| **Type** | user-story |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **SysML Interaction** | `ProjectAgileSpecificationsAction` |
+| **SysML Test Case** | `Test_ProjectAgileSpecificationsAction` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
+
+# User Story 09: Project Agile Specifications Action
 
 ## UML Sequence Diagram
 

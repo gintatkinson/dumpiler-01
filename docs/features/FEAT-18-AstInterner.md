@@ -1,28 +1,15 @@
----
-title: "Feature 18: [Core Metamodel Node Arena] AstInterner"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "AstInterner"
-part_def: "AstInterner"
-subsystem: "Core Metamodel Node Arena"
-issue_id: 27
-generation_mode: subagent
----
-
-# Feature 18: [Core Metamodel Node Arena] AstInterner
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 18: [Core Metamodel Node Arena] AstInterner |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | AstInterner |
-| **Subsystem** | Core Metamodel Node Arena |
 | **Issue ID** | #27 |
+| **Title** | Feature 18: [Core Metamodel Node Arena] AstInterner |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-05-CoreMetamodelNodeArena](../epics/EPIC-05-CoreMetamodelNodeArena.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `CoreMetamodelNodeArena::AstInterner` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/core_metamodel_node_arena/architecture.sysml](../../schema/subsystems/core_metamodel_node_arena/architecture.sysml) |
+
+# Feature 18: [Core Metamodel Node Arena] AstInterner
 
 ## UML Class Diagram
 

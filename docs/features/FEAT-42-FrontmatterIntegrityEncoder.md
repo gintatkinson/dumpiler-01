@@ -1,28 +1,15 @@
----
-title: "Feature 42: [Downstream Agile Projections] FrontmatterIntegrityEncoder"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "FrontmatterIntegrityEncoder"
-part_def: "FrontmatterIntegrityEncoder"
-subsystem: "Downstream Agile Projections"
-issue_id: 51
-generation_mode: subagent
----
-
-# Feature 42: [Downstream Agile Projections] FrontmatterIntegrityEncoder
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 42: [Downstream Agile Projections] FrontmatterIntegrityEncoder |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | FrontmatterIntegrityEncoder |
-| **Subsystem** | Downstream Agile Projections |
 | **Issue ID** | #51 |
+| **Title** | Feature 42: [Downstream Agile Projections] FrontmatterIntegrityEncoder |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-11-DownstreamAgileProjections](../epics/EPIC-11-DownstreamAgileProjections.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DownstreamAgileProjections::FrontmatterIntegrityEncoder` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/downstream_agile_projections/architecture.sysml](../../schema/subsystems/downstream_agile_projections/architecture.sysml) |
+
+# Feature 42: [Downstream Agile Projections] FrontmatterIntegrityEncoder
 
 ## UML Class Diagram
 

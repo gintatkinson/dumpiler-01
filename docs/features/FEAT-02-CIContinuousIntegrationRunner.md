@@ -1,28 +1,15 @@
----
-title: "Feature 02: [Con Ops] CIContinuousIntegrationRunner"
-version: "1.0.0"
-date: "2026-10-10"
-type: feature
-part: "CIContinuousIntegrationRunner"
-part_def: "CIContinuousIntegrationRunner"
-subsystem: "Con Ops"
-issue_id: 11
-generation_mode: subagent
----
-
-# Feature 02: [Con Ops] CIContinuousIntegrationRunner
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 02: [Con Ops] CIContinuousIntegrationRunner |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-10 |
-| **Type** | feature |
-| **Part** | CIContinuousIntegrationRunner |
-| **Subsystem** | Con Ops |
 | **Issue ID** | #11 |
+| **Title** | Feature 02: [Con Ops] CIContinuousIntegrationRunner |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `ConOps::CIContinuousIntegrationRunner` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/actors.sysml](../../schema/conops/actors.sysml) |
+
+# Feature 02: [Con Ops] CIContinuousIntegrationRunner
 
 ## UML Class Diagram
 

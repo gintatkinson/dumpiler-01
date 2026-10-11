@@ -1,28 +1,15 @@
----
-title: "Feature 36: [Interconnect Contracts] ICDEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "ICDEngine"
-part_def: "ICDEngine"
-subsystem: "Interconnect Contracts"
-issue_id: 45
-generation_mode: subagent
----
-
-# Feature 36: [Interconnect Contracts] ICDEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 36: [Interconnect Contracts] ICDEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | ICDEngine |
-| **Subsystem** | Interconnect Contracts |
 | **Issue ID** | #45 |
+| **Title** | Feature 36: [Interconnect Contracts] ICDEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-10-InterconnectContracts](../epics/EPIC-10-InterconnectContracts.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `InterconnectContracts::ICDEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/interconnect_contracts/architecture.sysml](../../schema/subsystems/interconnect_contracts/architecture.sysml) |
+
+# Feature 36: [Interconnect Contracts] ICDEngine
 
 ## UML Class Diagram
 

@@ -55,36 +55,68 @@ pub struct ReverseSyncOptions {
     pub allow_overwrite: bool,
 }
 
-/// Helper to parse basic YAML frontmatter from a markdown string.
+/// Helper to parse metadata from YAML frontmatter or CommonMark table from a markdown string.
 fn parse_frontmatter(content: &str) -> (HashMap<String, String>, &str) {
     let mut fm = HashMap::new();
     let trimmed = content.trim_start();
-    if !trimmed.starts_with("---") {
-        return (fm, content);
+    if trimmed.starts_with("---") {
+        let rest = &trimmed[3..];
+        if let Some(end_idx) = rest.find("\n---") {
+            let fm_block = &rest[..end_idx];
+            let body = &rest[end_idx + 4..];
+
+            for line in fm_block.lines() {
+                let line = line.trim();
+                if let Some(colon_pos) = line.find(':') {
+                    let key = line[..colon_pos].trim().to_string();
+                    let mut val = line[colon_pos + 1..].trim();
+                    if (val.starts_with('"') && val.ends_with('"'))
+                        || (val.starts_with('\'') && val.ends_with('\''))
+                    {
+                        val = &val[1..val.len() - 1];
+                    }
+                    fm.insert(key, val.to_string());
+                }
+            }
+            return (fm, body);
+        }
     }
 
-    let rest = &trimmed[3..];
-    if let Some(end_idx) = rest.find("\n---") {
-        let fm_block = &rest[..end_idx];
-        let body = &rest[end_idx + 4..];
-
-        for line in fm_block.lines() {
-            let line = line.trim();
-            if let Some(colon_pos) = line.find(':') {
-                let key = line[..colon_pos].trim().to_string();
-                let mut val = line[colon_pos + 1..].trim();
-                if (val.starts_with('"') && val.ends_with('"'))
-                    || (val.starts_with('\'') && val.ends_with('\''))
-                {
-                    val = &val[1..val.len() - 1];
+    // CommonMark 2-column metadata table fallback
+    for line in content.lines().take(20) {
+        let line_trimmed = line.trim();
+        if line_trimmed.starts_with('|') && line_trimmed.ends_with('|') {
+            let inner = line_trimmed.trim_matches('|');
+            let parts: Vec<&str> = inner.split('|').map(|s| s.trim()).collect();
+            if parts.len() >= 2 {
+                let mut key = String::new();
+                for c in parts[0].chars() {
+                    if !matches!(c, '*' | '`' | '_' | ':' | '#') {
+                        key.push(c);
+                    }
                 }
-                fm.insert(key, val.to_string());
+                let key = key.trim().to_lowercase().replace(' ', "_").replace('-', "_");
+                if !key.is_empty() && key != "attribute" && key != "key" {
+                    let val = parts[1]
+                        .trim()
+                        .trim_matches(|c| c == '`' || c == '"' || c == '\'');
+                    fm.insert(key.clone(), val.to_string());
+                    if key == "sysml_interaction" {
+                        fm.insert("interaction".to_string(), val.to_string());
+                    } else if key == "scope" {
+                        fm.insert("subject".to_string(), val.to_string());
+                    } else if key == "primary_actor" {
+                        fm.insert("actors".to_string(), val.to_string());
+                    } else if key == "schema_containers" {
+                        let part = val.split("::").last().unwrap_or(val).trim();
+                        fm.insert("part".to_string(), part.to_string());
+                    }
+                }
             }
         }
-        (fm, body)
-    } else {
-        (fm, content)
     }
+
+    (fm, content)
 }
 
 /// Helper to convert a string into clean PascalCase, prepending an underscore if leading with a digit.

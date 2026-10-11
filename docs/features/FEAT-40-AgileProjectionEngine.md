@@ -1,28 +1,15 @@
----
-title: "Feature 40: [Downstream Agile Projections] AgileProjectionEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "AgileProjectionEngine"
-part_def: "AgileProjectionEngine"
-subsystem: "Downstream Agile Projections"
-issue_id: 49
-generation_mode: subagent
----
-
-# Feature 40: [Downstream Agile Projections] AgileProjectionEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 40: [Downstream Agile Projections] AgileProjectionEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | AgileProjectionEngine |
-| **Subsystem** | Downstream Agile Projections |
 | **Issue ID** | #49 |
+| **Title** | Feature 40: [Downstream Agile Projections] AgileProjectionEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-11-DownstreamAgileProjections](../epics/EPIC-11-DownstreamAgileProjections.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `DownstreamAgileProjections::AgileProjectionEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/downstream_agile_projections/architecture.sysml](../../schema/subsystems/downstream_agile_projections/architecture.sysml) |
+
+# Feature 40: [Downstream Agile Projections] AgileProjectionEngine
 
 ## UML Class Diagram
 

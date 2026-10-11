@@ -1,28 +1,15 @@
----
-title: "Feature 14: [Universal Schema Ingestion] OpenApiParser"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "OpenApiParser"
-part_def: "OpenApiParser"
-subsystem: "Universal Schema Ingestion"
-issue_id: 23
-generation_mode: subagent
----
-
-# Feature 14: [Universal Schema Ingestion] OpenApiParser
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 14: [Universal Schema Ingestion] OpenApiParser |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | OpenApiParser |
-| **Subsystem** | Universal Schema Ingestion |
 | **Issue ID** | #23 |
+| **Title** | Feature 14: [Universal Schema Ingestion] OpenApiParser |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-04-UniversalSchemaIngestion](../epics/EPIC-04-UniversalSchemaIngestion.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `UniversalSchemaIngestion::OpenApiParser` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/universal_schema_ingestion/architecture.sysml](../../schema/subsystems/universal_schema_ingestion/architecture.sysml) |
+
+# Feature 14: [Universal Schema Ingestion] OpenApiParser
 
 ## UML Class Diagram
 

@@ -1,28 +1,15 @@
----
-title: "Feature 16: [Core Metamodel Node Arena] ArenaAllocator"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "ArenaAllocator"
-part_def: "ArenaAllocator"
-subsystem: "Core Metamodel Node Arena"
-issue_id: 25
-generation_mode: subagent
----
-
-# Feature 16: [Core Metamodel Node Arena] ArenaAllocator
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 16: [Core Metamodel Node Arena] ArenaAllocator |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | ArenaAllocator |
-| **Subsystem** | Core Metamodel Node Arena |
 | **Issue ID** | #25 |
+| **Title** | Feature 16: [Core Metamodel Node Arena] ArenaAllocator |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-05-CoreMetamodelNodeArena](../epics/EPIC-05-CoreMetamodelNodeArena.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `CoreMetamodelNodeArena::ArenaAllocator` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/core_metamodel_node_arena/architecture.sysml](../../schema/subsystems/core_metamodel_node_arena/architecture.sysml) |
+
+# Feature 16: [Core Metamodel Node Arena] ArenaAllocator
 
 ## UML Class Diagram
 

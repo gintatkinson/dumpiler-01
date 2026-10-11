@@ -1,28 +1,15 @@
----
-title: "Feature 04: [Con Ops] DownstreamApplicationHost"
-version: "1.0.0"
-date: "2026-10-10"
-type: feature
-part: "DownstreamApplicationHost"
-part_def: "DownstreamApplicationHost"
-subsystem: "Con Ops"
-issue_id: 13
-generation_mode: subagent
----
-
-# Feature 04: [Con Ops] DownstreamApplicationHost
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 04: [Con Ops] DownstreamApplicationHost |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-10 |
-| **Type** | feature |
-| **Part** | DownstreamApplicationHost |
-| **Subsystem** | Con Ops |
 | **Issue ID** | #13 |
+| **Title** | Feature 04: [Con Ops] DownstreamApplicationHost |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `ConOps::DownstreamApplicationHost` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/actors.sysml](../../schema/conops/actors.sysml) |
+
+# Feature 04: [Con Ops] DownstreamApplicationHost
 
 ## UML Class Diagram
 

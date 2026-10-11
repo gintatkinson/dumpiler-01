@@ -1,28 +1,15 @@
----
-title: "Feature 13: [Universal Schema Ingestion] ProtobufParser"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "ProtobufParser"
-part_def: "ProtobufParser"
-subsystem: "Universal Schema Ingestion"
-issue_id: 22
-generation_mode: subagent
----
-
-# Feature 13: [Universal Schema Ingestion] ProtobufParser
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 13: [Universal Schema Ingestion] ProtobufParser |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | ProtobufParser |
-| **Subsystem** | Universal Schema Ingestion |
 | **Issue ID** | #22 |
+| **Title** | Feature 13: [Universal Schema Ingestion] ProtobufParser |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-04-UniversalSchemaIngestion](../epics/EPIC-04-UniversalSchemaIngestion.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `UniversalSchemaIngestion::ProtobufParser` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/universal_schema_ingestion/architecture.sysml](../../schema/subsystems/universal_schema_ingestion/architecture.sysml) |
+
+# Feature 13: [Universal Schema Ingestion] ProtobufParser
 
 ## UML Class Diagram
 

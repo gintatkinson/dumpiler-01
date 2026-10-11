@@ -77,7 +77,7 @@ fn to_display_name(s: &str) -> String {
 fn resolve_date(target_out_dir: &Path, rel_path: &str, fallback_iso: &str) -> String {
     let full = target_out_dir.join(rel_path);
     if let Ok(content) = fs::read_to_string(&full) {
-        for line in content.lines() {
+        for line in content.lines().take(25) {
             let trimmed = line.trim();
             if trimmed.starts_with("date:") {
                 let d = trimmed
@@ -87,6 +87,29 @@ fn resolve_date(target_out_dir: &Path, rel_path: &str, fallback_iso: &str) -> St
                     .trim_matches('\'');
                 if !d.is_empty() {
                     return d.to_string();
+                }
+            } else if trimmed.starts_with('|') && trimmed.ends_with('|') {
+                let inner = trimmed.trim_matches('|');
+                let parts: Vec<&str> = inner.split('|').map(|s| s.trim()).collect();
+                if parts.len() >= 2 {
+                    let mut key = String::new();
+                    for c in parts[0].chars() {
+                        if !matches!(c, '*' | '`' | '_' | ':' | '#') {
+                            key.push(c);
+                        }
+                    }
+                    let key = key.trim().to_lowercase().replace(' ', "_");
+                    if key == "date" {
+                        let d = parts[1]
+                            .trim()
+                            .trim_matches('*')
+                            .trim_matches('`')
+                            .trim_matches('"')
+                            .trim_matches('\'');
+                        if !d.is_empty() {
+                            return d.to_string();
+                        }
+                    }
                 }
             }
         }
@@ -98,7 +121,7 @@ fn resolve_date(target_out_dir: &Path, rel_path: &str, fallback_iso: &str) -> St
 fn resolve_issue_id(target_out_dir: &Path, rel_path: &str, fallback_id: usize) -> usize {
     let full = target_out_dir.join(rel_path);
     if let Ok(content) = fs::read_to_string(&full) {
-        for line in content.lines() {
+        for line in content.lines().take(25) {
             let trimmed = line.trim();
             if trimmed.starts_with("issue_id:") {
                 let d = trimmed
@@ -110,6 +133,33 @@ fn resolve_issue_id(target_out_dir: &Path, rel_path: &str, fallback_id: usize) -
                 if let Ok(parsed) = d.parse::<usize>() {
                     if parsed > 0 {
                         return parsed;
+                    }
+                }
+            } else if trimmed.starts_with('|') && trimmed.ends_with('|') {
+                let inner = trimmed.trim_matches('|');
+                let parts: Vec<&str> = inner.split('|').map(|s| s.trim()).collect();
+                if parts.len() >= 2 {
+                    let mut key = String::new();
+                    for c in parts[0].chars() {
+                        if !matches!(c, '*' | '`' | '_' | ':' | '#') {
+                            key.push(c);
+                        }
+                    }
+                    let key = key.trim().to_lowercase().replace(' ', "_").replace('-', "_");
+                    if key == "issue_id" || key == "issue" || key == "id" {
+                        let d = parts[1]
+                            .trim()
+                            .trim_matches('*')
+                            .trim_matches('`')
+                            .trim_matches('"')
+                            .trim_matches('\'')
+                            .trim_start_matches('#')
+                            .trim();
+                        if let Ok(parsed) = d.parse::<usize>() {
+                            if parsed > 0 {
+                                return parsed;
+                            }
+                        }
                     }
                 }
             }
@@ -500,7 +550,7 @@ pub fn forward_sync_sysml_to_specs(
             )
         };
 
-        let epic_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
+        let _epic_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
         let epic_issue_id = resolve_issue_id(&target_out_dir, &rel_path, default_issue_id);
 
         let subsys_display = if is_root {
@@ -613,30 +663,17 @@ Subsystem architectural composition and formal invariants derive from `schema/mo
         };
 
         let content = format!(
-            r#"---
-title: "{title}"
-version: "1.0.0"
-date: "{epic_date}"
-type: epic
-package: "{pkg_name}"
-subsystem: "{subsys_display}"
-issue_id: {epic_issue_id}
-generation_mode: subagent
----
-
-# {title}
-
-## Metadata
-| Attribute | Specification Detail |
+            r#"| Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #{epic_issue_id} |
 | **Title** | {title} |
-| **Version** | 1.0.0 |
-| **Date** | {epic_date} |
 | **Type** | epic |
 | **Package** | {pkg_name} |
 | **Subsystem** | {subsys_display} |
-| **Issue ID** | #{epic_issue_id} |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# {title}
 
 ## 1. Context
 {context_text}
@@ -688,7 +725,6 @@ stateDiagram-v2
 ```
 "#,
             title = title,
-            epic_date = epic_date,
             pkg_name = p.name,
             subsys_display = subsys_display,
             epic_issue_id = epic_issue_id,
@@ -708,7 +744,7 @@ stateDiagram-v2
         let f_num = idx + 1;
         let part_name = &ctx.part.name;
         let rel_path = format!("features/FEAT-{:02}-{}.md", f_num, part_name);
-        let feat_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
+        let _feat_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
         let feat_issue_id = resolve_issue_id(&target_out_dir, &rel_path, f_num + 9);
         let title = format!("Feature {:02}: [{}] {}", f_num, ctx.subsys_display, part_name);
 
@@ -759,32 +795,46 @@ stateDiagram-v2
             )
         };
 
+        let parent_epic_link = if ctx.pkg_name == "DEAP_Compiler_System" || ctx.pkg_name == "SysML_Model" || ctx.pkg_name == pkg.name {
+            "[EPIC-01-SysML_Model](../epics/EPIC-01-SysML_Model.md)".to_string()
+        } else if ctx.pkg_name == "ConOps" {
+            "[EPIC-02-ConOps](../epics/EPIC-02-ConOps.md)".to_string()
+        } else {
+            let ep_idx = ordered_packages
+                .iter()
+                .position(|p| p.name == ctx.pkg_name)
+                .map(|idx| idx + 1)
+                .unwrap_or(1);
+            format!(
+                "[EPIC-{ep_idx:02}-{pkg_name}](../epics/EPIC-{ep_idx:02}-{pkg_name}.md)",
+                ep_idx = ep_idx,
+                pkg_name = ctx.pkg_name
+            )
+        };
+
+        let interface_type = "Physical / Structural / Internal Bus";
+        let schema_container = format!("{}::{}", ctx.pkg_name, part_name);
+        let spec_source = if ctx.subsys_dir == "conops" {
+            "[schema/conops/actors.sysml](../../schema/conops/actors.sysml)".to_string()
+        } else if ctx.subsys_dir == "architecture" {
+            "[schema/model.sysml](../../schema/model.sysml)".to_string()
+        } else {
+            format!("[schema/subsystems/{subsys_dir}/architecture.sysml](../../schema/subsystems/{subsys_dir}/architecture.sysml)", subsys_dir = ctx.subsys_dir)
+        };
+
         let content = format!(
-            r#"---
-title: "{title}"
-version: "1.0.0"
-date: "{feat_date}"
-type: feature
-part: "{part_name}"
-part_def: "{part_name}"
-subsystem: "{subsys_display}"
-issue_id: {feat_issue_id}
-generation_mode: subagent
----
+            r#"| Attribute | Specification Detail |
+| :--- | :--- |
+| **Issue ID** | #{feat_issue_id} |
+| **Title** | {title} |
+| **Type** | feature |
+| **Parent Epic** | {parent_epic_link} |
+| **Interface Type** | {interface_type} |
+| **Schema Containers** | `{schema_container}` |
+| **Generation Mode** | subagent |
+| **Specification Source** | {spec_source} |
 
 # {title}
-
-## Metadata
-| Attribute | Specification Detail |
-| :--- | :--- |
-| **Title** | {title} |
-| **Version** | 1.0.0 |
-| **Date** | {feat_date} |
-| **Type** | feature |
-| **Part** | {part_name} |
-| **Subsystem** | {subsys_display} |
-| **Issue ID** | #{feat_issue_id} |
-| **Generation Mode** | subagent |
 
 ## UML Class Diagram
 
@@ -826,10 +876,12 @@ Formal component specifications and normative systems engineering requirements:
 Component behavior and interface definitions derive from `schema/model.sysml` pursuant to ISO/IEC/IEEE 15288.
 "#,
             title = title,
-            feat_date = feat_date,
-            part_name = part_name,
-            subsys_display = ctx.subsys_display,
             feat_issue_id = feat_issue_id,
+            parent_epic_link = parent_epic_link,
+            interface_type = interface_type,
+            schema_container = schema_container,
+            spec_source = spec_source,
+            part_name = part_name,
             class_diagram_block = class_diagram_block,
             json_schema = json_schema,
             bdd_criteria = bdd_criteria,
@@ -844,7 +896,7 @@ Component behavior and interface definitions derive from `schema/model.sysml` pu
         let s_num = s_meta.s_num;
         let story_slug = sanitize_id(&s_meta.action_name);
         let rel_path = format!("user-stories/US-{:02}-{}.md", s_num, story_slug);
-        let us_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
+        let _us_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
         let us_issue_id = resolve_issue_id(&target_out_dir, &rel_path, s_num + 88);
         let title = format!("User Story {:02}: {}", s_num, to_display_name(&s_meta.action_name));
 
@@ -871,31 +923,18 @@ Component behavior and interface definitions derive from `schema/model.sysml` pu
         );
 
         let content = format!(
-            r#"---
-title: "{title}"
-version: "1.0.0"
-date: "{us_date}"
-type: user-story
-epic: "EPIC-02-ConOps"
-interaction: "{action_name}"
-subject: "{engine_name}"
-issue_id: {us_issue_id}
-generation_mode: subagent
----
+            r#"| Attribute | Specification Detail |
+| :--- | :--- |
+| **Issue ID** | #{us_issue_id} |
+| **Title** | {title} |
+| **Type** | user-story |
+| **Parent Epic** | [EPIC-02-ConOps](../epics/EPIC-02-ConOps.md) |
+| **SysML Interaction** | `{action_name}` |
+| **SysML Test Case** | `Test_{action_name}` |
+| **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
 
 # {title}
-
-## Metadata
-| Attribute | Specification Detail |
-| :--- | :--- |
-| **Title** | {title} |
-| **Version** | 1.0.0 |
-| **Date** | {us_date} |
-| **Type** | user-story |
-| **Interaction** | {action_name} |
-| **Subject** | {engine_name} |
-| **Issue ID** | #{us_issue_id} |
-| **Generation Mode** | subagent |
 
 ## UML Sequence Diagram
 
@@ -920,7 +959,6 @@ Operational concept definitions and system sequence interaction models:
 Authoritative user story flows and interaction lifelines derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
 "#,
             title = title,
-            us_date = us_date,
             action_name = action_name,
             engine_name = engine_name,
             us_issue_id = us_issue_id,
@@ -937,7 +975,7 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
         let u_num = uc_m.u_num;
         let uc_slug = sanitize_id(&uc_m.uc.name);
         let rel_path = format!("use-cases/UC-{:02}-{}.md", u_num, uc_slug);
-        let uc_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
+        let _uc_date = resolve_date(&target_out_dir, &rel_path, &today_iso);
         let uc_issue_id = resolve_issue_id(&target_out_dir, &rel_path, u_num + 94);
         let title = format!("Use Case {:02}: {}", u_num, to_display_name(&uc_m.uc.name));
 
@@ -954,7 +992,7 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
         };
 
         let primary_actor = actors.first().cloned().unwrap_or_else(|| "HumanEngineer".to_string());
-        let actors_yaml = actors
+        let _actors_yaml = actors
             .iter()
             .map(|a| format!("  - \"{}\"", a))
             .collect::<Vec<_>>()
@@ -1037,34 +1075,18 @@ Authoritative user story flows and interaction lifelines derive from `schema/con
         );
 
         let content = format!(
-            r#"---
-title: "{title}"
-version: "1.0.0"
-date: "{uc_date}"
-type: use-case
-epic: "EPIC-02-ConOps"
-use_case_def: "{uc_name}"
-subject: "{subject}"
-actors:
-{actors_yaml}
-issue_id: {uc_issue_id}
-generation_mode: subagent
----
+            r#"| Attribute | Specification Detail |
+| :--- | :--- |
+| **Issue ID** | #{uc_issue_id} |
+| **Title** | {title} |
+| **Type** | use-case |
+| **Primary Actor** | {primary_actor} |
+| **Scope** | {subject} |
+| **Level** | User Goal |
+| **Generation Mode** | subagent |
+| **Specification Source** | [schema/conops/activities.sysml](../../schema/conops/activities.sysml) |
 
 # {title}
-
-## Metadata
-| Attribute | Specification Detail |
-| :--- | :--- |
-| **Title** | {title} |
-| **Version** | 1.0.0 |
-| **Date** | {uc_date} |
-| **Type** | use-case |
-| **Use Case Def** | {uc_name} |
-| **Subject** | {subject} |
-| **Actors** | {primary_actor} |
-| **Issue ID** | #{uc_issue_id} |
-| **Generation Mode** | subagent |
 
 ## UML Diagrams
 
@@ -1106,10 +1128,7 @@ Use case operational flows and lifecycle activity references:
 Operational use case realization and traceability links derive from `schema/conops/activities.sysml` pursuant to ISO/IEC/IEEE 29148.
 "#,
             title = title,
-            uc_date = uc_date,
-            uc_name = uc_m.uc.name,
             subject = subject,
-            actors_yaml = actors_yaml,
             uc_issue_id = uc_issue_id,
             primary_actor = primary_actor,
             preconditions = preconditions,

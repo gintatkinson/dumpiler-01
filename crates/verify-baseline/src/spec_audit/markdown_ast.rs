@@ -178,6 +178,9 @@ pub fn is_metadata_header_table_row(line: &str) -> bool {
         "target_baseline",
         "sysml_interaction",
         "sysml_test_case",
+        "primary_actor",
+        "scope",
+        "level",
     ];
 
     METADATA_KEYS.contains(&normalized)

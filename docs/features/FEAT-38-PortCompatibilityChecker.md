@@ -1,28 +1,15 @@
----
-title: "Feature 38: [Interconnect Contracts] PortCompatibilityChecker"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "PortCompatibilityChecker"
-part_def: "PortCompatibilityChecker"
-subsystem: "Interconnect Contracts"
-issue_id: 47
-generation_mode: subagent
----
-
-# Feature 38: [Interconnect Contracts] PortCompatibilityChecker
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 38: [Interconnect Contracts] PortCompatibilityChecker |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | PortCompatibilityChecker |
-| **Subsystem** | Interconnect Contracts |
 | **Issue ID** | #47 |
+| **Title** | Feature 38: [Interconnect Contracts] PortCompatibilityChecker |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-10-InterconnectContracts](../epics/EPIC-10-InterconnectContracts.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `InterconnectContracts::PortCompatibilityChecker` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/interconnect_contracts/architecture.sysml](../../schema/subsystems/interconnect_contracts/architecture.sysml) |
+
+# Feature 38: [Interconnect Contracts] PortCompatibilityChecker
 
 ## UML Class Diagram
 

@@ -1,27 +1,14 @@
----
-title: "Epic 06: Sysml Grammar Lowering"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "SysmlGrammarLowering"
-subsystem: "Sysml Grammar Lowering"
-issue_id: 106
-generation_mode: subagent
----
-
-# Epic 06: Sysml Grammar Lowering
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #106 |
 | **Title** | Epic 06: Sysml Grammar Lowering |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | SysmlGrammarLowering |
 | **Subsystem** | Sysml Grammar Lowering |
-| **Issue ID** | #106 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 06: Sysml Grammar Lowering
 
 ## 1. Context
 Structural Architecture for Subsystem 4 Complete SysMLv2 KerML Grammar

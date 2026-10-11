@@ -1,27 +1,14 @@
----
-title: "Epic 13: Diagnostic Error Catalog"
-version: "1.0.0"
-date: "2026-10-11"
-type: epic
-package: "DiagnosticErrorCatalog"
-subsystem: "Diagnostic Error Catalog"
-issue_id: 113
-generation_mode: subagent
----
-
-# Epic 13: Diagnostic Error Catalog
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
+| **Issue ID** | #113 |
 | **Title** | Epic 13: Diagnostic Error Catalog |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
 | **Type** | epic |
 | **Package** | DiagnosticErrorCatalog |
 | **Subsystem** | Diagnostic Error Catalog |
-| **Issue ID** | #113 |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/model.sysml](../../schema/model.sysml) |
+
+# Epic 13: Diagnostic Error Catalog
 
 ## 1. Context
 Structural Architecture for Subsystem 11 Standardized Diagnostic Error Catalog

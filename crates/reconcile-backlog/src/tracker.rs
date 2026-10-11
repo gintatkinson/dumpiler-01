@@ -16,6 +16,8 @@ pub struct TrackerIssue {
     pub labels: Vec<TrackerLabel>,
     #[serde(default)]
     pub body: Option<String>,
+    #[serde(default)]
+    pub url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -152,51 +154,129 @@ pub trait TrackerClient {
     fn fetch_all_issues(&self) -> Result<Vec<TrackerIssue>, String>;
     fn update_issue_body(&self, issue_number: u64, body: &str) -> Result<(), String>;
     fn add_label(&self, issue_number: u64, label: &str) -> Result<(), String>;
+    fn create_issue(&self, title: &str, body: &str, label: &str, repo: Option<&str>) -> Result<(u64, String), String>;
+    fn ensure_label_exists(&self, label: &str, repo: Option<&str>) -> Result<(), String>;
+    fn reopen_issue(&self, issue_number: u64, comment: Option<&str>, repo: Option<&str>) -> Result<(), String>;
+}
+
+#[derive(Default)]
+struct OfflineState {
+    issues: Vec<TrackerIssue>,
+    labels: Vec<String>,
+    next_id: u64,
 }
 
 /// Offline / In-memory tracker implementation.
 pub struct OfflineTracker {
-    issues: Vec<TrackerIssue>,
+    state: std::sync::Mutex<OfflineState>,
 }
 
 impl OfflineTracker {
     pub fn new() -> Self {
-        Self { issues: Vec::new() }
+        Self {
+            state: std::sync::Mutex::new(OfflineState {
+                issues: Vec::new(),
+                labels: Vec::new(),
+                next_id: 1,
+            }),
+        }
     }
 
     pub fn with_issues(issues: Vec<TrackerIssue>) -> Self {
-        Self { issues }
+        let max_id = issues.iter().map(|i| i.number).max().unwrap_or(0);
+        Self {
+            state: std::sync::Mutex::new(OfflineState {
+                issues,
+                labels: Vec::new(),
+                next_id: max_id + 1,
+            }),
+        }
     }
 }
 
 impl TrackerClient for OfflineTracker {
     fn fetch_all_issues(&self) -> Result<Vec<TrackerIssue>, String> {
-        Ok(self.issues.clone())
+        let guard = self.state.lock().map_err(|e| e.to_string())?;
+        Ok(guard.issues.clone())
     }
 
-    fn update_issue_body(&self, _issue_number: u64, _body: &str) -> Result<(), String> {
+    fn update_issue_body(&self, issue_number: u64, body: &str) -> Result<(), String> {
+        let mut guard = self.state.lock().map_err(|e| e.to_string())?;
+        if let Some(issue) = guard.issues.iter_mut().find(|i| i.number == issue_number) {
+            issue.body = Some(body.to_string());
+        }
         Ok(())
     }
 
-    fn add_label(&self, _issue_number: u64, _label: &str) -> Result<(), String> {
+    fn add_label(&self, issue_number: u64, label: &str) -> Result<(), String> {
+        let mut guard = self.state.lock().map_err(|e| e.to_string())?;
+        if let Some(issue) = guard.issues.iter_mut().find(|i| i.number == issue_number) {
+            issue.labels.push(TrackerLabel::String(label.to_string()));
+        }
+        Ok(())
+    }
+
+    fn create_issue(&self, title: &str, body: &str, label: &str, repo: Option<&str>) -> Result<(u64, String), String> {
+        let mut guard = self.state.lock().map_err(|e| e.to_string())?;
+        let id = guard.next_id;
+        guard.next_id += 1;
+        let url = format!(
+            "https://github.com/{}/issues/{}",
+            repo.unwrap_or("local/offline"),
+            id
+        );
+        guard.issues.push(TrackerIssue {
+            number: id,
+            title: title.to_string(),
+            state: "OPEN".to_string(),
+            labels: vec![TrackerLabel::String(label.to_string())],
+            body: Some(body.to_string()),
+            url: Some(url.clone()),
+        });
+        Ok((id, url))
+    }
+
+    fn ensure_label_exists(&self, label: &str, _repo: Option<&str>) -> Result<(), String> {
+        let mut guard = self.state.lock().map_err(|e| e.to_string())?;
+        let norm = normalize_label(label);
+        if !guard.labels.iter().any(|l| normalize_label(l) == norm) {
+            guard.labels.push(label.to_string());
+        }
+        Ok(())
+    }
+
+    fn reopen_issue(&self, issue_number: u64, _comment: Option<&str>, _repo: Option<&str>) -> Result<(), String> {
+        let mut guard = self.state.lock().map_err(|e| e.to_string())?;
+        if let Some(issue) = guard.issues.iter_mut().find(|i| i.number == issue_number) {
+            issue.state = "OPEN".to_string();
+        }
         Ok(())
     }
 }
 
 /// GitHub CLI (`gh`) based tracker client.
-pub struct GitHubTracker;
+pub struct GitHubTracker {
+    pub repo: Option<String>,
+}
 
 impl GitHubTracker {
     pub fn new() -> Self {
-        Self
+        Self { repo: None }
+    }
+
+    pub fn with_repo(repo: impl Into<String>) -> Self {
+        Self { repo: Some(repo.into()) }
     }
 }
 
 impl TrackerClient for GitHubTracker {
     fn fetch_all_issues(&self) -> Result<Vec<TrackerIssue>, String> {
-        let output = Command::new("gh")
-            .args(["issue", "list", "--limit", "1000", "--state", "all", "--json", "number,title,state,labels"])
-            .output()
+        let mut cmd = Command::new("gh");
+        cmd.args(["issue", "list", "--limit", "1000", "--state", "all", "--json", "number,title,state,labels,url"]);
+        if let Some(ref r) = self.repo {
+            cmd.args(["--repo", r]);
+        }
+        let output = cmd.output()
             .map_err(|e| format!("Failed to execute 'gh issue list': {}", e))?;
 
         if !output.status.success() {
@@ -218,9 +298,12 @@ impl TrackerClient for GitHubTracker {
             .map_err(|e| format!("Failed to write temporary issue body file: {}", e))?;
         let temp_path = temp_file.path.clone();
 
-        let output = Command::new("gh")
-            .args(["issue", "edit", &issue_number.to_string(), "--body-file", &temp_path])
-            .output()
+        let mut cmd = Command::new("gh");
+        cmd.args(["issue", "edit", &issue_number.to_string(), "--body-file", &temp_path]);
+        if let Some(ref r) = self.repo {
+            cmd.args(["--repo", r]);
+        }
+        let output = cmd.output()
             .map_err(|e| format!("Failed to execute 'gh issue edit': {}", e))?;
 
         let _ = std::fs::remove_file(&temp_path);
@@ -234,14 +317,148 @@ impl TrackerClient for GitHubTracker {
     }
 
     fn add_label(&self, issue_number: u64, label: &str) -> Result<(), String> {
-        let output = Command::new("gh")
-            .args(["issue", "edit", &issue_number.to_string(), "--add-label", label])
-            .output()
+        let mut cmd = Command::new("gh");
+        cmd.args(["issue", "edit", &issue_number.to_string(), "--add-label", label]);
+        if let Some(ref r) = self.repo {
+            cmd.args(["--repo", r]);
+        }
+        let output = cmd.output()
             .map_err(|e| format!("Failed to execute 'gh issue edit --add-label': {}", e))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(format!("'gh issue edit --add-label' failed for issue #{}: {}", issue_number, stderr));
+        }
+
+        Ok(())
+    }
+
+    fn create_issue(&self, title: &str, body: &str, label: &str, repo: Option<&str>) -> Result<(u64, String), String> {
+        use std::io::Write;
+        let target_repo = repo.or(self.repo.as_deref());
+        let mut temp_file = tempfile_named()?;
+        temp_file.write_all(body.as_bytes())
+            .map_err(|e| format!("Failed to write temporary issue body file: {}", e))?;
+        let temp_path = temp_file.path.clone();
+
+        let mut cmd = Command::new("gh");
+        cmd.args(["issue", "create", "--title", title, "--label", label, "--body-file", &temp_path]);
+        if let Some(r) = target_repo {
+            cmd.args(["--repo", r]);
+        }
+
+        let output = cmd.output()
+            .map_err(|e| format!("Failed to execute 'gh issue create': {}", e))?;
+
+        let _ = std::fs::remove_file(&temp_path);
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("'gh issue create' failed: {}", stderr));
+        }
+
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        let url_line = output_str
+            .lines()
+            .map(|l| l.trim())
+            .filter(|l| l.starts_with("http"))
+            .last()
+            .unwrap_or_else(|| output_str.trim());
+
+        let url = url_line.to_string();
+        let number = url
+            .rsplit('/')
+            .next()
+            .and_then(|seg| seg.trim().parse::<u64>().ok())
+            .ok_or_else(|| format!("Could not parse issue number from created URL: '{}'", url))?;
+
+        Ok((number, url))
+    }
+
+    fn ensure_label_exists(&self, label: &str, repo: Option<&str>) -> Result<(), String> {
+        let target_repo = repo.or(self.repo.as_deref());
+        let mut list_cmd = Command::new("gh");
+        list_cmd.args(["label", "list", "--limit", "1000", "--json", "name"]);
+        if let Some(r) = target_repo {
+            list_cmd.args(["--repo", r]);
+        }
+        let output = list_cmd.output()
+            .map_err(|e| format!("Failed to execute 'gh label list': {}", e))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("'gh label list' exited with error: {}", stderr));
+        }
+
+        #[derive(Deserialize)]
+        struct GhLabelItem {
+            name: String,
+        }
+
+        let json_str = String::from_utf8_lossy(&output.stdout);
+        let labels: Vec<GhLabelItem> = serde_json::from_str(&json_str)
+            .map_err(|e| format!("Failed to parse 'gh label list' output: {}", e))?;
+
+        let norm_target = normalize_label(label);
+        let exists = labels.iter().any(|l| normalize_label(&l.name) == norm_target || l.name.eq_ignore_ascii_case(label));
+
+        if !exists {
+            let mut create_cmd = Command::new("gh");
+            create_cmd.args([
+                "label", "create", label,
+                "--color", "0366d6",
+                "--description", &format!("{} specification", label),
+            ]);
+            if let Some(r) = target_repo {
+                create_cmd.args(["--repo", r]);
+            }
+            let create_out = create_cmd.output()
+                .map_err(|e| format!("Failed to execute 'gh label create': {}", e))?;
+            if !create_out.status.success() {
+                let stderr = String::from_utf8_lossy(&create_out.stderr);
+                if !stderr.to_lowercase().contains("already exists") {
+                    return Err(format!("'gh label create' failed for label '{}': {}", label, stderr));
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn reopen_issue(&self, issue_number: u64, comment: Option<&str>, repo: Option<&str>) -> Result<(), String> {
+        let target_repo = repo.or(self.repo.as_deref());
+        let mut reopen_cmd = Command::new("gh");
+        reopen_cmd.args(["issue", "reopen", &issue_number.to_string()]);
+        if let Some(r) = target_repo {
+            reopen_cmd.args(["--repo", r]);
+        }
+        let output = reopen_cmd.output()
+            .map_err(|e| format!("Failed to execute 'gh issue reopen': {}", e))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            if !stderr.to_lowercase().contains("already open") {
+                return Err(format!("'gh issue reopen' failed for issue #{}: {}", issue_number, stderr));
+            }
+        }
+
+        if let Some(comment_text) = comment {
+            use std::io::Write;
+            let mut temp_file = tempfile_named()?;
+            temp_file.write_all(comment_text.as_bytes())
+                .map_err(|e| format!("Failed to write temporary comment file: {}", e))?;
+            let temp_path = temp_file.path.clone();
+
+            let mut comment_cmd = Command::new("gh");
+            comment_cmd.args(["issue", "comment", &issue_number.to_string(), "--body-file", &temp_path]);
+            if let Some(r) = target_repo {
+                comment_cmd.args(["--repo", r]);
+            }
+            let c_output = comment_cmd.output()
+                .map_err(|e| format!("Failed to execute 'gh issue comment': {}", e))?;
+            let _ = std::fs::remove_file(&temp_path);
+            if !c_output.status.success() {
+                let stderr = String::from_utf8_lossy(&c_output.stderr);
+                return Err(format!("'gh issue comment' failed for issue #{}: {}", issue_number, stderr));
+            }
         }
 
         Ok(())
@@ -338,6 +555,7 @@ mod tests {
             state: "OPEN".to_string(),
             labels: vec![TrackerLabel::String("status:fixed-resolved".to_string())],
             body: None,
+            url: None,
         };
         assert!(resolved_issue.is_resolved());
 
@@ -347,6 +565,7 @@ mod tests {
             state: "CLOSED".to_string(),
             labels: vec![],
             body: None,
+            url: None,
         };
         assert!(closed_issue.is_resolved());
 
@@ -356,6 +575,7 @@ mod tests {
             state: "OPEN".to_string(),
             labels: vec![TrackerLabel::String("bug".to_string())],
             body: None,
+            url: None,
         };
         assert!(!open_issue.is_resolved());
     }

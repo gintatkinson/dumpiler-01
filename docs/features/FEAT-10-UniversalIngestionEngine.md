@@ -1,28 +1,15 @@
----
-title: "Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine"
-version: "1.0.0"
-date: "2026-10-11"
-type: feature
-part: "UniversalIngestionEngine"
-part_def: "UniversalIngestionEngine"
-subsystem: "Universal Schema Ingestion"
-issue_id: 19
-generation_mode: subagent
----
-
-# Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine
-
-## Metadata
 | Attribute | Specification Detail |
 | :--- | :--- |
-| **Title** | Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine |
-| **Version** | 1.0.0 |
-| **Date** | 2026-10-11 |
-| **Type** | feature |
-| **Part** | UniversalIngestionEngine |
-| **Subsystem** | Universal Schema Ingestion |
 | **Issue ID** | #19 |
+| **Title** | Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine |
+| **Type** | feature |
+| **Parent Epic** | [EPIC-04-UniversalSchemaIngestion](../epics/EPIC-04-UniversalSchemaIngestion.md) |
+| **Interface Type** | Physical / Structural / Internal Bus |
+| **Schema Containers** | `UniversalSchemaIngestion::UniversalIngestionEngine` |
 | **Generation Mode** | subagent |
+| **Specification Source** | [schema/subsystems/universal_schema_ingestion/architecture.sysml](../../schema/subsystems/universal_schema_ingestion/architecture.sysml) |
+
+# Feature 10: [Universal Schema Ingestion] UniversalIngestionEngine
 
 ## UML Class Diagram
 
