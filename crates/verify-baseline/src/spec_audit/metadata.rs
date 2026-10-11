@@ -211,6 +211,179 @@ pub fn has_concatenated_title_metadata(val: &str) -> bool {
     false
 }
 
+/// Checks whether a specification title contains stuttering or redundant prefixes
+/// (such as 'Use Case 01: UC 01', 'UC-01-UC_01', or placeholder tokens like 'UC_XX_').
+///
+/// Preconditions: None.
+/// Postconditions: Returns Some(diagnostic_message) if title contains stuttering prefix.
+/// Algorithmic Complexity: O(T) where T is title character count.
+pub fn check_title_anti_stutter(title: &str) -> Option<String> {
+    let trimmed = title.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    let lower = trimmed.to_lowercase();
+
+    // 1. Placeholder or stutter tokens like "uc_xx_", "uc-xx-", "ucxx_"
+    if lower.contains("uc_xx_")
+        || lower.contains("uc-xx-")
+        || lower.contains("ucxx_")
+        || lower.contains("epic_xx_")
+        || lower.contains("feat_xx_")
+        || lower.contains("us_xx_")
+    {
+        return Some(format!(
+            "Specification title contains stuttering placeholder prefix: '{}'",
+            trimmed
+        ));
+    }
+
+    // 2. Starts with raw stutter prefix like "uc_" followed by digits and underscore
+    if lower.starts_with("uc_") {
+        let rest = &lower[3..];
+        let digits_count = rest.chars().take_while(|c| c.is_ascii_digit()).count();
+        if digits_count > 0 && rest[digits_count..].starts_with('_') {
+            return Some(format!(
+                "Specification title contains raw stuttering prefix 'UC_XX_': '{}'",
+                trimmed
+            ));
+        }
+    }
+
+    // 3. Stutter after standard prefix "Use Case XX:", "UC XX:", "Epic XX:", "Feature XX:", "User Story XX:"
+    if let Some(colon_pos) = lower.find(':') {
+        let prefix_part = lower[..colon_pos].trim();
+        let after_colon = lower[colon_pos + 1..].trim();
+
+        let is_spec_prefix = prefix_part.starts_with("use case")
+            || prefix_part.starts_with("use_case")
+            || prefix_part.starts_with("use-case")
+            || prefix_part.starts_with("uc")
+            || prefix_part.starts_with("epic")
+            || prefix_part.starts_with("feature")
+            || prefix_part.starts_with("feat")
+            || prefix_part.starts_with("user story")
+            || prefix_part.starts_with("user-story")
+            || prefix_part.starts_with("us");
+
+        if is_spec_prefix {
+            let redundant_sub_prefixes = ["uc", "epic", "feat", "us"];
+            for sub in &redundant_sub_prefixes {
+                if after_colon.starts_with(sub) {
+                    let rem = &after_colon[sub.len()..];
+                    let rem_clean = rem.trim_start_matches(|c: char| c == ' ' || c == '-' || c == '_');
+                    let digit_count = rem_clean.chars().take_while(|c| c.is_ascii_digit()).count();
+                    if digit_count > 0 {
+                        return Some(format!(
+                            "Specification title contains stuttering prefix after colon (e.g. 'Use Case XX: UC XX'): '{}'",
+                            trimmed
+                        ));
+                    }
+                }
+            }
+
+            if after_colon.starts_with("use case")
+                || after_colon.starts_with("epic")
+                || after_colon.starts_with("feature")
+                || after_colon.starts_with("user story")
+            {
+                let rem_after = after_colon.trim_start_matches(|c: char| !c.is_ascii_digit());
+                let digit_count = rem_after.chars().take_while(|c| c.is_ascii_digit()).count();
+                if digit_count > 0 {
+                    return Some(format!(
+                        "Specification title contains repeating title prefix: '{}'",
+                        trimmed
+                    ));
+                }
+            }
+        }
+    }
+
+    None
+}
+
+/// Checks whether a specification filename contains stuttering or redundant prefixes
+/// (such as 'UC-01-UC_01_', 'uc-01-uc-01-', or placeholder tokens like 'UC_XX_').
+///
+/// Preconditions: None.
+/// Postconditions: Returns Some(diagnostic_message) if filename contains stuttering prefix.
+/// Algorithmic Complexity: O(F) where F is filename character count.
+pub fn check_filename_anti_stutter(filename: &str) -> Option<String> {
+    let lower = filename.to_lowercase();
+    let basename = match lower.rfind('/') {
+        Some(idx) => &lower[idx + 1..],
+        None => &lower,
+    };
+    let stem = match basename.strip_suffix(".md") {
+        Some(s) => s,
+        None => basename,
+    };
+
+    // 1. Placeholder or stutter tokens like "uc_xx_", "uc-xx-", "ucxx_"
+    if stem.contains("uc_xx_")
+        || stem.contains("uc-xx-")
+        || stem.contains("ucxx_")
+        || stem.contains("epic_xx_")
+        || stem.contains("feat_xx_")
+        || stem.contains("us_xx_")
+    {
+        return Some(format!(
+            "Specification filename contains stuttering placeholder prefix: '{}'",
+            filename
+        ));
+    }
+
+    // 2. Starts with raw stutter prefix like "uc_01_"
+    if stem.starts_with("uc_") {
+        let rest = &stem[3..];
+        let digits_count = rest.chars().take_while(|c| c.is_ascii_digit()).count();
+        if digits_count > 0 && rest[digits_count..].starts_with('_') {
+            return Some(format!(
+                "Specification filename contains raw stuttering prefix 'UC_XX_': '{}'",
+                filename
+            ));
+        }
+    }
+
+    // 3. Filename formatted as <prefix>-<ordinal>-<rest>
+    let prefixes = ["uc", "epic", "feat", "us"];
+    for p in &prefixes {
+        let pattern = format!("{}-", p);
+        if stem.starts_with(&pattern) {
+            let after_p = &stem[pattern.len()..];
+            let digit_count = after_p.chars().take_while(|c| c.is_ascii_digit()).count();
+            if digit_count > 0 {
+                let after_ord = &after_p[digit_count..];
+                if after_ord.starts_with('-') || after_ord.starts_with('_') {
+                    let slug = &after_ord[1..];
+                    let stutter1 = format!("{}_", p);
+                    let stutter2 = format!("{}-", p);
+                    if slug.starts_with(&stutter1) || slug.starts_with(&stutter2) {
+                        return Some(format!(
+                            "Specification filename contains stuttering prefix (e.g. 'UC-01-UC_01_'): '{}'",
+                            filename
+                        ));
+                    }
+                    if slug.starts_with(p) {
+                        let rem_slug = &slug[p.len()..];
+                        let rem_clean = rem_slug.trim_start_matches(|c: char| c == '_' || c == '-');
+                        let slug_digits = rem_clean.chars().take_while(|c| c.is_ascii_digit()).count();
+                        if slug_digits > 0 {
+                            return Some(format!(
+                                "Specification filename contains stuttering prefix (e.g. 'UC-01-UC01'): '{}'",
+                                filename
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
 /// Normalizes a specification title by stripping prefixes, removing punctuation, and collapsing whitespace.
 ///
 /// Preconditions: None.
@@ -407,10 +580,24 @@ pub fn validate_metadata(
                     rel_path, val
                 ));
             }
+            if let Some(stutter_err) = check_title_anti_stutter(val) {
+                errors.push(format!(
+                    "{}: Anti-Stutter Gate violation: {}",
+                    rel_path, stutter_err
+                ));
+            }
         }
         _ => {
             errors.push(format!("{}: Missing mandatory document title.", rel_path));
         }
+    }
+
+    // 5b. Filename anti-stutter validation
+    if let Some(stutter_err) = check_filename_anti_stutter(rel_path) {
+        errors.push(format!(
+            "{}: Anti-Stutter Gate violation: {}",
+            rel_path, stutter_err
+        ));
     }
 
     // 6. Mandatory generation_mode
@@ -673,6 +860,14 @@ pub fn validate_filenames(spec_type: &str, filenames: &[&str], dir_rel: &str) ->
             continue;
         }
 
+        if let Some(stutter_err) = check_filename_anti_stutter(name) {
+            errors.push(format!(
+                "{}/{}: Anti-Stutter Gate violation: {}",
+                dir_rel, name, stutter_err
+            ));
+            continue;
+        }
+
         if let Ok(ord_val) = ordinal.parse::<u64>() {
             by_ordinal.entry(ord_val).or_default().push(name);
             widths.entry(ordinal.len()).or_default().push(name);
@@ -822,5 +1017,39 @@ mod tests {
         let errors = validate_filenames("feature", &mixed_padding, "docs/features");
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("inconsistent ordinal padding width"));
+    }
+
+    #[test]
+    fn test_anti_stutter_gate_title() {
+        assert!(check_title_anti_stutter("Use Case 01: UC 01 System Vision").is_some());
+        assert!(check_title_anti_stutter("Use Case 01: UC-01 Foundational Invariants").is_some());
+        assert!(check_title_anti_stutter("Use Case 01: UC_01 Invariants").is_some());
+        assert!(check_title_anti_stutter("UC_XX_Workflow").is_some());
+        assert!(check_title_anti_stutter("UC_01_System_Vision").is_some());
+        assert!(check_title_anti_stutter("Epic 01: EPIC 01 SysML").is_some());
+        assert!(check_title_anti_stutter("Feature 01: FEAT 01 Engine").is_some());
+        assert!(check_title_anti_stutter("User Story 01: US 01 Bootstrap").is_some());
+        assert!(check_title_anti_stutter("Use Case 01: Use Case 01 Workflow").is_some());
+
+        assert!(check_title_anti_stutter("Use Case 01: System Vision and Foundational Invariants").is_none());
+        assert!(check_title_anti_stutter("Epic 01: SysML Model").is_none());
+        assert!(check_title_anti_stutter("Feature 06: [System Vision] SystemVisionEngine").is_none());
+        assert!(check_title_anti_stutter("User Story 01: Bootstrap System Vision Action").is_none());
+    }
+
+    #[test]
+    fn test_anti_stutter_gate_filename() {
+        assert!(check_filename_anti_stutter("UC-01-UC_01_System_Vision.md").is_some());
+        assert!(check_filename_anti_stutter("UC-01-UC-01-System_Vision.md").is_some());
+        assert!(check_filename_anti_stutter("uc-01-uc_01_workflow.md").is_some());
+        assert!(check_filename_anti_stutter("uc-01-uc_xx_workflow.md").is_some());
+        assert!(check_filename_anti_stutter("feat-01-feat_01_engine.md").is_some());
+        assert!(check_filename_anti_stutter("us-01-us_01_action.md").is_some());
+        assert!(check_filename_anti_stutter("epic-01-epic_01_model.md").is_some());
+
+        assert!(check_filename_anti_stutter("UC-01-System_Vision_and_Foundational_Invariants.md").is_none());
+        assert!(check_filename_anti_stutter("FEAT-06-SystemVisionEngine.md").is_none());
+        assert!(check_filename_anti_stutter("US-01-BootstrapSystemVisionAction.md").is_none());
+        assert!(check_filename_anti_stutter("EPIC-03-SystemVision.md").is_none());
     }
 }

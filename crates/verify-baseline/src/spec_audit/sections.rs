@@ -388,6 +388,139 @@ pub fn validate_sections(spec_type: &str, doc: &MarkdownDoc, rel_path: &str) -> 
     GLOBAL_DEFAULT_SECTION_RULES.validate(spec_type, doc, rel_path)
 }
 
+/// Validates Use Case content against canned fallback boilerplate, minimum scenario step count,
+/// and minimum exception case count per Anti-Boilerplate Gate.
+///
+/// Preconditions: `doc` has been parsed.
+/// Postconditions: Returns list of error findings if Use Case contains canned boilerplate strings,
+/// fewer than 5 steps in Main Success Scenario, or fewer than 3 exception cases in Alternate Flows.
+/// Algorithmic Complexity: O(L) where L is total content line count.
+pub fn validate_use_case_anti_boilerplate(
+    doc: &MarkdownDoc,
+    content: &str,
+    rel_path: &str,
+) -> Vec<String> {
+    let mut errors = Vec::new();
+    let lower_content = content.to_lowercase();
+
+    // 1. Canned fallback strings
+    const CANNED_STRINGS: &[&str] = &[
+        "initiates workflow execution",
+        "processes structural elements and validates semantic constraints",
+    ];
+
+    for canned in CANNED_STRINGS {
+        if lower_content.contains(canned) {
+            errors.push(format!(
+                "{}: Anti-Boilerplate Gate violation: Use Case contains canned fallback string '{}'. Use Cases must specify genuine domain-specific operational workflows.",
+                rel_path, canned
+            ));
+        }
+    }
+
+    // 2. Count Main Success Scenario steps (minimum 5)
+    let mut main_scenario_heading = None;
+    for h in &doc.headings {
+        let h_tokens = normalize_tokens(&h.text);
+        if (h_tokens.contains(&"main".to_string()) && h_tokens.contains(&"scenario".to_string()))
+            || h.text.to_lowercase().contains("main success scenario")
+        {
+            main_scenario_heading = Some(h);
+            break;
+        }
+    }
+
+    if let Some(h) = main_scenario_heading {
+        let start_line = h.line;
+        let next_heading_line = doc
+            .headings
+            .iter()
+            .filter(|next_h| next_h.line > start_line && next_h.level <= h.level)
+            .map(|next_h| next_h.line)
+            .min()
+            .unwrap_or(usize::MAX);
+
+        let mut step_count = 0;
+        for (idx, line) in content.lines().enumerate() {
+            let line_num = idx + 1;
+            if line_num > start_line && line_num < next_heading_line {
+                let trimmed = line.trim();
+                let digit_count = trimmed.chars().take_while(|c| c.is_ascii_digit()).count();
+                if digit_count > 0 {
+                    let after_digits = &trimmed[digit_count..];
+                    if (after_digits.starts_with('.') || after_digits.starts_with(')'))
+                        && after_digits[1..].starts_with(' ')
+                    {
+                        step_count += 1;
+                    }
+                }
+            }
+        }
+
+        if step_count < 5 {
+            errors.push(format!(
+                "{}: Anti-Boilerplate Gate violation: Main Success Scenario has fewer than 5 steps (found {} step(s), minimum 5 required).",
+                rel_path, step_count
+            ));
+        }
+    }
+
+    // 3. Count Alternate and Exception Flows cases (minimum 3, e.g. 5a, 5b, 5c)
+    let mut alt_flows_heading = None;
+    for h in &doc.headings {
+        let h_tokens = normalize_tokens(&h.text);
+        if (h_tokens.contains(&"alternate".to_string()) && h_tokens.contains(&"flows".to_string()))
+            || (h_tokens.contains(&"exception".to_string()) && h_tokens.contains(&"flows".to_string()))
+            || h.text.to_lowercase().contains("alternate and exception flows")
+        {
+            alt_flows_heading = Some(h);
+            break;
+        }
+    }
+
+    if let Some(h) = alt_flows_heading {
+        let start_line = h.line;
+        let next_heading_line = doc
+            .headings
+            .iter()
+            .filter(|next_h| next_h.line > start_line && next_h.level <= h.level)
+            .map(|next_h| next_h.line)
+            .min()
+            .unwrap_or(usize::MAX);
+
+        let mut exception_count = 0;
+        for (idx, line) in content.lines().enumerate() {
+            let line_num = idx + 1;
+            if line_num > start_line && line_num < next_heading_line {
+                let mut trimmed = line.trim();
+                if trimmed.starts_with('-') || trimmed.starts_with('*') {
+                    trimmed = trimmed[1..].trim();
+                }
+                let digit_count = trimmed.chars().take_while(|c| c.is_ascii_digit()).count();
+                if digit_count > 0 {
+                    let after_digits = &trimmed[digit_count..];
+                    let letter_count = after_digits.chars().take_while(|c| c.is_ascii_alphabetic()).count();
+                    if letter_count > 0 {
+                        let after_letters = &after_digits[letter_count..];
+                        if after_letters.starts_with('.') || after_letters.starts_with(':') || after_letters.starts_with(' ') {
+                            exception_count += 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        if exception_count < 3 {
+            errors.push(format!(
+                "{}: Anti-Boilerplate Gate violation: Alternate and Exception Flows has fewer than 3 exception cases (found {} case(s), minimum 3 required, e.g. 5a, 5b, 5c).",
+                rel_path, exception_count
+            ));
+        }
+    }
+
+    errors
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -495,5 +628,46 @@ Prose here.
             errors.iter().any(|e| e.contains("1. Context")),
             "H3 should not satisfy H2 requirement for 1. Context"
         );
+    }
+
+    #[test]
+    fn test_anti_boilerplate_gate() {
+        // Canned fallback strings and underflow steps/exceptions
+        let canned_content = r#"# Use Case 01: System Vision
+## 4. Main Success Scenario
+1. Actor `HumanEngineer` initiates workflow execution.
+2. System `DEAPCompilerSystem` parses input model definitions.
+3. Component `SystemVisionEngine` processes structural elements and validates semantic constraints.
+4. System verifies invariant satisfaction.
+
+## 5. Alternate and Exception Flows
+- 5a. Syntax error detected: System logs error.
+"#;
+        let doc_canned = parse_markdown(canned_content).unwrap();
+        let errors = validate_use_case_anti_boilerplate(&doc_canned, canned_content, "docs/use-cases/uc-01.md");
+        assert!(errors.iter().any(|e| e.contains("initiates workflow execution")));
+        assert!(errors.iter().any(|e| e.contains("processes structural elements and validates semantic constraints")));
+        assert!(errors.iter().any(|e| e.contains("Main Success Scenario has fewer than 5 steps")));
+        assert!(errors.iter().any(|e| e.contains("Alternate and Exception Flows has fewer than 3 exception cases")));
+
+        // Valid use case with 6 steps and 4 exception flows
+        let valid_content = r#"# Use Case 01: System Vision
+## 4. Main Success Scenario
+1. Operator dispatches compilation command with workspace schema root.
+2. SystemVisionEngine initializes compiler namespace UUID constant NS_DEAP.
+3. InvariantBootstrapEngine asserts zero hardcoded domain concept rules across runtime context.
+4. NamespaceUuidGenerator pre-computes topological UUIDv5 namespace roots.
+5. DomainVocabularyValidator inspects grammar vocabulary tokens against prohibited domain ontologies.
+6. SystemVisionEngine emits immutable CompilerRulePort descriptor to downstream ingestion engines.
+
+## 5. Alternate and Exception Flows
+- 5a. Prohibited domain term detected: SystemVisionEngine halts pipeline and emits diagnostic E0100.
+- 5b. Namespace UUID collision: SystemVisionEngine regenerates topological anchor.
+- 5c. Malformed configuration flags: Compiler logs invalid argument diagnostics.
+- 5d. File permission error on workspace: Execution halts safely.
+"#;
+        let doc_valid = parse_markdown(valid_content).unwrap();
+        let errors_valid = validate_use_case_anti_boilerplate(&doc_valid, valid_content, "docs/use-cases/uc-01.md");
+        assert!(errors_valid.is_empty(), "Valid use case should have 0 boilerplate errors: {:?}", errors_valid);
     }
 }
