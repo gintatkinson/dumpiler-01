@@ -70,12 +70,12 @@ Every finding MUST produce output matching this skeleton character-for-character
 
 ## 1. Context and References
 
-<!-- test-target: [path/to/reproducer_test.py] -->
+<!-- test-target: [path/to/target] -->
 
 - **File**: `[path]:[line-line]`
 - **Pillar**: [Memory Safety | Resource Lifecycle | Concurrency | Test Integrity | Semantic Traceability]
 - **Symptom**: [description]
-- **Test-Target**: `[path/to/reproducer_test.py]`
+- **Test-Target**: `[path/to/target]`
 
 ## 2. Root Cause Analysis (5 Whys)
 
@@ -153,12 +153,12 @@ Subagents follow these steps in order. No deviation.
 1. For EVERY finding, produce one issue body.
 2. Copy the skeleton from Section 2 exactly. Fill in `[...]` placeholders with real values.
 3. Section headers and field labels must match the skeleton character-for-character.
-4. Section 1: Four bullet points with bold labels (`File`, `Pillar`, `Symptom`, `Test-Target`), preceded immediately by `<!-- test-target: [path/to/reproducer_test.py] -->`. Never collapse into one line.
+4. Section 1: Four bullet points with bold labels (`File`, `Pillar`, `Symptom`, `Test-Target`), preceded immediately by `<!-- test-target: [path/to/target] -->`. Never collapse into one line.
 5. Section 2: Exactly five `[1-5]. **Why [text]?** Because [text].` lines.
 6. Section 4: Valid Mermaid block (```` ```mermaid ````) (Critical/Important) or "N/A -- [severity] severity." (Suggestion/Nitpick). No ASCII art.
 7. Section 6: Triple-backtick code block with language tag.
 8. End with SEVERITY and FILE_LOCATION lines exactly as shown in the skeleton.
-9. Identify or scaffold the test target file path (e.g. `tests/test_<name>_reproducer.py` or relevant test suite path) and annotate it in Section 1 via `<!-- test-target: [path/to/reproducer_test.py] -->` and `- **Test-Target**: `[path/to/reproducer_test.py]`` so that `./target/release/reconcile-backlog` can automatically discover and execute test targets for filed defects.
+9. Identify the relevant verification target file path (e.g. compiler crate source or specification target path under `crates/` or `schema/`) and annotate it in Section 1 via `<!-- test-target: [path/to/target] -->` and `- **Test-Target**: `[path/to/target]`` for traceability.
 
 ### Step D -- Verify
 
@@ -177,11 +177,11 @@ Before filing, run these checks on the body. All must pass.
 | 9 | Balanced code blocks | Even number of ````` occurrences |
 | 10 | No ASCII art UML | Does NOT contain unescaped `->>` or `→` outside mermaid blocks |
 | 11 | Title-format | Matches `\[AUDIT\] \[[file.ext]\]: [description]` |
-| 12 | Test Target annotation | Contains `<!-- test-target: [path] -->` matching `<!--\s*test-target:\s*\S+\s*-->` and valid path in `- **Test-Target**:` bullet for automated discovery by `./target/release/reconcile-backlog` |
+| 12 | Test Target annotation | Contains `<!-- test-target: [path] -->` matching `<!--\s*test-target:\s*\S+\s*-->` and matching path in `- **Test-Target**:` for traceability and semantic acceptance verification |
 
 If any check fails, fix the body and re-verify. Do NOT file until all checks pass.
 
-**Test Target Verification**: The subagent MUST verify that the test target file path is identified or scaffolded in the repository (e.g., under `tests/`), matches the syntax parsed by `./target/release/reconcile-backlog`, and is executable so that defect reconciliation runs autonomously.
+**Test Target Verification**: The subagent MUST verify that the annotated test target file path exists in the repository and conforms to the repository's semantic acceptance testing architecture.
 
 **Check 7 is executable and MUST be run -- it is not an eyeball check.** Presence of a
 fenced block does not establish validity. An unparseable diagram previously cleared all
