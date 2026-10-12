@@ -5,9 +5,10 @@
 ```mermaid
 graph TD
     subgraph "Run-Time Assurance Architecture"
-        CompilerAssuranceEngine["High Assurance Channel (CompilerAssuranceEngine)"] --> StateMachineSolverEngine["Safety Monitor Switch (StateMachineSolverEngine)"]
-        SafetyAssuranceEngine["Recovery Channel (SafetyAssuranceEngine)"] --> StateMachineSolverEngine
-        StateMachineSolverEngine --> DEAPCompilerSystem["System Under Assurance (DEAPCompilerSystem)"]
+        direction TB
+        CompilerAssuranceEngine["High Assurance Channel<br/>(CompilerAssuranceEngine)"] --> StateMachineSolverEngine["Safety Monitor Switch<br/>(StateMachineSolverEngine)"]
+        SafetyAssuranceEngine["Recovery Channel<br/>(SafetyAssuranceEngine)"] --> StateMachineSolverEngine
+        StateMachineSolverEngine --> DEAPCompilerSystem["System Under Assurance<br/>(DEAPCompilerSystem)"]
     end
 ```
 

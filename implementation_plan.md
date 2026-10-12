@@ -1,200 +1,101 @@
-# Implementation Plan -- Deep Ralph Semantic Convergence & Quality Gate Arming
+# Implementation Plan -- Synthesize 10-Pillar STPA Safety Assurance Suite for `uav-012`
 
-**Objective**: Completely eliminate specification hollow stubs, redundant stuttering naming, canned diagrams, and cross-tier disconnects. Restore full SysML v2 AST behavioral fidelity (matching `3dgs-039` standard), arm `crates/verify-baseline` with non-bypassable semantic quality gates, regenerate all specifications from Ground 0, and project clean verified outputs to GitHub.
+**Objective**: Synthesize, verify, and deliver the complete 10-pillar STPA Safety Assurance Matrix and FMECA suite for `uav-012` (`/Users/perkunas/jail/uav-012`) derived from its authoritative SysML v2 AST model (`schema/model.sysml`), verify that Check 17 and all baseline quality gates pass cleanly, achieve 100% green GitLab CI on Merge Request !5, and push to remote.
 
 ---
 
-## 1. Problem Statement & Root Cause Analysis
+## 1. Context & Completed Work Packages
 
-### A. The "Bad Code" in the Compiler Toolchain (`crates/compile-sysml`)
-1. **Grammar Parser Silently Discards Inner Doc Blocks** (`crates/compile-sysml/src/parser/grammar.rs:1101-1126`):
-   - In `parse_use_case_decl`, the parser checks for `Subject`, `Actor`, `Objective`, `Step`.
-   - When `doc /* ... */` is encountered inside `use case def { ... }`, it falls through to `else { self.skip_until_semi_or_brace(); }` and is **silently discarded**.
-   - Result: All 12 rich Use Case specifications in `schema/subsystems/*/behavior.sysml` (containing multi-actor roles, triggers, preconditions, 6-step scenarios, and `5a`..`5j` exception flows) are completely lost during parsing.
-2. **Canned Fallback Generator in `forward.rs`** (`crates/compile-sysml/src/sync/forward.rs:1151-1182`, `1243-1246`):
-   - When `parsed_doc` is empty due to the parser bug, `forward.rs` falls back to canned 4-line boilerplate (`"Actor HumanEngineer initiates workflow..."`) and a dummy 2-node flowchart (`Actor["HumanEngineer"] --> Target["..."]`).
-   - Violates `rules/uml-model-integrity.md` (missing system boundary subgraph, directed arrows instead of undirected associations, rectangle nodes instead of stadium shape `(["..."])`).
-3. **Hardcoded Canned Epics** (`crates/compile-sysml/src/sync/forward.rs:835-868`):
-   - Class diagrams hardcoded to only `DEAPCompilerSystem --> {primary_engine} : contains` (omitting all other constituent parts, ports, and attributes).
-   - State machine diagrams hardcoded to identical `Bootstrapping -> Ingesting -> Compiling -> Verifying` across all 14 Epics, completely ignoring real subsystem FSMs in `behavior.sysml` (e.g. `StateSolverExecutionStatechart`).
-4. **Hardcoded User Story Parent Epic & Canned Lifelines** (`crates/compile-sysml/src/sync/forward.rs:1061`):
-   - All 12 User Stories hardcode `| **Parent Epic** | [EPIC-02-ConOps] |`, disconnecting stories from their actual subsystem Epics.
-   - Ignores `interaction def` in `behavior.sysml` and generates fake lifelines `HumanEngineer -> DEAPCompilerSystem -> Engine`.
-5. **Redundant Stuttering Titles & Filenames** (`crates/compile-sysml/src/sync/forward.rs:1107-1110`):
-   - `format!("Use Case {:02}: {}", u_num, to_display_name(&uc_m.uc.name))` turns `UC_01_...` into `Use Case 01: UC 01 System Vision and Foundational Invariants`.
-   - `format!("use-cases/UC-{:02}-{}.md", u_num, uc_slug)` turns into `UC-01-UC_01_...md`.
-6. **Hardcoded Source References** (`crates/compile-sysml/src/sync/forward.rs:1237`):
-   - Hardcoded `[schema/conops/activities.sysml]` for all use cases, even when defined in `schema/subsystems/<subsystem>/behavior.sysml`.
-
-### B. Why `verify-baseline` Passed ("Checkbox Compliance")
-- `crates/verify-baseline/src/spec_audit/sections.rs:365-374` only checked whether heading text tokens existed in the document.
-- It never checked:
-  - Title/filename stuttering (e.g., `Use Case 01: UC 01`).
-  - Content word count or presence of canned fallback strings (`"initiates workflow"`, `"validates the operation"`).
-  - Minimum scenario steps ($\ge 5$) or alternate flows ($\ge 3$).
-  - Diagram topology: Use case flowcharts were never parsed or validated in `uml_validator.rs` (it only checked sequence and class diagrams).
-  - Epic statechart variety: Never checked if all Epics have the identical dummy statechart.
-  - Parent Epic parity: Never verified that a User Story's `Parent Epic` matches its subsystem package.
-
-### C. Where the SysML and UML Semantic Requirements Reside
-- `.pipeline/constitution.md`:
-  - **Universal Model Consistency Rules** (lines 77-83): Dynamic-to-Static Alignment; every lifeline must resolve to a defined classifier; every message must map to an active Operation; every transition trigger must be defined in the metamodel.
-  - **Quality Gates** (lines 181-204): Gate 1 (UML Model Integrity), Gate 21 (Semantic Diagram-to-AST Topology Parity), Gate 23 (Factual Grounding), Gate 30 (Architecture Viewpoint & Diagram Completeness).
-- `rules/sysml-ssot-completeness.md` (lines 1185-1250 of `.pipeline/ACTIVE_RULES_BUNDLE.md`):
-  - SysML v2 AST is 100% SSOT; formal mappings of `part def`, `item def`, `action def`, `state def`, `use case def`.
-  - Zero heuristic prose parsing; pure token AST lowering.
-- `rules/uml-model-integrity.md` (lines 1501-1680 of `.pipeline/ACTIVE_RULES_BUNDLE.md`):
-  - Use Cases Must Declare A System Boundary Subgraph.
-  - Actors Must Sit Outside The System Boundary.
-  - Use Case Nodes Must Sit Inside The System Boundary using Stadium Shape `(["..."])`.
-  - Actor Associations Must Be Undirected (`---`).
-  - Use Cases Must Carry Detailed Alternate and Exception Flows.
-  - Statecharts Must Form Deterministic Automata with Triggers and Bracketed Guards.
+- **Target Workspace**: `/Users/perkunas/jail/uav-012` (GitLab: `https://gitlab.com/gintatkinson/uav-012.git`, branch `Phase-1-baseline`).
+- **Initial Delivery**:
+  - Fixed syntax error in `uav-012/schema/model.sysml` at line 2401.
+  - Installed release toolchain in `uav-012/target/release/`.
+  - Transpiled complete 10-deliverable STPA suite under `uav-012/docs/safety/`.
+  - Check 17 verified passing.
+  - Committed with neutral citation `feat(safety): synthesize 10-pillar STPA safety assurance suite (refs #9)` and pushed to `feat/stpa-safety-assurance-suite`.
+  - GitLab Merge Request !5 opened: https://gitlab.com/gintatkinson/uav-012/-/merge_requests/5.
+- **GitLab CI Diagnostic Findings**:
+  - GitLab CI pipeline #2937728442 failed on `lint:downstream-baseline` due to Check 13B (Mermaid syntax & ergonomics) in the generated safety deliverables:
+    1. `docs/safety/01_LOSSES_HAZARDS_TOPOLOGY.md`:
+       - Subgraph `Hierarchical Safety Control Structure` missing explicit `direction TB`.
+       - Node labels exceed 35 characters without `<br/>` wrapping (e.g. `ASTK_A5_V2_5_IAU (Supervisory Controller)`).
+       - Commas inside quoted edge labels (`"supervisory dispatch: trigger_lowering, invoke_codegen"`, `"artifact synthesis: lower_ast, write_binaries"`, `"sensor feedback: diagnostic_errors, verification_metrics"`), which GitLab's GLFM parser rejects.
+    2. `docs/safety/07_RTA_ARCHITECTURE.md`:
+       - Subgraph `Run-Time Assurance Architecture` missing explicit `direction TB`.
+       - Node labels exceed 35 characters without `<br/>` wrapping (e.g. `High Assurance Channel (CompilerAssuranceEngine)`).
 
 ---
 
 ## 2. Work Packages Decomposition
 
-### Work Package 1: Compiler Parser Fix (`crates/compile-sysml/src/parser/grammar.rs`)
-- In `parse_use_case_decl`, handle `TokenKind::Doc` and `TokenKind::DocComment` inside `use case def { ... }` braces.
-- Store inner doc comments on `UseCaseDef.doc` so that structured sections (`Actors:`, `Subject:`, `Preconditions:`, `Trigger:`, `Main Success Scenario:`, `Alternate and Exception Flows:`, `Postconditions:`) are retained in the AST.
+### Work Package 1: Syntax Cleanliness in `uav-012/schema/model.sysml` [COMPLETED]
+- Fixed line 2401 of `/Users/perkunas/jail/uav-012/schema/model.sysml` by stripping literal escape characters.
 
-### Work Package 2: Generator Overhaul for Full Model Fidelity (`crates/compile-sysml/src/sync/forward.rs`)
-1. **Use Case Clean Naming & Paths**:
-   - Implement `clean_use_case_name(name: &str) -> &str` stripping leading `UC_XX_`, `UC-XX-`, or `UCXX_`.
-   - Emit clean titles (`Use Case {:02}: {}`) and clean filenames (`use-cases/UC-{:02}-{}.md`).
-   - Update Epic checklists in `forward.rs:748-756` to link to clean titles and filenames.
-   - Update `resolve_issue_id` to resolve IDs across renames.
-2. **Use Case UML Diagram Compliance**:
-   - Replace the dummy 2-node flowchart with a valid UML Use Case diagram conforming to `rules/uml-model-integrity.md`:
-     - System boundary subgraph enclosing use case nodes in stadium shape `(["..."])`.
-     - Primary and secondary actors outside the boundary using `((Actor))` or `["Actor"]`.
-     - Undirected associations (`---`) between actors and use cases.
-     - Include/extend dependency connectors where applicable.
-3. **Dynamic Source References & Full Doc Lowering**:
-   - Bind `Specification Source` to `[schema/subsystems/{subsys_dir}/behavior.sysml](../../schema/subsystems/{subsys_dir}/behavior.sysml)`.
-   - Lower all 6+ numbered main scenario steps and `5a`..`5j` exception flows directly from the parsed doc block.
-4. **Epic Model Parity**:
-   - Replace canned state machine with genuine subsystem `state def` from `behavior.sysml` (e.g. `StateSolverExecutionStatechart`).
-   - Expand class diagrams to include all constituent `part def`, `port def`, and attributes from `architecture.sysml`.
-5. **User Story Model Parity**:
-   - Lower genuine `interaction def` lifelines and messages from `behavior.sysml` into sequence diagrams.
-   - Bind `Parent Epic` to the declaring subsystem Epic instead of hardcoded `[EPIC-02-ConOps]`.
+### Work Package 2: Toolchain Setup in `uav-012` [COMPLETED]
+- Installed release binaries (`compile-sysml`, `verify-baseline`, `reconcile-backlog`) in `uav-012/target/release/`.
 
-### Work Package 3: Arming `verify-baseline` with Semantic Quality Gates (`crates/verify-baseline`)
-1. **Anti-Stutter Gate**:
-   - In `spec_audit/metadata.rs`, fail if title or filename contains stuttering prefixes (e.g. `Use Case 01: UC 01` or `UC-01-UC_01_`).
-2. **Anti-Boilerplate / Minimum Scenario Gate**:
-   - In `spec_audit/sections.rs` / `uml_validator.rs`, scan Use Case content:
-     - Reject documents containing canned fallback strings (`"initiates workflow execution"`, `"processes structural elements and validates semantic constraints"`).
-     - Require Main Success Scenario to have $\ge 5$ numbered steps.
-     - Require Alternate and Exception Flows to have $\ge 3$ concrete exception cases.
-3. **Use Case Diagram Compliance Gate**:
-   - In `spec_audit/diagram_ast.rs` and `uml_validator.rs`:
-     - Reject Use Case diagrams missing a system boundary subgraph.
-     - Reject Use Case diagrams with directed arrows (`-->`) connecting actors to use cases.
-     - Reject Use Case diagrams with non-stadium nodes inside the boundary.
-     - Reject 2-node trivial diagrams (`Actor --> Target`).
-4. **Epic Statechart Heterogeneity Gate**:
-   - Verify that Epics do not share identical canned state machine diagrams; each must reflect its subsystem's actual behavioral states.
-5. **Parent Epic Alignment Gate**:
-   - Verify that User Stories declare a Parent Epic corresponding to their owning package, not hardcoded `EPIC-02-ConOps`.
+### Work Package 3: STPA Transpilation & Safety Artifact Generation [COMPLETED]
+- Transpiled 10 safety deliverables in `uav-012/docs/safety/`.
 
-### Work Package 4: Ground 0 Pipeline Recompilation & Purge
-- Rebuild workspace release binaries: `cargo build --release --workspace`.
-- Purge legacy misnamed files: `git rm docs/use-cases/UC-*-UC_*.md`.
-- Run Ground 0 compilation:
-  - `./target/release/compile-sysml --compile`
-  - `./target/release/compile-sysml --stpa-transpile`
-  - `./target/release/compile-sysml --forward-sync --force`
-- Audit regenerated files against reference `target/reference/3dgs-039/docs/use-cases/` to ensure 100% convergence.
+### Work Package 4: Quality Gate & Baseline Verification [COMPLETED]
+- Verified Check 17 passes cleanly.
 
-### Work Package 5: Verification, GitHub Projection & Remote Sync
-- Execute `./target/release/verify-baseline . --spec-only` (must pass with 0 findings).
-- Execute `./target/release/verify-baseline . --no-domain` (must pass all 32 quality gates).
-- Project cleaned specifications to GitHub: `./target/release/reconcile-backlog --sync-bodies`.
-- Commit changes using neutral citations: `(refs #115)`.
-- Push to `origin/main` and verify `git diff origin/main` is empty.
+### Work Package 5: Remote Push & GitLab MR Creation [COMPLETED]
+- Pushed branch `feat/stpa-safety-assurance-suite` and opened GitLab MR !5.
+
+### Work Package 6: STPA Generator GLFM & Mermaid Ergonomics Overhaul (`dumpiler-01`)
+- In `crates/compile-sysml/src/stpa/safety_suite.rs`:
+  - Add explicit `direction TB` inside `Hierarchical Safety Control Structure` and `Run-Time Assurance Architecture` subgraphs.
+  - Wrap node labels with `<br/>` so that no label line exceeds 35 characters:
+    - `ASTK_A5_V2_5_IAU<br/>(Supervisory Controller)`
+    - `UniversalIngestionEngine<br/>(Actuator Engine)`
+    - `DownstreamApplicationHost<br/>(Execution Environment)`
+    - `CompilerAssuranceEngine<br/>(Diagnostic Sensors)`
+    - `High Assurance Channel<br/>(CompilerAssuranceEngine)`
+    - `Safety Monitor Switch<br/>(StateMachineSolverEngine)`
+    - `Recovery Channel<br/>(SafetyAssuranceEngine)`
+    - `System Under Assurance<br/>(DEAPCompilerSystem)`
+  - Replace commas in edge labels with dashes (` - `) to eliminate GLFM parser rejections:
+    - `"supervisory dispatch: trigger_lowering - invoke_codegen"`
+    - `"artifact synthesis: lower_ast - write_binaries"`
+    - `"sensor feedback: diagnostic_errors - verification_metrics"`
+  - Update unit test assertions in `safety_suite.rs` to reflect the updated diagram strings.
+- Rebuild workspace release binaries:
+  ```bash
+  cargo build --release --workspace
+  ```
+- Regenerate `dumpiler-01/docs/safety/` and assert baseline passes:
+  ```bash
+  ./target/release/compile-sysml --schema schema/model.sysml --stpa-transpile --out-dir docs/safety
+  ./target/release/verify-baseline . --no-domain
+  ```
+
+### Work Package 7: Re-transpile & Push in `uav-012` to Clear GitLab CI
+- Copy updated `target/release/compile-sysml` to `/Users/perkunas/jail/uav-012/target/release/compile-sysml`.
+- In `/Users/perkunas/jail/uav-012`:
+  - Re-run `./target/release/compile-sysml --schema schema/model.sysml --stpa-transpile --out-dir docs/safety`.
+  - Verify that Check 13B and Check 17 both pass cleanly.
+  - Commit changes under neutral citation: `feat(safety): format STPA Mermaid diagrams for GLFM compliance (refs #9)` (strictly zero em dashes, zero auto-closing keywords).
+  - Push to `origin feat/stpa-safety-assurance-suite`.
+  - Monitor and verify GitLab CI pipeline on MR !5 until green.
 
 ---
 
 ## 3. Acceptance Criteria
 
-- [ ] `crates/compile-sysml/src/parser/grammar.rs` captures inner `doc /* ... */` in `use case def`.
-- [ ] `crates/compile-sysml/src/sync/forward.rs` generates clean Use Case titles, clean filenames, rich scenarios, valid UML Use Case diagrams, and dynamic source paths.
-- [ ] Epics carry genuine subsystem statecharts and multi-part class diagrams from `schema/subsystems/*/`.
-- [ ] User Stories carry genuine sequence diagrams and bind to their respective parent Epics.
-- [ ] `crates/verify-baseline` fails mechanically on stuttering titles, canned boilerplate, 2-node flowcharts, canned epic statecharts, and cross-tier epic mismatches.
-- [ ] All 93 specification files pass the armed `verify-baseline` with 0 findings.
-- [ ] All 32 quality gates pass with exit code 0.
-- [ ] All updated specifications projected to GitHub issues via `reconcile-backlog --sync-bodies`.
-- [ ] All changes committed with neutral citations and pushed cleanly to remote.
+- [x] `schema/model.sysml` in `uav-012` parses with zero syntax errors.
+- [x] Initial 10-pillar STPA suite generated under `uav-012/docs/safety/`.
+- [x] Check 17 verified passing.
+- [x] GitLab Merge Request !5 opened.
+- [ ] `crates/compile-sysml/src/stpa/safety_suite.rs` updated with `direction TB`, `<br/>` line wrapping ($\le 35$ chars), and zero commas in edge labels.
+- [ ] Workspace builds cleanly with `cargo check --workspace` and `cargo test --workspace`.
+- [ ] `dumpiler-01` and `uav-012` safety documents regenerated and pass all Mermaid / GLFM lint gates.
+- [ ] Updated commit pushed to `feat/stpa-safety-assurance-suite` on GitLab.
+- [ ] GitLab CI pipeline on MR !5 passes.
 
 ---
 
 ## 4. Human Authorization Gate
 
 Per `AGENTS.md` § **Strict Planning Gate**:
-To authorize execution of this implementation plan, please reply with **PROCEED**.
-
----
-
-## 5. Upstream Pull Request to DEAP01-spec-core (`rusty-base`)
-
-**Objective**: Deliver all `dumpiler-01` native Rust compiler toolchains (`crates/`), 5 semantic quality gates, and converged specifications to `gintatkinson/DEAP01-spec-core` by creating a dedicated `rusty-base` branch and issuing a comprehensive Pull Request targeting `rusty-base`.
-
-### Work Package 6: Upstream Branching, Tree Synthesis & PR Creation
-1. **Target Remote Configuration**:
-   - Remote `spec-core` is configured to `https://github.com/gintatkinson/DEAP01-spec-core.git`.
-   - Fetch latest `spec-core/main` (`56cc1050`).
-2. **Branch Staging & History Preservation**:
-   - Create and push branch `rusty-base` on `DEAP01-spec-core` rooted at `spec-core/main`.
-   - In an isolated branch / worktree `feat/rust-toolchain-sync` (branched from `rusty-base`):
-     - Synchronize the complete file tree from `dumpiler-01:main` (including `crates/`, `docs/`, `schema/`, `rules/`, `Cargo.toml`, `.pipeline/`).
-     - Exclude temporary local artifacts or `.agents/teamwork/` scratch files.
-     - Commit changes with message adhering to neutral citations: `feat(toolchain): integrate native Rust compiler and converged specifications (refs #115)`.
-     - Zero Unicode em dashes across all committed files and commit messages.
-3. **Remote Push & Pull Request Submission**:
-   - Push `feat/rust-toolchain-sync` to `spec-core` (`gintatkinson/DEAP01-spec-core`).
-   - Issue Pull Request on GitHub using `gh pr create`:
-     - Repository: `gintatkinson/DEAP01-spec-core`
-     - Base: `rusty-base`
-     - Head: `feat/rust-toolchain-sync`
-     - Title: `feat(toolchain): integrate native Rust compiler toolchain and converged specifications`
-     - Body: Complete summary of parser fixes, UML stadium use cases, 5 semantic quality gates, and Ground 0 verification.
-4. **Verification & Closed-Loop Inspection**:
-   - Inspect published PR via `gh pr view <PR_NUMBER> --repo gintatkinson/DEAP01-spec-core`.
-   - Restore `dumpiler-01` working tree to clean `main` state (`git status`).
-
----
-
-## 6. Rust-Only Pull Request to DEAP01-spec-core (`rusty-base`)
-
-**Objective**: Issue a targeted Pull Request to `gintatkinson/DEAP01-spec-core` containing exclusively the native Rust compiler workspace (`crates/`, `Cargo.toml`, `Cargo.lock`), preserving upstream specifications, landing zones, and existing files without deletions or non-Rust modifications.
-
-### Work Package 7: Isolated Staging & Rust-Only PR Submission
-1. **Branch Staging in Isolated Worktree**:
-   - Create worktree `/tmp/spec-core-rust-only` on branch `feat/rust-toolchain-only` rooted at `spec-core/rusty-base`.
-   - Copy ONLY:
-     - `Cargo.toml` (root workspace)
-     - `Cargo.lock`
-     - `crates/` (`crates/assemble-conops/`, `crates/compile-sysml/`, `crates/deap-core/`, `crates/ingest-sysml/`, `crates/reconcile-backlog/`, `crates/verify-baseline/`)
-   - Confirm that NO specification files (`docs/`), schemas (`schema/`), or Python scripts are deleted or modified.
-2. **Compilation Verification**:
-   - Execute `cargo check --workspace` inside `/tmp/spec-core-rust-only` to confirm clean compilation.
-3. **Commit & Remote Push**:
-   - Commit changes: `feat(toolchain): integrate native Rust compiler crates into rusty-base (refs #115)`.
-   - Zero Unicode em dashes across all files and commit message.
-   - Push `feat/rust-toolchain-only` to `spec-core` (`gintatkinson/DEAP01-spec-core`).
-4. **Pull Request Creation & Cross-Reference**:
-   - Issue Pull Request:
-     - Repository: `gintatkinson/DEAP01-spec-core`
-     - Base: `rusty-base`
-     - Head: `feat/rust-toolchain-only`
-     - Title: `feat(toolchain): integrate native Rust compiler crates (Rust files only)`
-   - Close or supersede PR #431 with a reference to the targeted Rust-only PR.
-5. **Cleanup & Verification**:
-   - Verify published PR payload via `gh pr view`.
-   - Clean up temporary worktree `/tmp/spec-core-rust-only`.
-
-
+To authorize execution of Work Packages 6 and 7, please reply with **PROCEED**.

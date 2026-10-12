@@ -529,17 +529,18 @@ fn render_losses_hazards_topology(pkg: &PackageDef, ucas: &[UnsafeControlAction]
     out.push_str("```mermaid\n");
     out.push_str("graph TD\n");
     out.push_str("    subgraph \"Hierarchical Safety Control Structure\"\n");
+    out.push_str("        direction TB\n");
     out.push_str(&format!(
-        "        CompilerController[\"{} (Supervisory Controller)\"]\n",
+        "        CompilerController[\"{}<br/>(Supervisory Controller)\"]\n",
         primary_controller
     ));
-    out.push_str("        ActuatorEngine[\"UniversalIngestionEngine (Actuator Engine)\"]\n");
-    out.push_str("        ControlledProcess[\"DownstreamApplicationHost (Execution Environment)\"]\n");
-    out.push_str("        DiagnosticSensors[\"CompilerAssuranceEngine (Diagnostic Sensors)\"]\n\n");
-    out.push_str("        CompilerController -->|\"supervisory dispatch: trigger_lowering, invoke_codegen\"| ActuatorEngine\n");
-    out.push_str("        ActuatorEngine -->|\"artifact synthesis: lower_ast, write_binaries\"| ControlledProcess\n");
+    out.push_str("        ActuatorEngine[\"UniversalIngestionEngine<br/>(Actuator Engine)\"]\n");
+    out.push_str("        ControlledProcess[\"DownstreamApplicationHost<br/>(Execution Environment)\"]\n");
+    out.push_str("        DiagnosticSensors[\"CompilerAssuranceEngine<br/>(Diagnostic Sensors)\"]\n\n");
+    out.push_str("        CompilerController -->|\"supervisory dispatch: trigger_lowering - invoke_codegen\"| ActuatorEngine\n");
+    out.push_str("        ActuatorEngine -->|\"artifact synthesis: lower_ast - write_binaries\"| ControlledProcess\n");
     out.push_str("        ControlledProcess -->|\"compilation artifacts and execution traces\"| DiagnosticSensors\n");
-    out.push_str("        DiagnosticSensors -->|\"sensor feedback: diagnostic_errors, verification_metrics\"| CompilerController\n");
+    out.push_str("        DiagnosticSensors -->|\"sensor feedback: diagnostic_errors - verification_metrics\"| CompilerController\n");
     out.push_str("    end\n");
     out.push_str("```\n\n");
 
@@ -724,9 +725,10 @@ fn render_rta_architecture(tokens: &HashMap<String, String>) -> String {
     out.push_str("```mermaid\n");
     out.push_str("graph TD\n");
     out.push_str("    subgraph \"Run-Time Assurance Architecture\"\n");
-    out.push_str("        CompilerAssuranceEngine[\"High Assurance Channel (CompilerAssuranceEngine)\"] --> StateMachineSolverEngine[\"Safety Monitor Switch (StateMachineSolverEngine)\"]\n");
-    out.push_str("        SafetyAssuranceEngine[\"Recovery Channel (SafetyAssuranceEngine)\"] --> StateMachineSolverEngine\n");
-    out.push_str("        StateMachineSolverEngine --> DEAPCompilerSystem[\"System Under Assurance (DEAPCompilerSystem)\"]\n");
+    out.push_str("        direction TB\n");
+    out.push_str("        CompilerAssuranceEngine[\"High Assurance Channel<br/>(CompilerAssuranceEngine)\"] --> StateMachineSolverEngine[\"Safety Monitor Switch<br/>(StateMachineSolverEngine)\"]\n");
+    out.push_str("        SafetyAssuranceEngine[\"Recovery Channel<br/>(SafetyAssuranceEngine)\"] --> StateMachineSolverEngine\n");
+    out.push_str("        StateMachineSolverEngine --> DEAPCompilerSystem[\"System Under Assurance<br/>(DEAPCompilerSystem)\"]\n");
     out.push_str("    end\n");
     out.push_str("```\n\n");
 
@@ -958,11 +960,11 @@ mod tests {
         // Verify closed-loop STPA control structure topology
         let topo = suite.get("01_LOSSES_HAZARDS_TOPOLOGY.md").unwrap();
         assert!(topo.contains("subgraph \"Hierarchical Safety Control Structure\""));
-        assert!(topo.contains("CompilerController[\"FlightComputer (Supervisory Controller)\"]"));
-        assert!(topo.contains("ActuatorEngine[\"UniversalIngestionEngine (Actuator Engine)\"]"));
-        assert!(topo.contains("ControlledProcess[\"DownstreamApplicationHost (Execution Environment)\"]"));
-        assert!(topo.contains("DiagnosticSensors[\"CompilerAssuranceEngine (Diagnostic Sensors)\"]"));
-        assert!(topo.contains("DiagnosticSensors -->|\"sensor feedback: diagnostic_errors, verification_metrics\"| CompilerController"));
+        assert!(topo.contains("CompilerController[\"FlightComputer<br/>(Supervisory Controller)\"]"));
+        assert!(topo.contains("ActuatorEngine[\"UniversalIngestionEngine<br/>(Actuator Engine)\"]"));
+        assert!(topo.contains("ControlledProcess[\"DownstreamApplicationHost<br/>(Execution Environment)\"]"));
+        assert!(topo.contains("DiagnosticSensors[\"CompilerAssuranceEngine<br/>(Diagnostic Sensors)\"]"));
+        assert!(topo.contains("DiagnosticSensors -->|\"sensor feedback: diagnostic_errors - verification_metrics\"| CompilerController"));
     }
 
     #[test]
