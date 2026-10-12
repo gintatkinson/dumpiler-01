@@ -166,3 +166,35 @@ To authorize execution of this implementation plan, please reply with **PROCEED*
    - Inspect published PR via `gh pr view <PR_NUMBER> --repo gintatkinson/DEAP01-spec-core`.
    - Restore `dumpiler-01` working tree to clean `main` state (`git status`).
 
+---
+
+## 6. Rust-Only Pull Request to DEAP01-spec-core (`rusty-base`)
+
+**Objective**: Issue a targeted Pull Request to `gintatkinson/DEAP01-spec-core` containing exclusively the native Rust compiler workspace (`crates/`, `Cargo.toml`, `Cargo.lock`), preserving upstream specifications, landing zones, and existing files without deletions or non-Rust modifications.
+
+### Work Package 7: Isolated Staging & Rust-Only PR Submission
+1. **Branch Staging in Isolated Worktree**:
+   - Create worktree `/tmp/spec-core-rust-only` on branch `feat/rust-toolchain-only` rooted at `spec-core/rusty-base`.
+   - Copy ONLY:
+     - `Cargo.toml` (root workspace)
+     - `Cargo.lock`
+     - `crates/` (`crates/assemble-conops/`, `crates/compile-sysml/`, `crates/deap-core/`, `crates/ingest-sysml/`, `crates/reconcile-backlog/`, `crates/verify-baseline/`)
+   - Confirm that NO specification files (`docs/`), schemas (`schema/`), or Python scripts are deleted or modified.
+2. **Compilation Verification**:
+   - Execute `cargo check --workspace` inside `/tmp/spec-core-rust-only` to confirm clean compilation.
+3. **Commit & Remote Push**:
+   - Commit changes: `feat(toolchain): integrate native Rust compiler crates into rusty-base (refs #115)`.
+   - Zero Unicode em dashes across all files and commit message.
+   - Push `feat/rust-toolchain-only` to `spec-core` (`gintatkinson/DEAP01-spec-core`).
+4. **Pull Request Creation & Cross-Reference**:
+   - Issue Pull Request:
+     - Repository: `gintatkinson/DEAP01-spec-core`
+     - Base: `rusty-base`
+     - Head: `feat/rust-toolchain-only`
+     - Title: `feat(toolchain): integrate native Rust compiler crates (Rust files only)`
+   - Close or supersede PR #431 with a reference to the targeted Rust-only PR.
+5. **Cleanup & Verification**:
+   - Verify published PR payload via `gh pr view`.
+   - Clean up temporary worktree `/tmp/spec-core-rust-only`.
+
+
