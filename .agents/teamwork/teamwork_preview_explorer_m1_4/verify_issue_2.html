@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="render-result" data-status="pending"></div>
+  <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant RM as Requirement Doc (REQ-0032.md)
+    participant MT as MarkdownTranslator (markdown.rs)
+    participant AST as RequirementDef (sysml_ast.rs)
+    participant PKG as Subsystem PackageDef
+    participant MDL as Canonical Model (model.sysml)
+
+    RM->>MT: Ingest Markdown requirement with Section 2 Invariant
+    Note over MT: Calls extract_normative_statement for Section 1 only
+    Note over MT: Calls extract_acceptance_criteria for Section 4 only
+    Note over MT: Skips Section 2 Formal Invariants completely
+    MT->>AST: Instantiates RequirementDef without derivations
+    Note over AST: AST lacks derived_from and derives vectors
+    MT->>PKG: Constructs Subsystem PackageDef with empty constraints
+    Note over PKG: Primary engine part def has no assert constraints
+    PKG->>MDL: Serializes SysML v2 textual representation
+    Note over MDL: model.sysml has 0 constraint def and 0 assert usages
+  </pre>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        res.setAttribute('data-svg-id', svg.id);
+        const bbox = svg.getBoundingClientRect();
+        res.setAttribute('data-width', bbox.width);
+        res.setAttribute('data-height', bbox.height);
+      }
+    }).catch(err => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'FAIL');
+      res.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

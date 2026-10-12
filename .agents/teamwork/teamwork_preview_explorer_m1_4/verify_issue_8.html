@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="render-result" data-status="pending"></div>
+  <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant P as SysMLParser
+    participant C as Container
+    participant R as PortRegex
+    participant PS as ParsePortStmt
+    participant V as Check31Gate
+    P->>C: Parse statement import ConOps
+    C->>R: Evaluate port regex
+    Note over R: Matches import via port suffix lacking word boundary
+    R-->>C: Regex match succeeds
+    C->>PS: Parse port statement
+    Note over PS: Port name regex fails and defaults name to Port
+    PS-->>C: Return PortDef with name Port
+    C->>V: Emit AST with phantom port Port
+    Note over V: Detects port Port in schema missing from pipeline schema
+    V-->>P: Check 31 failure schema drift detected
+  </pre>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        res.setAttribute('data-svg-id', svg.id);
+        const bbox = svg.getBoundingClientRect();
+        res.setAttribute('data-width', bbox.width);
+        res.setAttribute('data-height', bbox.height);
+      }
+    }).catch(err => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'FAIL');
+      res.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

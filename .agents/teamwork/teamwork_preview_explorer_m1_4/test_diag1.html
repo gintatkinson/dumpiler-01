@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 30px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <pre class="mermaid">
+sequenceDiagram
+    participant M as MarkdownParser
+    participant R as RequirementBuilder
+    participant P as PartRegistry
+    participant S as SubsystemPackage
+
+    M->>M: Parse REQ Markdown specification
+    M->>R: Build RequirementDef without attributes or AC bindings
+    M->>P: Misidentify AC headings as component targets
+    P->>P: Instantiate orphan PartDef for each AC
+    R->>S: Add RequirementDef to SubsystemPackage
+    P->>S: Add orphan AC PartDefs to SubsystemPackage
+    Note over S: Semantic Traceability Failure (ACs detached as structural parts)
+  </pre>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+  </script>
+</body>
+</html>

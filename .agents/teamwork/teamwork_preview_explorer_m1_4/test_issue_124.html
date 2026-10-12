@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .container {
+      width: fit-content;
+      background: white;
+      padding: 20px;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .mermaid svg {
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <pre class="mermaid" id="diag">
+sequenceDiagram
+    participant Auditor as Auditor Subagent
+    participant TestGate as Step D Check 7 Gate
+    participant GitHub as GitHub Issue Tracker
+    Auditor->>TestGate: Submits defect body with semicolon in Note statement
+    Note over TestGate: Gate checks only diagram header and fence parity
+    TestGate-->>Auditor: Reports exit code 0 (check 7 passed)
+    Auditor->>GitHub: Files issue with malformed Mermaid diagram
+    GitHub-->>Auditor: Renders parse error instead of Section 4 UML
+    </pre>
+  </div>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      sequence: { useMaxWidth: false }
+    });
+  </script>
+</body>
+</html>

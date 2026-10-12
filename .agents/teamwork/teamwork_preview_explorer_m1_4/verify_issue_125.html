@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="render-result" data-status="pending"></div>
+  <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant Auditor as Auditor Subagent
+    participant RepoRules as AGENTS.md Governance
+    participant Reconciler as reconcile-backlog Binary
+    Auditor->>RepoRules: Evaluates repository test policy (Unit tests strictly prohibited)
+    Auditor->>Auditor: Skill mandates scaffolding tests/test_reproducer.py
+    Note over Auditor: Direct conflict between skill instruction and repository rules
+    Auditor->>Reconciler: Expects automated test target discovery and execution
+    Note over Reconciler: Reconciler is backlog metadata synchronizer with zero test runner logic
+    Reconciler-->>Auditor: Cannot discover or execute reproducer test files
+  </pre>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        res.setAttribute('data-svg-id', svg.id);
+        const bbox = svg.getBoundingClientRect();
+        res.setAttribute('data-width', bbox.width);
+        res.setAttribute('data-height', bbox.height);
+      }
+    }).catch(err => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'FAIL');
+      res.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

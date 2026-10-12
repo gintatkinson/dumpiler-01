@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="render-result" data-status="pending"></div>
+  <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant Runner as Baseline Runner
+    participant Gate as Parity Gate (Check 21)
+    participant Discoverer as discover_sysml_model_text
+    participant FS as File System
+    participant Parser as AST Parser
+
+    Runner->>Gate: check_semantic_diagram_ast_parity(repo_root)
+    Gate->>Discoverer: discover_sysml_model_text(repo_root)
+    Discoverer->>FS: read_dir(schema)
+    FS-->>Discoverer: entries (model.sysml, unreadable.sysml, sub.sysml)
+    Note over Discoverer: Filters by extension without checking is_file or dotfile
+    Discoverer->>FS: read_to_string(model.sysml)
+    FS-->>Discoverer: Ok(content1)
+    Discoverer->>FS: read_to_string(unreadable.sysml)
+    FS-->>Discoverer: Err(PermissionDenied)
+    Note over Discoverer: Silently swallows Err via if let Ok
+    Discoverer-->>Gate: Some(truncated_model_text)
+    Gate->>Parser: parse_part_defs(truncated_model_text)
+    Parser-->>Gate: Partial AST (missing parts from unreadable file)
+    Gate-->>Runner: Flaky failure or false pass due to truncated AST
+  </pre>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        res.setAttribute('data-svg-id', svg.id);
+        const bbox = svg.getBoundingClientRect();
+        res.setAttribute('data-width', bbox.width);
+        res.setAttribute('data-height', bbox.height);
+      }
+    }).catch(err => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'FAIL');
+      res.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="/Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    #status {
+      display: none;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">INITIALIZING</div>
+  <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant P as SysMLParser
+    participant C as Container
+    participant R as PortRegex
+    participant PS as ParsePortStmt
+    participant V as Check31Gate
+    P->>C: Parse statement import ConOps
+    C->>R: Evaluate port regex
+    Note over R: Matches import via port suffix lacking word boundary
+    R-->>C: Regex match succeeds
+    C->>PS: Parse port statement
+    Note over PS: Port name regex fails and defaults name to Port
+    PS-->>C: Return PortDef with name Port
+    C->>V: Emit AST with phantom port Port
+    Note over V: Detects port Port in schema missing from pipeline schema
+    V-->>P: Check 31 failure schema drift detected
+  </pre>
+  <script>
+    window.renderStatus = 'PENDING';
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      window.renderStatus = 'SUCCESS';
+      document.getElementById('status').innerText = 'SUCCESS';
+    }).catch(err => {
+      window.renderStatus = 'ERROR: ' + err.message;
+      document.getElementById('status').innerText = 'ERROR: ' + err.message;
+    });
+  </script>
+</body>
+</html>

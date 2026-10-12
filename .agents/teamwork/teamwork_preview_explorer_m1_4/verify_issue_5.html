@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="render-result" data-status="pending"></div>
+  <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant User as "Model Author"
+    participant Scanner as "Scanner::scan_block_comment"
+    participant Parser as "SysmlParser::parse_container_item"
+    participant AST as "PackageDef AST"
+
+    User->>Scanner: Input SysML text with nested comment and part def
+    Scanner->>Scanner: Advance to inner closing delimiter
+    Note over Scanner: Halts scanning at inner delimiter without tracking depth
+    Scanner-->>Parser: Emits premature DocComment and trailing comment text as tokens
+    Parser->>Parser: Encounter unexpected trailing tokens
+    Note over Parser: Fallback skip_until_semi_or_brace skips subsequent part def
+    Parser-->>AST: Emits PackageDef with 0 part definitions
+    Note over AST: Silent omission of model element destroying semantic traceability
+  </pre>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        res.setAttribute('data-svg-id', svg.id);
+        const bbox = svg.getBoundingClientRect();
+        res.setAttribute('data-width', bbox.width);
+        res.setAttribute('data-height', bbox.height);
+      }
+    }).catch(err => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'FAIL');
+      res.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

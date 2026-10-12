@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 30px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .container {
+      display: inline-block;
+      background: white;
+      padding: 24px;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .mermaid svg {
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-box" data-status="pending"></div>
+  <div class="container">
+    <pre class="mermaid" id="diagram">
+sequenceDiagram
+    autonumber
+    participant Spec as REQ-0161 Schema (Subsystem 9)
+    participant Engine as ForwardSyncEngine (forward.rs)
+    participant Epics as Downstream Epics (docs/epics)
+    participant Model as Normative SysML v2 / INCOSE Model
+
+    Note over Spec,Epics: Defective 1:1 Injective Partitioning (REQ-0161:24-45 and forward.rs:479-600)
+    Spec->>Engine: Mandate partition along top-level subsystem boundaries (REQ-0161:24)
+    Engine->>Epics: Map CANONICAL_SUBSYSTEMS 1:1 into EPIC-03 through EPIC-14
+    Spec->>Engine: Enforce E0303: Reject capability allocated to more than 1 subsystem
+    Note over Engine,Epics: Disjoint set constraint E_i intersect E_j empty forbids cross-cutting Epics
+
+    Note over Model,Epics: Normative M:N Allocation Architecture (OMG SysML v2, INCOSE v5.0, SAFe 6.0)
+    Model->>Engine: Declare operational capabilities via CapabilityDef independent of physical packaging
+    Model->>Engine: Allocate capability across multiple physical subsystems (M:N allocate relation)
+    Engine->>Epics: Synthesize Epics as strategic portfolio initiatives spanning multiple subsystems
+    Note over Engine,Epics: Capabilities cross-cut subsystems -- Subsystems realize multiple Epics
+    </pre>
+  </div>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      sequence: { useMaxWidth: false }
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const sb = document.getElementById('status-box');
+      sb.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        const bbox = svg.getBoundingClientRect();
+        sb.setAttribute('data-width', Math.ceil(bbox.width));
+        sb.setAttribute('data-height', Math.ceil(bbox.height));
+      }
+    }).catch(err => {
+      const sb = document.getElementById('status-box');
+      sb.setAttribute('data-status', 'FAIL');
+      sb.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

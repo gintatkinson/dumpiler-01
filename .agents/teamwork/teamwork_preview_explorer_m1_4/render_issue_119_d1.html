@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="/Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    #status {
+      display: none;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">INITIALIZING</div>
+  <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant CLI as compile-sysml CLI
+    participant Sync as Forward Synchronizer (forward.rs)
+    participant Spec as Generated Use Cases (UC-01..06)
+    CLI->>Sync: forward_sync_sysml_to_specs(pkg, opts)
+    Note over Sync: Evaluates canonical_use_cases with naive 1-to-1 index mapping
+    Sync->>Spec: Emits UC-03 with Realization Matrix pointing to US-03 and Feature 26
+    Note over Spec: SafetyAssuranceEngine severed from Safety Traceability US-04 and Feature 36
+    Sync->>Spec: Emits UC-04 with Realization Matrix pointing to US-04 and Feature 36
+    Note over Spec: AgileProjectionEngine severed from Downstream Projections US-05 and Feature 46
+    Sync-->>CLI: Returns generated specification map with corrupted traceability links
+  </pre>
+  <script>
+    window.renderStatus = 'PENDING';
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      window.renderStatus = 'SUCCESS';
+      document.getElementById('status').innerText = 'SUCCESS';
+    }).catch(err => {
+      window.renderStatus = 'ERROR: ' + err.message;
+      document.getElementById('status').innerText = 'ERROR: ' + err.message;
+    });
+  </script>
+</body>
+</html>

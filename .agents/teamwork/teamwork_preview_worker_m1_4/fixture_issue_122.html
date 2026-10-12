@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 30px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .container {
+      display: inline-block;
+      background: white;
+      padding: 24px;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .mermaid svg {
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-box" data-status="pending"></div>
+  <div class="container">
+    <pre class="mermaid" id="diagram">
+sequenceDiagram
+    autonumber
+    participant Caller as SubagentOrCI
+    participant Shell as BrittleShellScript
+    participant Subproc as ForkedProcesses
+    participant Rust as NativeRustToolchain
+    participant Tracker as TrackerAPI
+
+    alt Brittle Shell Pipeline (create_issue.sh / file_defect.sh)
+        Caller->>Shell: execute create_issue.sh or file_defect.sh
+        Note over Shell: Un-trapped mktemp allocation leaks files in /tmp
+        Shell->>Subproc: fork gh / glab CLI subprocess
+        Subproc-->>Shell: TSV stdout stream (raw text)
+        Shell->>Subproc: fork awk and sed for column scraping
+        Note over Shell: awk $3 column index shifts on CLI update or tabs
+        Note over Shell: eval execution vulnerable to command injection
+        Shell->>Subproc: fork grep with brittle regex
+        Subproc-->>Shell: Pattern match false positive or false negative
+        Shell-->>Caller: Exit code 1 or silent corruption
+    else Native Rust Architecture (verify-baseline / reconcile-backlog)
+        Caller->>Rust: invoke verify-baseline or reconcile-backlog
+        Note over Rust: In-process execution with zero subprocess forks
+        Note over Rust: Deterministic lexical token scanner (Anti-Regex Invariant)
+        Rust->>Tracker: In-process REST query via TrackerClient trait
+        Tracker-->>Rust: Strongly-typed JSON payload
+        Note over Rust: Type-safe serde_json deserialization into TrackerIssue AST
+        Note over Rust: Memory-safe error propagation via Result and robust RAII
+        Rust-->>Caller: Zero-leak deterministic exit status
+    end
+    </pre>
+  </div>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      sequence: { useMaxWidth: false }
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const sb = document.getElementById('status-box');
+      sb.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        const bbox = svg.getBoundingClientRect();
+        sb.setAttribute('data-width', Math.ceil(bbox.width));
+        sb.setAttribute('data-height', Math.ceil(bbox.height));
+      }
+    }).catch(err => {
+      const sb = document.getElementById('status-box');
+      sb.setAttribute('data-status', 'FAIL');
+      sb.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 30px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .container {
+      display: inline-block;
+      background: white;
+      padding: 24px;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .mermaid svg {
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-box" data-status="pending"></div>
+  <div class="container">
+    <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant Parser as SysMLv2 Parser
+    participant Model as AST Package Model
+    participant Compiler as Forward Sync Compiler
+    participant STPA as STPA UCA Analyzer
+
+    Parser->>Model: Ingest behavior.sysml
+    Note over Model: Empty package block with zero actions or interactions
+    Compiler->>Model: Query pkg.get_all_interactions()
+    Model-->>Compiler: Returns empty vector
+    Note over Compiler: Bypasses dynamic generation and falls back to static arrays
+    STPA->>Model: Query pkg.get_all_actions()
+    Model-->>STPA: Returns empty vector
+    Note over STPA: Zero control actions discovered for ingestion engine
+    </pre>
+  </div>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      sequence: { useMaxWidth: false }
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const sb = document.getElementById('status-box');
+      sb.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        const bbox = svg.getBoundingClientRect();
+        sb.setAttribute('data-width', Math.ceil(bbox.width));
+        sb.setAttribute('data-height', Math.ceil(bbox.height));
+      }
+    }).catch(err => {
+      const sb = document.getElementById('status-box');
+      sb.setAttribute('data-status', 'FAIL');
+      sb.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 30px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .container {
+      display: inline-block;
+      background: white;
+      padding: 24px;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .mermaid svg {
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-box" data-status="pending"></div>
+  <div class="container">
+    <pre class="mermaid" id="diagram">
+sequenceDiagram
+    autonumber
+    participant SysML as Subsystem 07 Architecture Schema
+    participant Parser as SysML Parser AST Arena
+    participant ForwardSync as Forward Sync Engine
+    participant SpecDir as Generated Feature Specs
+    participant FMECA as FMECA Generator
+
+    SysML->>Parser: Declare SafetyAssuranceEngine and 4 pseudo-parts (_1_Normative to _4_Verification)
+    Note over Parser: Ingests 5 PartDefs into pkg.part_defs without distinguishing structural vs textual
+    Parser->>ForwardSync: pkg.get_all_parts() returns 5 PartDefs
+    Note over ForwardSync: Forward sync assumes rigid 5-part cluster and matches "_1_Normative" substrings
+    ForwardSync->>SpecDir: Generates FEAT-36 (real engine) + FEAT-37..40 (4 synthetic features)
+    Note over SpecDir: 80 percent of subsystem features contain boilerplate LUMI and dummy JSON shapes
+    Parser->>FMECA: Query AST parts for component failure mode matrix
+    Note over FMECA: Required explicit filter hack to suppress pseudo-part failure modes
+    </pre>
+  </div>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      sequence: { useMaxWidth: false }
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const sb = document.getElementById('status-box');
+      sb.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        const bbox = svg.getBoundingClientRect();
+        sb.setAttribute('data-width', Math.ceil(bbox.width));
+        sb.setAttribute('data-height', Math.ceil(bbox.height));
+      }
+    }).catch(err => {
+      const sb = document.getElementById('status-box');
+      sb.setAttribute('data-status', 'FAIL');
+      sb.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>

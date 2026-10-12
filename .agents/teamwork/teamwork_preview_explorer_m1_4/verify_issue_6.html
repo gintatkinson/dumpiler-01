@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="file:///Users/perkunas/jail/dumpiler-01/.agents/teamwork/teamwork_preview_explorer_m1_4/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mermaid {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="render-result" data-status="pending"></div>
+  <pre class="mermaid" id="diagram">
+sequenceDiagram
+    participant Parser as SysmlParser
+    participant Dispatcher as parse_container_item
+    participant ConnParser as parse_connection_decl
+    participant TokenStream as Token Stream
+
+    Parser->>Dispatcher: parse_container_item()
+    TokenStream-->>Dispatcher: TokenKind::Connect
+    Note over Dispatcher: Matches TokenKind::Connection or TokenKind::Connect
+    Dispatcher->>ConnParser: parse_connection_decl(doc, false)
+    ConnParser->>TokenStream: expect(TokenKind::Connection)
+    Note over ConnParser,TokenStream: Current token is Connect, not Connection
+    TokenStream-->>ConnParser: ParseError(Expected Connection, found Connect)
+    ConnParser-->>Dispatcher: Err(ParseError)
+    Dispatcher-->>Parser: Err(ParseError)
+    Note over Parser: Compilation aborts on valid connect usage
+  </pre>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+    mermaid.run({
+      nodes: [document.getElementById('diagram')]
+    }).then(() => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'PASS');
+      const svg = document.querySelector('svg');
+      if (svg) {
+        res.setAttribute('data-svg-id', svg.id);
+        const bbox = svg.getBoundingClientRect();
+        res.setAttribute('data-width', bbox.width);
+        res.setAttribute('data-height', bbox.height);
+      }
+    }).catch(err => {
+      const res = document.getElementById('render-result');
+      res.setAttribute('data-status', 'FAIL');
+      res.setAttribute('data-error', err.message);
+    });
+  </script>
+</body>
+</html>
