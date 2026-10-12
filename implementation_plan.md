@@ -136,3 +136,33 @@
 
 Per `AGENTS.md` § **Strict Planning Gate**:
 To authorize execution of this implementation plan, please reply with **PROCEED**.
+
+---
+
+## 5. Upstream Pull Request to DEAP01-spec-core (`rusty-base`)
+
+**Objective**: Deliver all `dumpiler-01` native Rust compiler toolchains (`crates/`), 5 semantic quality gates, and converged specifications to `gintatkinson/DEAP01-spec-core` by creating a dedicated `rusty-base` branch and issuing a comprehensive Pull Request targeting `rusty-base`.
+
+### Work Package 6: Upstream Branching, Tree Synthesis & PR Creation
+1. **Target Remote Configuration**:
+   - Remote `spec-core` is configured to `https://github.com/gintatkinson/DEAP01-spec-core.git`.
+   - Fetch latest `spec-core/main` (`56cc1050`).
+2. **Branch Staging & History Preservation**:
+   - Create and push branch `rusty-base` on `DEAP01-spec-core` rooted at `spec-core/main`.
+   - In an isolated branch / worktree `feat/rust-toolchain-sync` (branched from `rusty-base`):
+     - Synchronize the complete file tree from `dumpiler-01:main` (including `crates/`, `docs/`, `schema/`, `rules/`, `Cargo.toml`, `.pipeline/`).
+     - Exclude temporary local artifacts or `.agents/teamwork/` scratch files.
+     - Commit changes with message adhering to neutral citations: `feat(toolchain): integrate native Rust compiler and converged specifications (refs #115)`.
+     - Zero Unicode em dashes across all committed files and commit messages.
+3. **Remote Push & Pull Request Submission**:
+   - Push `feat/rust-toolchain-sync` to `spec-core` (`gintatkinson/DEAP01-spec-core`).
+   - Issue Pull Request on GitHub using `gh pr create`:
+     - Repository: `gintatkinson/DEAP01-spec-core`
+     - Base: `rusty-base`
+     - Head: `feat/rust-toolchain-sync`
+     - Title: `feat(toolchain): integrate native Rust compiler toolchain and converged specifications`
+     - Body: Complete summary of parser fixes, UML stadium use cases, 5 semantic quality gates, and Ground 0 verification.
+4. **Verification & Closed-Loop Inspection**:
+   - Inspect published PR via `gh pr view <PR_NUMBER> --repo gintatkinson/DEAP01-spec-core`.
+   - Restore `dumpiler-01` working tree to clean `main` state (`git status`).
+
