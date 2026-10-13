@@ -1,4 +1,4 @@
-# BRIEFING — 2026-10-12T22:58:00Z
+# BRIEFING -- 2026-10-12T23:08:30Z
 
 ## Mission
 Eradicate all 43 regular expression sites across the 4 Rust compiler crates, evict the regex crate completely from the workspace, purge all Python debris, and arm ./target/release/verify-baseline with Check 33 and Check 34.
@@ -43,9 +43,9 @@ Eradicate all 43 regular expression sites across the 4 Rust compiler crates, evi
   7. WP7: Refactor Slice 6 (compile-sysml & deap-core) [done]
   8. WP8: Workspace Manifest Eviction & Lockfile Regeneration [done]
   9. WP9: Arm Baseline Toolchain (Checks 33 & 34) [done]
-  10. WP10: Adversarial Verification & Remote Sync [in-progress]
-- **Current phase**: 2
-- **Current focus**: WP10: Adversarial Verification & Remote Sync
+  10. WP10: Adversarial Verification & Remote Sync [done]
+- **Current phase**: Complete
+- **Current focus**: Final parent report and closure
 
 ## 🔒 Key Constraints
 - Strict Prohibition of Unit Tests and Scripts: zero .py, zero .sh, native Rust only.
@@ -59,19 +59,16 @@ Eradicate all 43 regular expression sites across the 4 Rust compiler crates, evi
 - Updated: 2026-10-12T14:26:00Z
 
 ## Key Decisions Made
-- Executing work packages serially in order WP1 -> WP2 -> WP3 -> WP4 -> WP5 -> WP6 -> WP7 -> WP8 -> WP9 -> WP10.
-- WP1 complete: All 12 .py files purged, .gitignore cleaned, verify-baseline passes cleanly.
-- WP2 Slice 1 (`toc.rs`) complete: zero regex in `toc.rs`, AST event parsing implemented.
-- Comprehensive inventory completed: 181 active `Regex::new` sites across 19 files and 6 crates discovered.
-- implementation_plan.md expanded and approved for continuous serial execution of WP3-WP10.
-- WP3 complete: All 3 regex sites in reconcile-backlog/checklist.rs refactored to str::strip_prefix / index slicing, regex evicted from Cargo.toml, semantic acceptance test passed.
-- WP4 complete: All 38 regex sites across 4 files in verify-baseline refactored to native Rust string checks, regex evicted from Cargo.toml, 104 tests pass.
-- WP5 complete: All 52 regex sites across 7 files in ingest-sysml refactored to lexical scanners / string checks, regex evicted from Cargo.toml, passes clean check.
-- WP6 complete: All 53 regex sites across assembler.rs, params.rs, sanitize.rs in assemble-conops refactored to native scanners, regex evicted from Cargo.toml, 12 tests pass.
-- WP7 complete: All 8 regex sites in compile-sysml and 27 regex sites in deap-core refactored to native token/string scanners, regex evicted from both Cargo.toml manifests, passes clean check.
-- WP8 complete: Root Cargo.toml and all crate manifests clean, Cargo.lock regenerated without regex, `cargo tree -i regex` exits 101, all negative code greps 0 hits, baseline passes.
-- WP9 complete: Check 33 (Zero Python Scripts Invariant) and Check 34 (Zero Regex Invariant) implemented in structural.rs, wired into runner.rs, release binary built, passes all 34 checks cleanly.
-- WP10 in-progress: Dispatched auditor_wp10 for empirical mutation testing of Gates 33 & 34, negative proof contracts, remote branch synchronization, and final integrity audit.
+- Executed work packages serially WP1 -> WP2 -> inventory scan -> plan update -> WP3 -> WP4 -> WP5 -> WP6 -> WP7 -> WP8 -> WP9 -> WP10.
+- All 181 regex sites across 19 files in 6 crates refactored to native Rust string matchers and AST event scanners.
+- `regex = "1.10"` evicted from all 6 crate manifests; `Cargo.lock` pruned cleanly; `cargo tree -i regex` exits 101.
+- All 12 `.py` debris files purged; zero `.py` files remain on disk.
+- Check 33 (Zero Python Scripts Invariant) and Check 34 (Zero Regex Invariant) implemented and release binary built.
+- Mutation testing on Gates 33 & 34 verified non-vacuous behavior.
+- All 34 baseline checks pass with exit code 0.
+- Commits formatted with neutral citations `(refs #115)` exclusively, zero auto-closing keywords, zero Unicode em dashes (`\u2014`).
+- Remote tracking branches and PRs synchronized (`origin/main`, `origin/feat/rust-toolchain-only`, `spec-core/feat/rust-toolchain-only`).
+- Forensic Auditor verdict: CLEAN.
 
 ## Team Roster
 | Agent | Type | Work Item | Status | Conv ID |
@@ -88,20 +85,22 @@ Eradicate all 43 regular expression sites across the 4 Rust compiler crates, evi
 | worker_wp7 | teamwork_preview_worker | WP7: Refactor Slice 6 (compile-sysml: 8 & deap-core: 27) | completed | a2dae490-b827-4bb8-a4bd-97a6769534e0 |
 | worker_wp8 | teamwork_preview_worker | WP8: Workspace Manifest Eviction & Lockfile Regeneration | completed | 5ede9d0c-57d6-445c-85e7-8c9aa106383f |
 | worker_wp9 | teamwork_preview_worker | WP9: Arm Baseline Toolchain (Checks 33 & 34) | completed | 0d78f7bc-2f31-42c0-b9ad-acaf314e0dde |
-| auditor_wp10 | teamwork_preview_auditor | WP10: Adversarial Auditor Mutation Testing & Remote Sync | in-progress | 8abc49b0-88bd-4368-8315-f8bbcab6c572 |
+| auditor_wp10 | teamwork_preview_auditor | WP10: Adversarial Auditor Mutation Testing & Remote Sync | completed | 8abc49b0-88bd-4368-8315-f8bbcab6c572 |
 
 ## Succession Status
 - Succession required: no
 - Spawn count: 13 / 16
-- Pending subagents: [8abc49b0-88bd-4368-8315-f8bbcab6c572]
+- Pending subagents: none
 - Predecessor: none
-- Successor: not yet spawned
+- Successor: not needed (all milestones completed)
 
 ## Active Timers
-- Heartbeat cron: cf963395-9c39-4b77-9d5e-56d989a5c8c8/task-26
-- Safety timer: cf963395-9c39-4b77-9d5e-56d989a5c8c8/task-448
+- Heartbeat cron: cancelled
+- Safety timer: cancelled
 
 ## Artifact Index
-- /Users/perkunas/jail/dumpiler-01/implementation_plan.md — Approved Implementation Plan
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/ORIGINAL_REQUEST.md — Original User Request
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_10/DISPATCH.md — Incoming Dispatch Log
+- /Users/perkunas/jail/dumpiler-01/implementation_plan.md -- Approved Implementation Plan
+- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/ORIGINAL_REQUEST.md -- Original User Request
+- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_10/GATE_STATUS.md -- Gate Verdict Matrix
+- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_10/handoff.md -- Final Orchestrator Handoff
+- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_10/DISPATCH.md -- Incoming Dispatch Log
