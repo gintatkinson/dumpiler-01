@@ -2,27 +2,12 @@
 
 # Rule: Verification-Before-Completion
 
-**ALWAYS enforce:** Before declaring any task, micro-task, or feature complete, you MUST provide **concrete proof of correctness**.
+<a id="rule-verification-required"></a>
+## 20. Rule: Verification Required (`rules/verification-required.md`)
 
-## What counts as proof
+**Enforce on code/model modifications only (never on startup or read-only turns):** Never assert state or completion of code/model modifications without direct, empirical verification.
 
-- Raw test output (pasted terminal output showing test results)
-- Build output (pasted compiler/bundler output showing success)
-- Explicit file-content verification (showing the actual content of generated/modified files)
-
-## What does NOT count as proof
-
-- "It works" or "tests pass" without pasted evidence
-- "I verified it" without showing what was verified
-- Summaries of what should have happened
-- Assumptions based on previous steps succeeding
-
-## Hard constraints
-
-- Every micro-task completion must include pasted evidence.
-- Every feature completion must include full test suite output.
-- If you cannot provide proof (e.g., no test runner available), explicitly state this limitation and ask the user to verify manually.
-
-## Why
-
-Agents are prone to hallucinating success. Requiring raw evidence forces ground-truth verification and makes false completions impossible to hide.
+### Hard Constraints
+- **Pre-Commit Quality Gates (Code/Model Edits Only)**: Only when tracked source or model files were modified in the current turn, run `cargo test --workspace` and `./target/release/verify-baseline . --no-domain` once before committing (never on session initialization or read-only turns).
+- **Remote Sync Verification**: Push all commits to the remote tracking branch and verify `git diff origin/<branch>` is empty.
+- **Forensic Verification Evidence**: Document raw terminal outputs, test results, commit hashes, and issue transitions in handoff reports and issue comments.
