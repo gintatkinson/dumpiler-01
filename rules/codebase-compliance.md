@@ -16,7 +16,7 @@ vocabulary is platform-specific, so this file is its normative home and
 `.pipeline/profiles/<platform>.md` supplies the vocabulary. That division follows
 `rules/platform-independence.md` § *Where platform-specific details belong*.
 
-Enforced offline by `./target/release/verify-baseline`. Every rule below was
+Enforced offline by `./target/release/verify-baseline` (superseding the retired Python validator `codebase.py`). Every rule below was
 enforced before issue #304 and stated in no document -- the orphan-enforcement shape
 recorded as issue #299 -- so nothing generating code into a downstream workspace could
 have been told what it had to satisfy.
@@ -52,8 +52,8 @@ have been told what it had to satisfy.
   literal equal to a colour declared in the design tokens file. Reference the theme or
   the tokens configuration instead. A duplicated literal is the value that stops tracking
   the token when the token changes.
-- **Python Source Must Not Hardcode Token Constants**: the same constraint, checked
-  through the Python AST rather than by pattern, so a colour assembled from constants is
+- **Rust & Platform Source Must Not Hardcode Token Constants**: the same constraint, checked
+  through the source AST rather than by pattern, so a colour assembled from constants is
   caught as well as one written literally.
 
 ## Interaction and concurrency
