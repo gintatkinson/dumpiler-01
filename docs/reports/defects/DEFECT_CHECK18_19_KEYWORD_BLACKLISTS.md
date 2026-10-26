@@ -11,7 +11,7 @@
 
 1. **Why do Checks 18 and 19 fail to prevent domain leakage and static parameter definitions?** Because they rely on hardcoded lexical token blacklists and obsolete filesystem directory paths rather than semantic schema-driven validation.
 2. **Why do they rely on lexical string blacklists?** Because early prototype scaffolding introduced ad-hoc string matching heuristics (FORBIDDEN_PATTERNS and FORBIDDEN_KEYWORDS) as quick patches for specific historical UAS and Python test files.
-3. **Why are these blacklists and paths still in the Rust codebase?** Because during the migration to the native Rust toolchain, legacy Python policing logic targeting parity_auditor was ported without verifying directory existence or schema generality.
+3. **Why are these blacklists and paths still in the Rust codebase?** Because during the migration to the native Rust toolchain, legacy Python policing logic targeting legacy_auditor was ported without verifying directory existence or schema generality.
 4. **Why does this create a correctness and compliance failure?** Because Check 18 hardcodes domain concepts into compiler logic while trivially allowing alternate domain names to bypass the gate, and Check 19 scans non-existent Python directories, generating a vacuous pass.
 5. **Why was this anti-pattern not caught by baseline verification?** Because baseline verification tests in structural.rs only assert against synthetic directory setups containing the exact blacklisted strings, failing to test semantic evasion or dead path traversal against the Pure Schema-Driven Compiler Invariant.
 
@@ -28,7 +28,7 @@ By embedding specific domain concepts from prior aerospace/UAS projects directly
 
 2. Check 19 (`check_domain_agnostic_ast_cleanliness`, lines 125-223):
 The function attempts to verify that upstream tools contain zero static/hardcoded parameter dictionaries using `is_static_param_assignment` (lines 126-146) with a naive keyword list `FORBIDDEN_KEYWORDS` (`"GROUND_TRUTH"`, `"EXPECTED_SPECS"`, `"DOMAIN_SPECS"`, `"DOMAIN_PARAMS"`, `"SYSML_PARAMS"`, `"MANDATED_SPECS"`, `"PHYSICAL_LIMITS"`, `"HARDWARE_REGISTRY"`).
-However, lines 158-173 configure `scan_dirs` exclusively pointing to `skills/spec-orchestrator/parity_auditor/src/parity_auditor/validators` and `.../core`. This directory was removed during the native Rust migration and does not exist in active workspaces. Because line 177 checks `if !dir.is_dir() { continue; }`, the function skips both directories, inspects zero files, and unconditionally returns `Ok(())`.
+However, lines 158-173 configure `scan_dirs` exclusively pointing to `skills/spec-orchestrator/legacy_auditor/src/legacy_auditor/validators` and `.../core`. This directory was removed during the native Rust migration and does not exist in active workspaces. Because line 177 checks `if !dir.is_dir() { continue; }`, the function skips both directories, inspects zero files, and unconditionally returns `Ok(())`.
 Additionally, the repository strictly enforces Check 33 (`check_zero_python_scripts`), which prohibits all `.py` files across the tree. Maintaining a dedicated check to parse Python files for crude line prefixes (`starts_with('=')`) represents obsolete dead scaffolding. If any hardcoded parameter dictionary is defined in Rust or in an active skill profile, Check 19 is blind to it.
 
 Invariant violated: Section 1.1 / Pure Schema-Driven Compiler Invariant (.pipeline/constitution.md:50).
@@ -50,7 +50,7 @@ sequenceDiagram
     C18-->>CI: Ok(()) (Domain Leakage Evades Gate)
 
     CI->>C19: check_domain_agnostic_ast_cleanliness(repo_root)
-    C19->>FS: Check dir.is_dir() on skills/spec-orchestrator/parity_auditor
+    C19->>FS: Check dir.is_dir() on skills/spec-orchestrator/legacy_auditor
     Note over C19,FS: Legacy Python path does not exist on disk
     C19->>C19: Loop skips non-existent directories without scanning any files
     C19-->>CI: Ok(()) (Vacuous Gate Pass on Ghost Scaffolding)
@@ -104,7 +104,7 @@ pub fn verify_upstream_blueprint_domain_cleanliness(repo_root: &Path) -> Result<
     }
 }
 
-// 2. Refactor Check 19: Retire dead Python parity_auditor directory scanning.
+// 2. Refactor Check 19: Retire dead Python legacy_auditor directory scanning.
 // Under Check 33 (check_zero_python_scripts), Python is forbidden across the codebase.
 // Replace Check 19 with a dynamic Rust AST/config validator or retire the check
 // to eliminate vacuous passes on non-existent directories.

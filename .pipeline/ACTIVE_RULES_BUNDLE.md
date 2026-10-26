@@ -73,10 +73,11 @@
 **ALWAYS enforce:** Before beginning any pipeline task, read the project constitution and operating rules.
 
 ### Hard Constraints
-- **Direct-Path Reads**: Read root `AGENTS.md` and `.pipeline/constitution.md` directly by path before taking action.
+- **Direct-Path Reads**: Read root `AGENTS.md` (or optional alias `.agents/AGENTS.md`) and `.pipeline/constitution.md` directly by path before taking action. Both `.pipeline` and `.agents` are hidden directories that generic glob tools may exclude.
 - **Scoped Profile Loading**: Platform profiles (`.pipeline/profiles/<platform>.md`) are read ONLY when implementing downstream features for the configured target platform. Spec workers and `UPSTREAM_SPEC_CORE_COMPILER` sessions MUST NOT read implementation profiles.
 - **Curated Subagent Bypass**: Spawned single-item subagents receiving prompts ending in `---GOVERNANCE-END---` execute their assigned `SKILL.md` directly without repeating coordinator startup ceremonies.
-- **Strict Planning Gate Overrides**: An approved plan is required before modifying any files; authorization keywords alone are insufficient.
+- **Strict Planning Gate Overrides**: Root `AGENTS.md` states the strictest planning rule: an approved plan is required before modifying any files; authorization keywords alone are insufficient.
+- **Turn-0 Canonical Initialization Receipt**: Coordinator MUST execute Phase A on startup and emit the canonical session initialization receipt table before any output or file modifications.
 
 ---
 
@@ -157,13 +158,16 @@
 <a id="rule-role-boundary-lock"></a>
 ## 11. Rule: Role Boundary Lock & Phase Enforcement (`rules/role-boundary-lock.md`)
 
-**ALWAYS enforce:** Enforce strict role boundaries between specification, research, and implementation phases.
+**ALWAYS enforce:** Enforce strict role boundaries between specification, research, and implementation phases. Coordinators must never directly write codebase files or specifications, and subagents must only write within their designated domain boundaries.
 
 ### Hard Constraints
-- **Coordinator Direct Writing Lock**: Coordinators must never directly write codebase files, specifications, or run tech stack research; all writes must be delegated to context-isolated subagents.
-- **Specification Phase Boundary**: Specification workers and `UPSTREAM_SPEC_CORE_COMPILER` workers MUST NOT read or reference implementation profiles or target application source code.
+- **Coordinator Direct Writing & Research Lock**: The coordinator agent is strictly forbidden from directly writing or modifying target functional specifications or codebase source files, and is locked from directly conducting technology stack research. All codebase write and update operations must be delegated to spawned implementer subagents, and failure mode research delegated to context-isolated subagents per component.
+- **Specification Phase Boundary**: Specification workers, spec subagents, and `UPSTREAM_SPEC_CORE_COMPILER` workers are strictly forbidden from reading, writing, or referencing implementation profiles, implementation plans, or target source code files.
 - **Implementation Phase Boundary**: Implementation workers must not modify upstream specifications without synchronized backlog reconciliation.
+- **Strict Subagent Tool Locking**: Spawned subagents must only execute tools that fall within their explicit domain.
 - **Subagent Cleanup**: Every spawned subagent must be terminated or confirmed reclaimed immediately upon task completion.
+- **Scope of Coordinator Writing Lock**: The delegation duty binds for all repository source, governance, tooling, rule, test, and documentation writes. The coordinator direct file-writing lock applies strictly to `walkthrough.md` (which is exclusively a post-implementation verification artifact) and shell file mutations (`cp`, `mv`, `tee`, or redirection), which cannot be used to bypass subagent delegation.
+- **Mandatory Full Compilation Build**: Full application compilation build must be executed before completing any implementation phase.
 
 ---
 
@@ -193,10 +197,11 @@
 <a id="rule-subagent-dispatch-standards"></a>
 ## 14. Rule: Subagent Dispatch Standards (`rules/subagent-dispatch-standards.md`)
 
-**ALWAYS enforce:** Subagent dispatches must adhere strictly to canonical prompt standards, single-item scoping, and pre-flight self-rejection.
+**ALWAYS enforce:** Subagent dispatches must adhere strictly to canonical prompt standards, single-item scoping, target-file read locks, and pre-flight self-rejection.
 
 ### Hard Constraints
-- **Step 1 Skill Directive**: Dispatch prompt MUST direct `view_file` on `SKILL.md` by explicit path as its first step.
+- **Step 1 Skill Directive & Surgical Edit Fast-Path**: Dispatch prompt MUST direct `view_file` on `SKILL.md` by explicit path as its first step for pipeline skill workflows. For surgical edits where exact `Target`/`Replacement` blocks are already approved in `implementation_plan.md`, reading any `SKILL.md` is prohibited fake work; the subagent must apply the exact edits and exit immediately.
+- **Strict Target-File Read & Verification Boundary**: Subagents are strictly forbidden from reading, searching, or inspecting any file outside the explicit target file list in their prompt, and must never redundantly run `verify-baseline` inside single-item edit dispatches.
 - **Repository Classification**: Prompt MUST state the verbatim repository classification (e.g. `UPSTREAM_SPEC_CORE_COMPILER`).
 - **Zero Leading Steering**: Coordinators are forbidden from injecting pseudo-code or pre-digested code before the skill read.
 - **Single-Item Scope**: Every dispatch must target at most 1 item (max 1 Epic, Feature, Story, Use Case, or bounded micro-task).
@@ -256,12 +261,22 @@
 <a id="rule-user-authorization-lock"></a>
 ## 19. Rule: User Authorization Lock & Planning Gate (`rules/user-authorization-lock.md`)
 
-**ALWAYS enforce:** Agents are strictly forbidden from modifying files in the workspace without an approved implementation plan.
+**ALWAYS enforce:** The agent must run the 5-Point Thought-Block Compliance Check in every thought block and lock all modifying tools until authorized by the keyword `PROCEED`.
 
 ### Hard Constraints
-- **Strict Planning Gate**: Before creating, modifying, or deleting files, the agent MUST write/update the implementation plan, stop, and obtain user approval.
-- **Approved Plan Fidelity**: Only files and actions explicitly documented in the approved plan may be modified.
-- **Continuous Execution**: Once the plan is approved (`PROCEED`), work packages and subagents execute continuously to completion unless a gate fails.
+- **5-Point Compliance Check**: Every agent thought block MUST begin with the standardized 5-point check:
+  1. `Turn-0 Initialization Gate`: Verify Phase A execution (detecting `.pipeline/upstream/`, loading `.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md`, running `git status --short --branch`) and emission of the Canonical Session Initialization Receipt Table, or prompt ends with `---GOVERNANCE-END---`.
+  2. `Intent Classification`: Classify message as inquiry vs direct command.
+  3. `User Authorization Lock`: Verify exact target files are documented in an approved `implementation_plan.md` AND user message explicitly contains `PROCEED` (or `Approved` / `Approve plan`).
+  4. `Zero Silent Assumptions`: Confirm no silent assumptions about intent or workspace state.
+  5. `Coordinator Delegation & Shell Mutation Lock`: If active skill mandates subagent dispatch or turn mutates repository files other than `implementation_plan.md`, direct coordinator writing and shell mutations (`cp`, `mv`, `rm`, `tee`, output redirects) are strictly locked; writes must be delegated to subagents after `PROCEED`.
+- **Turn-0 Read-Only Whitelist**: Read-only commands (`git status`, `git status --short --branch`, `git branch --show-current`, `git rev-parse --show-toplevel`, `git diff`, `ls`, `test -d`, `test -e`) are authorized without prior `PROCEED`.
+- **State-Mutating Shell Lock**: Mutating commands (`cp`, `mv`, `rm`, `tee`, `sed -i`, `>`, `>>`) and build/test commands are strictly locked until plan approval with `PROCEED`.
+- **Prohibition of Pre-Approval `walkthrough.md` Edits**: `walkthrough.md` is exclusively a post-implementation verification artifact and must never be created or edited prior to plan approval and subagent completion.
+- **Mandatory Empirical Physical Path Verification**: Before marking any issue resolved, verify target directories via `git status` and `git rev-parse --show-toplevel`.
+- **Plan Continuity**: Established plans cannot be abandoned, altered, or replaced without explicit user authorization.
+- **Single-Task Atomic `implementation_plan.md` & Anti-Snowballing Invariant**: `implementation_plan.md` MUST contain **at most 1 atomic work package** at any time. Dumping multi-wave issue backlogs into `implementation_plan.md` or appending/prepending a new user task onto a previous `implementation_plan.md` is strictly forbidden; backlog queues reside exclusively in the issue tracker (`gh issue list`). `Prohibition of Unapproved Plan Abandonment & Mandatory Plan Continuity` applies strictly **within the currently active in-flight atomic task** (forbidding mid-task abandonment when hitting test/linter friction), and MUST NEVER be used as an excuse to retain completed or unrelated work packages inside `implementation_plan.md` when planning a new atomic task.
+- **Downstream Binary-Only Distribution & Source Firewall Lock**: Upstream Tier-0 compiler source code (`crates/{deap-core,ingest-sysml,compile-sysml,verify-baseline,reconcile-backlog,assemble-conops}`, `Cargo.toml`, `Cargo.lock`), `.pipeline/upstream/`, and `docs/architecture/blueprints/` reside **exclusively** in `DEAP01-spec-core` (`UPSTREAM_SPEC_CORE_COMPILER`). Agents (and subagents) are strictly forbidden from proposing, planning (`implementation_plan.md`), or executing any copy, sync, or commit of Tier-0 compiler `crates/*` source code into any downstream repository (`DOWNSTREAM_CUSTOMER_PROJECT`), and strictly forbidden from running `cargo build` to recompile already-verified `target/release/*` binaries during downstream distribution. Downstream distribution is restricted exclusively to: (1) pre-built `target/release/{compile-sysml,verify-baseline,ingest-sysml,reconcile-backlog,assemble-conops}` binary images, (2) `AGENTS.md` / `.agents/AGENTS.md`, (3) `.pipeline/constitution.md` / `.pipeline/ACTIVE_RULES_BUNDLE.md`, (4) `rules/*.md`, and (5) `skills/**`. Any subagent prompt requesting to copy `crates/*` to a downstream repository MUST immediately self-reject and halt.
 
 ---
 

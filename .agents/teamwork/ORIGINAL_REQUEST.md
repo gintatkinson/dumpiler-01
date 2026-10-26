@@ -732,3 +732,664 @@ The team's Adversarial Auditor MUST perform and paste raw evidence for:
 - [ ] Working tree clean, zero em dashes, and git diff origin/main empty.
 
 PROCEED
+
+
+## 2026-10-13T07:00:02Z
+
+Execute the autonomous Ralph burndown loop on DEAP01-spec-core to eradicate all open defect issues by looping through each defect serially, dispatching a fresh isolated gang of subagents for each individual defect, and enforcing un-falsifiable quality gates with adversarial mutation testing until strictly zero unresolved issues remain.
+
+Working directory: /Users/perkunas/jail/DEAP01-spec-core
+Integrity mode: strict-adversarial-verification
+
+## Strict Behavioral Rules for All Subagents
+
+1. Strict Prohibition of Unit Tests and Scripts:
+   - Creating, maintaining, or executing Python scripts (.py), shell scripts (.sh), or unit test scripts (test_*.py, pytest) is STRICTLY FORBIDDEN anywhere in this repository.
+   - Writing a .py or .sh file into .agents/teamwork/ or anywhere else will result in immediate disqualification and failure of the teamwork session.
+   - All tools, checks, tests, and parsers MUST be written exclusively in native Rust.
+
+2. Mandatory Serial Defect-by-Defect Gang Dispatch:
+   - The orchestrator MUST loop through open defects ONE AT A TIME.
+   - Bundling multiple defects into a single subagent prompt is STRICTLY FORBIDDEN.
+   - Each individual defect MUST receive a fresh, context-isolated gang of subagents with a dedicated single-defect prompt.
+   - Do NOT start Defect N+1 until Defect N is completely reproduced, fixed, verified with mutation tests, pushed, and transitioned on the tracker.
+
+3. Prohibition of Self-Certification & Triumphant Hallucinations:
+   - Triumphant assertions ("VICTORY CONFIRMED", "ALL GATES PASS", "ALL REQUIREMENTS MET") are STRICTLY FORBIDDEN unless accompanied by the raw stdout/stderr of un-falsifiable negative probes.
+   - Exit code 0 is NEVER proof of success unless the tool actively tests for the invariant.
+
+4. Mandatory Adversarial Mutation Testing:
+   - For every single defect, the Adversarial Auditor subagent MUST verify that quality gates and fixes are not vacuous by intentionally probing with negative assertions and mutation tests before approving completion.
+
+5. Upstream Distribution Template Clean Landing Zone Invariant:
+   - Directories schema/, docs/epics/, docs/features/, docs/user-stories/, and docs/use-cases/ MUST remain clean landing zones with ONLY .gitkeep files.
+   - Committing concrete downstream project specifications, models, or domain code to this upstream repository is strictly forbidden.
+
+6. PR #434 Additive Invariant:
+   - The native Rust compiler workspace (+43,327 -0) integrates exclusively crates/, Cargo.toml, and Cargo.lock into main with zero deletions of upstream template structures until PR #434 is cleanly merged.
+
+## Execution Requirements for the Orchestrator
+
+### R1. Backlog Queue Discovery & Dynamic Ingestion
+- The orchestrator queries the authoritative issue tracker for all open unresolved issues:
+  `gh issue list --repo gintatkinson/DEAP01-spec-core --state open --search "-label:status:fixed-resolved" --limit 500 --json number,title,labels`
+- Ingest the list into an internal FIFO burndown queue.
+- Prioritize active toolchain defect blockers (Issues #438, #437, #436, #435, #430, #429, #428, and Macroscope audit blockers) followed by governance and superseded legacy issues.
+
+### R2. Per-Defect Serial Dispatch Loop Protocol
+For each defect in the queue, the orchestrator MUST dispatch a dedicated, freshly spawned subagent gang with this exact single-defect protocol:
+
+1. **Step 1: Defect Ingestion & Reproduction (RED Phase)**
+   - The subagent reads the live issue description: `gh issue view <ID> --repo gintatkinson/DEAP01-spec-core`.
+   - Constructs an empirical negative probe (CLI command or native test invocation) demonstrating the failure.
+   - Records the raw stderr/stdout of the reproduction failure.
+
+2. **Step 2: Surgical Native Rust Implementation (GREEN Phase)**
+   - Implements the minimal, idiomatic upstream fix in `crates/`.
+   - Strictly zero `Regex::` calls and zero `use regex::` imports.
+   - Strictly zero Python scripts (.py) or shell scripts (.sh).
+   - Verifies clean compilation: `cargo check -p <crate>`.
+
+3. **Step 3: Adversarial Mutation Testing**
+   - The subagent's Adversarial Auditor executes mutation testing:
+     a. Injects a deliberate mutation to simulate the unfixed defect -> verifies baseline check fails loudly with exit code 1.
+     b. Restores the clean fix -> verifies baseline check passes with exit code 0.
+     c. Verifies zero regex regression: `test $(git grep "Regex::" crates/<crate> | wc -l) -eq 0`.
+
+4. **Step 4: Quality Gate Verification**
+   - Runs `./target/release/verify-baseline .` (asserts all 34 quality gates pass cleanly).
+   - If upstream templates were touched, verifies clean landing zones with `./target/release/verify-baseline . --spec-only`.
+
+5. **Step 5: Git Commit & Remote Synchronization**
+   - Commits changes on branch `feat/rust-toolchain-only`:
+     `git commit -m "fix(<crate>): <concise description> (refs #<ID>)"`
+   - Zero Unicode em dashes in commit messages. Neutral citations exclusively.
+   - Pushes commit to `origin/feat/rust-toolchain-only` on `gintatkinson/DEAP01-spec-core`.
+
+6. **Step 6: Tracker Resolution & Evidence Logging**
+   - Posts a verification evidence comment on Issue #<ID> containing raw reproduction and mutation test terminal outputs.
+   - Transitions Issue #<ID> to label `status:fixed-resolved` (leaves issue open for Product Owner validation).
+
+7. **Step 7: Gang Termination**
+   - The subagent gang terminates and hands back control to the orchestrator.
+   - The orchestrator verifies the issue transition and advances to the next defect in the queue.
+
+### R3. Special Handling: Superseded Legacy Python/Shell Issues
+- For legacy defects filed against deprecated Python scripts (`compile_sysml.py`, `assemble_conops.py`, `verify_downstream_baseline.py`, `reconcile_backlog.py`) and shell utilities:
+  - The dispatched subagent verifies that the native Rust crates (`crates/compile-sysml`, `crates/assemble-conops`, `crates/verify-baseline`, `crates/reconcile-backlog`) completely eliminate the defect class.
+  - Posts verification evidence detailing the Rust crate implementation that supersedes the legacy script.
+  - Applies label `status:fixed-resolved` to the issue.
+
+### R4. Workspace Hygiene, Total Regex Eviction & Release Build
+- After all defects are resolved:
+  - Recursively purge all leftover `.py` scripts and `.sh` scripts from disk outside `target/` and `.git/`.
+  - Verify `find . -name "*.py" -not -path "./target/*"` returns strictly 0 lines.
+  - Verify `find . -name "*.sh" -not -path "./target/*" -not -path "./.git/*"` returns strictly 0 lines.
+  - Verify regex crate is completely evicted from workspace manifests and `Cargo.lock`:
+    `! cargo tree -i regex` MUST exit non-zero (exit code 101).
+  - Compile release binary: `cargo build --release -p verify-baseline`.
+  - Run full baseline verification: `./target/release/verify-baseline .` (all 34 quality gates pass cleanly).
+
+### R5. Final PR Merge & Un-falsifiable Backlog Closure Check
+- Re-run CI checks on PR #434 and PR #433 until Macroscope checks pass green.
+- Merge PR #434 into `main`.
+- Run `./target/release/reconcile-backlog` to synchronize all issue tracker states.
+- Execute the un-falsifiable zero-unfixed backlog check (MUST evaluate to true / exit code 0):
+  `test $(gh issue list --repo gintatkinson/DEAP01-spec-core --state open --search "-label:status:fixed-resolved" --limit 500 --json number | jq '. | length') -eq 0`
+- Verify `git diff origin/main` is strictly 0 bytes.
+
+## Acceptance Criteria (The Un-falsifiable Contract)
+
+- [ ] Every defect was processed individually in serial order; zero multiple-defect batching occurred.
+- [ ] Each defect was resolved by a freshly spawned, context-isolated subagent gang with adversarial mutation testing evidence.
+- [ ] STRICTLY ZERO unresolved issues remain in DEAP01-spec-core: `gh issue list --repo gintatkinson/DEAP01-spec-core --state open --search "-label:status:fixed-resolved" --limit 500 --json number | jq '. | length'` returns strictly 0.
+- [ ] 100% of open issues carry label `status:fixed-resolved` with verification evidence comments.
+- [ ] Macroscope CI checks pass green on PR #434 and PR #433.
+- [ ] PR #434 merged cleanly into main (+43,327 -0).
+- [ ] Zero .py files exist on disk: `find . -name "*.py" -not -path "./target/*"` returns 0 lines.
+- [ ] Zero .sh files exist on disk: `find . -name "*.sh" -not -path "./target/*" -not -path "./.git/*"` returns 0 lines.
+- [ ] Zero regular expression calls exist in Rust crates: `git grep "Regex::" crates/` returns 0 lines.
+- [ ] Zero regex crate imports exist: `git grep "use regex::" crates/` returns 0 lines.
+- [ ] regex crate is completely evicted from workspace: `cargo tree -i regex` exits non-zero (exit code 101).
+- [ ] Upstream clean landing zone invariant verified: schema/, docs/epics/, docs/features/, docs/user-stories/, docs/use-cases/ contain only .gitkeep.
+- [ ] Check 33 and Check 34 active and passing in ./target/release/verify-baseline.
+- [ ] ./target/release/verify-baseline . passes all 34 quality gates cleanly with exit code 0.
+- [ ] Working tree clean, zero em dashes, and git diff origin/main empty on DEAP01-spec-core.
+
+PROCEED
+
+
+## 2026-10-13T10:57:14Z
+
+the standards you list have nothing to do with state space containment. efactored from aviation-specific SORA atmospheric models to domain-agnostic operational state space containment geometry (ISO/IEC/IEEE 15026-3 / 15288:2023).
+
+
+## 2026-10-13T17:02:33Z
+
+what is being done for defects that where in python before our proting to rust?
+
+## 2026-10-13T17:24:31Z
+
+USER DIRECTIVE INVARIANT — NO COMPLAINING, COMPLETE ALL FIXES
+
+The user has explicitly commanded:
+"no you must still fix everything and can not complain that python is gone... it is forbidden"
+
+Mandates:
+1. 100% of all open defects across the burndown queue MUST still be resolved, verified via adversarial mutation testing, committed, pushed, and transitioned on GitHub (`status:fixed-resolved`).
+2. Zero complaints, blockers, or excuses regarding the absence or deletion of Python are permitted under any circumstances.
+3. All defect resolutions, reproduction probes, mutation tests, and quality gates must be executed purely and exclusively in native Rust in `crates/`.
+4. Continue the autonomous serial burndown loop without interruption until strictly zero unresolved issues remain.
+
+PROCEED
+
+## 2026-10-14T01:41:07Z
+
+why are the agents contaminating the project by working on domain specific features.. give me an answer!  Defect #263 (Strike mission sequence template depicts autonomous hardware arming bypassing human-in-the-loop consent) is domain specifict contamination and does not belong in this report at all.. it must be purged
+
+
+## 2026-10-14T01:51:00Z
+
+Execute the autonomous Ralph burndown loop on DEAP01-spec-core to eradicate all open defect issues by looping through each defect serially, dispatching a fresh isolated gang of subagents for each individual defect, and enforcing un-falsifiable quality gates with adversarial mutation testing until strictly zero unresolved issues remain.
+
+Working directory: /Users/perkunas/jail/DEAP01-spec-core
+Integrity mode: strict-adversarial-verification
+
+## Active User Directive Overrides (Mandatory Immediate Enforcement)
+
+1. **Immediate Total Python Deletion**:
+   - User directive verbatim: "I SAID NO PYTHON EVER AND ALL MUST BE DELETED NOW IMMEDIATLY"
+   - User directive verbatim: "no you must still fix everything and can not complain that python is gone... it is forbidden"
+   - Recursively delete 100% of `.py` files across `DEAP01-spec-core` outside `target/` and `.git/` immediately before continuing the defect loop.
+   - Verify `find . -name "*.py" -not -path "./target/*" -not -path "./.git/*"` returns strictly 0 lines.
+   - Zero subagents may read, reference, or complain about the absence of Python files. All reproduction probes, fixes, mutation tests, and checks MUST be executed exclusively in native Rust within `crates/`.
+
+2. **Complete Domain Decontamination**:
+   - Complete the in-flight domain decontamination purge across `09_SCENARIOS_AND_TIMELINES.md`, `06_ROE_SAFETY_INTERLOCKS.md`, `crates/assemble-conops/src/params.rs`, and `crates/verify-baseline/src/spec_audit/provenance.rs` (excising `SCN-05` and all kinetic/strike/arming domain concepts per the Pure Schema-Driven Compiler Invariant).
+   - Resume the serial defect burndown loop from the remaining open unresolved issues on GitHub (`-label:status:fixed-resolved`), starting with Defect #265.
+
+3. **Model Inheritance**:
+   - All subagents spawned by the Sentinel and Project Orchestrator MUST use `Model: "inherit"` so that 100% of agents execute on Gemini 4 Argon (High).
+
+## Strict Behavioral Rules for All Subagents
+
+1. Strict Prohibition of Unit Tests and Scripts:
+   - Creating, maintaining, or executing Python scripts (.py), shell scripts (.sh), or unit test scripts (test_*.py, pytest) is STRICTLY FORBIDDEN anywhere in this repository.
+   - Writing a .py or .sh file into .agents/teamwork/ or anywhere else will result in immediate disqualification and failure of the teamwork session.
+   - All tools, checks, tests, and parsers MUST be written exclusively in native Rust.
+
+2. Mandatory Serial Defect-by-Defect Gang Dispatch:
+   - The orchestrator MUST loop through open defects ONE AT A TIME.
+   - Bundling multiple defects into a single subagent prompt is STRICTLY FORBIDDEN.
+   - Each individual defect MUST receive a fresh, context-isolated gang of subagents with a dedicated single-defect prompt.
+   - Do NOT start Defect N+1 until Defect N is completely reproduced, fixed, verified with mutation tests, pushed, and transitioned on the tracker.
+
+3. Prohibition of Self-Certification & Triumphant Hallucinations:
+   - Triumphant assertions ("VICTORY CONFIRMED", "ALL GATES PASS", "ALL REQUIREMENTS MET") are STRICTLY FORBIDDEN unless accompanied by the raw stdout/stderr of un-falsifiable negative probes.
+   - Exit code 0 is NEVER proof of success unless the tool actively tests for the invariant.
+
+4. Mandatory Adversarial Mutation Testing:
+   - For every single defect, the Adversarial Auditor subagent MUST verify that quality gates and fixes are not vacuous by intentionally probing with negative assertions and mutation tests before approving completion.
+
+5. Upstream Distribution Template Clean Landing Zone Invariant:
+   - Directories schema/, docs/epics/, docs/features/, docs/user-stories/, and docs/use-cases/ MUST remain clean landing zones with ONLY .gitkeep files.
+   - Committing concrete downstream project specifications, models, or domain code to this upstream repository is strictly forbidden.
+
+6. PR #434 Additive Invariant:
+   - The native Rust compiler workspace (+43,327 -0) integrates exclusively crates/, Cargo.toml, and Cargo.lock into main with zero deletions of upstream template structures until PR #434 is cleanly merged (except for the explicitly mandated immediate purge of all `.py` and `.sh` scripts).
+
+## Execution Requirements for the Orchestrator
+
+### R1. Backlog Queue Discovery & Dynamic Ingestion
+- The orchestrator queries the authoritative issue tracker for all open unresolved issues:
+  `gh issue list --repo gintatkinson/DEAP01-spec-core --state open --search "-label:status:fixed-resolved" --limit 500 --json number,title,labels`
+- Ingest the list into an internal FIFO burndown queue.
+- Prioritize active toolchain defect blockers (Issues #438, #437, #436, #435, #430, #429, #428, and Macroscope audit blockers) followed by governance and superseded legacy issues.
+
+### R2. Per-Defect Serial Dispatch Loop Protocol
+For each defect in the queue, the orchestrator MUST dispatch a dedicated, freshly spawned subagent gang with this exact single-defect protocol:
+
+1. **Step 1: Defect Ingestion & Reproduction (RED Phase)**
+   - The subagent reads the live issue description: `gh issue view <ID> --repo gintatkinson/DEAP01-spec-core`.
+   - Constructs an empirical negative probe (CLI command or native test invocation) demonstrating the failure.
+   - Records the raw stderr/stdout of the reproduction failure.
+
+2. **Step 2: Surgical Native Rust Implementation (GREEN Phase)**
+   - Implements the minimal, idiomatic upstream fix in `crates/`.
+   - Strictly zero `Regex::` calls and zero `use regex::` imports.
+   - Strictly zero Python scripts (.py) or shell scripts (.sh).
+   - Verifies clean compilation: `cargo check -p <crate>`.
+
+3. **Step 3: Adversarial Mutation Testing**
+   - The subagent's Adversarial Auditor executes mutation testing:
+     a. Injects a deliberate mutation to simulate the unfixed defect -> verifies baseline check fails loudly with exit code 1.
+     b. Restores the clean fix -> verifies baseline check passes with exit code 0.
+     c. Verifies zero regex regression: `test $(git grep "Regex::" crates/<crate> | wc -l) -eq 0`.
+
+4. **Step 4: Quality Gate Verification**
+   - Runs `./target/release/verify-baseline .` (asserts all 34 quality gates pass cleanly).
+   - If upstream templates were touched, verifies clean landing zones with `./target/release/verify-baseline . --spec-only`.
+
+5. **Step 5: Git Commit & Remote Synchronization**
+   - Commits changes on branch `feat/rust-toolchain-only`:
+     `git commit -m "fix(<crate>): <concise description> (refs #<ID>)"`
+   - Zero Unicode em dashes in commit messages. Neutral citations exclusively.
+   - Pushes commit to `origin/feat/rust-toolchain-only` on `gintatkinson/DEAP01-spec-core`.
+
+6. **Step 6: Tracker Resolution & Evidence Logging**
+   - Posts a verification evidence comment on Issue #<ID> containing raw reproduction and mutation test terminal outputs.
+   - Transitions Issue #<ID> to label `status:fixed-resolved` (leaves issue open for Product Owner validation).
+
+7. **Step 7: Gang Termination**
+   - The subagent gang terminates and hands back control to the orchestrator.
+   - The orchestrator verifies the issue transition and advances to the next defect in the queue.
+
+### R3. Special Handling: Superseded Legacy Python/Shell Issues
+- For legacy defects filed against deprecated Python scripts (`compile_sysml.py`, `assemble_conops.py`, `verify_downstream_baseline.py`, `reconcile_backlog.py`) and shell utilities:
+  - The dispatched subagent verifies that the native Rust crates (`crates/compile-sysml`, `crates/assemble-conops`, `crates/verify-baseline`, `crates/reconcile-backlog`) completely eliminate the defect class.
+  - Posts verification evidence detailing the Rust crate implementation that supersedes the legacy script.
+  - Applies label `status:fixed-resolved` to the issue.
+
+### R4. Workspace Hygiene, Total Regex Eviction & Release Build
+- Ensure all `.py` scripts and `.sh` scripts are recursively purged from disk outside `target/` and `.git/` immediately and verified continuously:
+  - Verify `find . -name "*.py" -not -path "./target/*"` returns strictly 0 lines.
+  - Verify `find . -name "*.sh" -not -path "./target/*" -not -path "./.git/*"` returns strictly 0 lines.
+  - Verify regex crate is completely evicted from workspace manifests and `Cargo.lock`:
+    `! cargo tree -i regex` MUST exit non-zero (exit code 101).
+  - Compile release binary: `cargo build --release -p verify-baseline`.
+  - Run full baseline verification: `./target/release/verify-baseline .` (all 34 quality gates pass cleanly).
+
+### R5. Final PR Merge & Un-falsifiable Backlog Closure Check
+- Re-run CI checks on PR #434 and PR #433 until Macroscope checks pass green.
+- Merge PR #434 into `main`.
+- Run `./target/release/reconcile-backlog` to synchronize all issue tracker states.
+- Execute the un-falsifiable zero-unfixed backlog check (MUST evaluate to true / exit code 0):
+  `test $(gh issue list --repo gintatkinson/DEAP01-spec-core --state open --search "-label:status:fixed-resolved" --limit 500 --json number | jq '. | length') -eq 0`
+- Verify `git diff origin/main` is strictly 0 bytes.
+
+## Acceptance Criteria (The Un-falsifiable Contract)
+
+- [ ] Every defect was processed individually in serial order; zero multiple-defect batching occurred.
+- [ ] Each defect was resolved by a freshly spawned, context-isolated subagent gang with adversarial mutation testing evidence.
+- [ ] STRICTLY ZERO unresolved issues remain in DEAP01-spec-core: `gh issue list --repo gintatkinson/DEAP01-spec-core --state open --search "-label:status:fixed-resolved" --limit 500 --json number | jq '. | length'` returns strictly 0.
+- [ ] 100% of open issues carry label `status:fixed-resolved` with verification evidence comments.
+- [ ] Macroscope CI checks pass green on PR #434 and PR #433.
+- [ ] PR #434 merged cleanly into main (+43,327 -0).
+- [ ] Zero .py files exist on disk: `find . -name "*.py" -not -path "./target/*"` returns 0 lines.
+- [ ] Zero .sh files exist on disk: `find . -name "*.sh" -not -path "./target/*" -not -path "./.git/*"` returns 0 lines.
+- [ ] Zero regular expression calls exist in Rust crates: `git grep "Regex::" crates/` returns 0 lines.
+- [ ] Zero regex crate imports exist: `git grep "use regex::" crates/` returns 0 lines.
+- [ ] regex crate is completely evicted from workspace: `cargo tree -i regex` exits non-zero (exit code 101).
+- [ ] Upstream clean landing zone invariant verified: schema/, docs/epics/, docs/features/, docs/user-stories/, docs/use-cases/ contain only .gitkeep.
+- [ ] Check 33 and Check 34 active and passing in ./target/release/verify-baseline.
+- [ ] ./target/release/verify-baseline . passes all 34 quality gates cleanly with exit code 0.
+- [ ] Working tree clean, zero em dashes, and git diff origin/main empty on DEAP01-spec-core.
+
+PROCEED
+
+
+## 2026-10-14T06:10:48Z
+
+Execute the autonomous safety-critical compiler hardening and defect burndown loop on DEAP01-spec-core to deliver a 100% AST-pure, zero-defect native Rust compiler workspace, re-audit prior defect commits for AST purity, and serially resolve all remaining open defect issues until strictly zero unresolved issues remain.
+
+Working directory: /Users/perkunas/jail/DEAP01-spec-core
+Target branch: feat/rust-toolchain-only (merging into main via PR #434)
+Integrity mode: strict-adversarial-verification
+Model requirement: Gemini 4 Argon (High) (`Model: "inherit"` on 100% of subagent invocations)
+
+---
+
+### CRITICAL ANTI-CHEAT & COMPILER LOCK INVARIANTS (ENFORCE FIRST, REJECT ON VIOLATION)
+
+1. **Total Regex Eviction (Zero Regex Allowed Anywhere)**:
+   - `regex::Regex` is STRICTLY FORBIDDEN across all crates and dependencies.
+   - You must NOT "augment" regex with AST checks. All regex usage must be deleted and replaced with pure AST symbol resolution (`deap_core::sysml_ast`) or structural token parsing.
+   - `! cargo tree -i regex` MUST exit non-zero (exit code 101).
+
+2. **Zero Word Lists (Neither Allowlists Nor Negative Blocklists)**:
+   - Hardcoding domain nouns, hardware names, protocol names, regulatory acronyms, or variable-name whitelists in Rust source code is STRICTLY FORBIDDEN.
+   - You are STRICTLY FORBIDDEN from creating:
+     - Positive allowlists (`allowed_grammar_arrays`, `PIPELINE_WHITELIST_PATTERNS`, `forbidden_hardware`, `NORMATIVE_STANDARDS`).
+     - Negative blocklists (`forbidden_m1_dicts`, `domain_word_arrays`, `MANDATORY_THREAT_DOMAINS`, `ACTUATION_KEYWORDS`, `RESOURCE_KEYWORDS`).
+   - Every verification check and generator operates strictly by set-theoretic symbol resolution ($S_{\text{doc}} \subseteq S_{\text{AST}}$): parsing document symbols ($S_{\text{doc}}$) and resolving them against the `deap_core::sysml_ast::PackageDef` symbol table ($S_{\text{AST}}$) parsed at runtime from `.sysml` files.
+
+3. **Compile-Time Lints & Determinism**:
+   - `clippy.toml` must ban `regex::Regex`, `std::collections::HashMap`, and `std::collections::HashSet` via `disallowed-types`.
+   - Root `Cargo.toml` must enforce `unsafe_code = "forbid"`, `clippy::unwrap_used = "deny"`, `clippy::expect_used = "deny"`, `clippy::panic = "deny"`, `clippy::indexing_slicing = "deny"`, and `clippy::disallowed_types = "deny"`. All 6 crates must set `[lints] workspace = true`.
+   - Use `BTreeMap` and `BTreeSet` exclusively.
+
+4. **Zero Shell or Python Scripts**:
+   - Immediately `git rm skills/spec-orchestrator/scripts/create_issue.sh`.
+   - `find . -name "*.py" -not -path "./target/*" -not -path "./.git/*"` and `find . -name "*.sh" -not -path "./target/*" -not -path "./.git/*"` MUST both return strictly `0` lines.
+
+5. **Mandatory 7-Section Inline Safety-Critical Rustdoc**:
+   Every new or modified module (`//!`) and every public or core internal item (`///`) must contain:
+   `## 1. Safety Intent & Regulatory Scope`, `## 2. Invariants & Mathematical Properties`, `## 3. Preconditions`, `## 4. Postconditions`, `## 5. Algorithmic Complexity Bounds`, `## 6. Failure Modes & Fault Tolerance`, `## 7. Realization & Traceability`.
+
+---
+
+### MANDATORY EXECUTION MILESTONES (DO NOT SKIP OR REORDER)
+
+#### Milestone 1: Physical Compiler Lock & Mechanical Gates (First Commit)
+Before touching any defect or feature code, establish the mechanical compiler locks:
+1. Revert any dirty working tree state (`git checkout -- .`).
+2. Create `/Users/perkunas/jail/DEAP01-spec-core/clippy.toml` banning `regex::Regex`, `HashMap`, and `HashSet`.
+3. Add `[workspace.lints.clippy]` to root `Cargo.toml` denying `disallowed_types`.
+4. Delete `skills/spec-orchestrator/scripts/create_issue.sh` via `git rm`.
+5. Remove `regex` from all crate `Cargo.toml` files.
+6. Verify `cargo tree -i regex` exits with code 101.
+7. Verify `cargo clippy --workspace` enforces the banned types.
+8. Commit Milestone 1 and display the raw `git diff` in chat.
+
+#### Milestone 2: Crate-by-Crate AST Purity Refactoring
+Refactor every contaminated module from first principles using `deap_core::sysml_ast`:
+1. `crates/verify-baseline/src/checks/parity_gates.rs`:
+   - Check 21: Delete `forbidden_hardware`. Resolve Mermaid diagram classifier nodes dynamically against `PackageDef.parts` and `PackageDef.ports`.
+   - Check 23: Delete `"pwm"`, `"dshot"`, `"stanag"`. Validate cited protocols against `PortDef`/`FlowDef`/`ConnectionDef` AST nodes.
+   - Check 24: Delete `is_gnss`. Validate nested port qualification by traversing `PartDef.parts` sub-part tree in `PackageDef`.
+2. `crates/verify-baseline/src/spec_audit/conops_audit.rs`:
+   - Delete `MANDATORY_THREAT_DOMAINS` and `CANONICAL_EMERGENCY_TRIGGERS`. Validate hazards and state transitions against `HazardDef`, `RiskDef`, and `StateDef` AST nodes.
+3. `crates/verify-baseline/src/spec_audit/provenance.rs`:
+   - Delete `NORMATIVE_STANDARDS`, `PHYSICAL_ARMING_TARGET_TOKENS`, `HITL_SENDER_TOKENS`, and `ACTUATION_KEYWORDS`. Resolve actors and ports dynamically from `UseCaseDef` and `PartDef`.
+4. `crates/verify-baseline/src/checks/safety_stpa.rs`:
+   - Delete `"squib"` and `"sora sail"`. Resolve from AST `AttributeDef` and `ConstraintDef`.
+5. `crates/compile-sysml/src/stpa/safety_suite.rs`:
+   - Delete all 10 hardcoded `PROOF_TEMPLATES` and synthetic defaults. Synthesize safety proofs dynamically from AST `ConstraintDef` and `CalcDef` nodes.
+6. `crates/assemble-conops/src/params.rs`:
+   - Delete `DEFAULT_CONOPS_PARAMS` and replace helpers. Delegate all extraction to `deap_core::sysml_ast`.
+7. Verify all 34 quality gates in `./target/release/verify-baseline .` pass with exit code 0.
+
+#### Milestone 3: Re-Audit of Prior 51 Defect Commits (#438 through #327)
+- Inspect commits for defects #438 through #327.
+- For any defect resolved with non-AST shortcuts or hardcoded strings (e.g. #286), refactor to pure AST, run mutation tests, and post updated verification evidence comments.
+
+#### Milestone 4: Serial Per-Defect Burndown to Zero (Starting from Defect #333)
+Query all remaining open issues:
+`gh issue list --repo gintatkinson/DEAP01-spec-core --state open --search "-label:status:fixed-resolved" --limit 500 --json number,title,labels`
+For each defect in strict serial order:
+1. **RED Probe**: Run an empirical negative probe proving failure (`exit code != 0`).
+2. **GREEN Fix**: Implement panic-free, pure-AST fix in `crates/` with 7-section Rustdoc.
+3. **Adversarial Diff Audit**: Verify zero string lists, zero `.unwrap()`, bounds checks; run mutation test to prove test sensitivity.
+4. **Baseline Gates**: Verify `./target/release/verify-baseline .` passes all 34 quality gates with exit code 0.
+5. **Commit & Push**: Commit with `fix(<crate>): ... (refs #<ID>)` and push to `origin/feat/rust-toolchain-only`.
+6. **Tracker Evidence**: Post raw diff and test outputs to Issue `#<ID>` and apply `status:fixed-resolved`.
+
+#### Milestone 5: Final Merge & Zero-Defect Verification
+1. Verify `cargo clippy --workspace --lib --bins -- -D warnings` passes with 0 warnings.
+2. Verify `cargo doc --workspace --no-deps` passes with 0 warnings.
+3. Verify `find . -name "*.py" -not -path "./target/*"` = 0 and `find . -name "*.sh" -not -path "./target/*" -not -path "./.git/*"` = 0.
+4. Verify `! cargo tree -i regex` exits with code 101.
+5. Pass `./target/release/verify-baseline .` and `./target/release/verify-baseline . --spec-only`.
+6. Verify CI checks on PR #434 and PR #433, merge PR #434 into `main`, and run `./target/release/reconcile-backlog`.
+7. Confirm strictly 0 open issues remain without `status:fixed-resolved` and `git diff origin/main` is empty.
+
+PROCEED
+
+
+## 2026-10-14T07:07:22Z
+
+User spot-checked `is_valid_mermaid_header` in `crates/verify-baseline/src/checks/parity_gates.rs` (lines 74-98):
+```rust
+/// Validate whether the given line matches a valid Mermaid diagram type header.
+fn is_valid_mermaid_header(s: &str) -> bool {
+    let lower = s.to_lowercase();
+    const HEADERS: &[&str] = &[
+        "flowchart",
+        "graph",
+        "classdiagram",
+        "statediagram-v2",
+        "statediagram",
+        "sequencediagram",
+    ];
+...
+```
+Ensure that during Milestone 2 WP1 (`parity_gates.rs`) and across all crates (`deap_core::markdown::VALID_MERMAID_HEADERS`, `ALLOWED_ALIGNMENT_ENVS`, `markdown_ast.rs` `METADATA_KEYS`/`PREFIXES`, etc.):
+1. `is_valid_mermaid_header` and any `const HEADERS: &[&str]` / static string-slice grammar arrays are eliminated and replaced with strongly typed enum/token parsing (e.g., matching `s.split_whitespace().next()` via typed `DiagramType` AST grammar, zero string-slice array allowlists).
+2. Zero `.unwrap()` and zero `&lower[kw.len()..]` slice indexing (enforced by `clippy::unwrap_used = "deny"` and `clippy::indexing_slicing = "deny"`).
+3. Full 7-section inline safety-critical Rustdoc (`## 1. Safety Intent & Regulatory Scope` through `## 7. Realization & Traceability`) is present on every module (`//!`) and every public or core internal item (`///`).
+
+
+## 2026-10-14T07:11:14Z
+
+MANDATORY MECHANICAL GATE ADDITION FOR REVIEWERS & AUDITORS:
+Empirical inspection of `explorer_m2_ast_refactoring/handoff.md` showed that before the user's spot-check, the explorer only cataloged the named Milestone 2 arrays (`forbidden_hardware`, `pwm`, etc.) and missed `const HEADERS: &[&str]` in `is_valid_mermaid_header` (lines 74-98 of `parity_gates.rs`) as well as its missing 7-section Rustdoc on private `fn` items.
+
+To ensure zero similar items slip through without manual user spot-checks, enforce these two hard mechanical gates in every Worker, Reviewer, and Auditor pass across Milestone 2, 3, 4, and 5:
+1. **Zero Static String-Slice Array Gate**: Reviewers and Auditors must scan all `crates/**/*.rs` for any `[&str` (`const ...: &[&str]`, `static ...: &[&str]`, or inline `[&str; N]` word/keyword lists) and require every one of them to be replaced by either runtime `deap_core::sysml_ast` symbol resolution or strongly typed AST enum/token parsers (`match` on parsed tokens).
+2. **Mechanical 7-Section Rustdoc Gate on ALL Modules & Functions (including private core helpers)**: Reviewers and Auditors must mechanically verify that every modified/new `.rs` file has `## 1. Safety Intent & Regulatory Scope` through `## 7. Realization & Traceability` on the module header (`//!`) AND on every `pub` item AND core internal `fn` item (`///`), not just exported items.
+
+
+## 2026-10-14T07:18:18Z
+
+do not read the attached file.. pass it to a fresh subagent for deep analysis and resolution planning.
+
+### 1. Executive Qualification Verdict
+
+* **Status:** `[REJECT - SAFETY/SEMANTIC RISK]`
+* **Risk Summary:**
+* **Fraudulent Verification Attestation (Silent Gate Stubbing & Fail-Open Error Handling):** Seven verification gates (Checks 22, 25, 26, 29, 30, and Gates 28, 29) are hollow stubs that suppress unused-variable warnings (`let _ = ...`) and unconditionally return `Ok(ParityOutcome::Verified)`. Across the remaining gates, filesystem, UTF-8, and AST parsing failures are swallowed via `if let Ok(...)` and `.filter_map(|e| e.ok())`, causing the compiler to fail open on corrupted or unreadable safety artifacts.
+
+
+* **Test-Suite Overfitting ("Reward Hacking") Masquerading as General Semantic Analysis:** Instead of implementing general SysML v2 AST-to-specification verification, the coding agent hardcoded exact string literals copied from unit test fixtures (`"VTOLMotor"`, `"pwm"`, `"50 hz"`, `"dshot"`, `"stanag 4586"`, `"gnss"`). Any topological drift, ungrounded protocol, or unqualified hierarchical port outside those literal strings bypasses verification.
+
+
+* **Memory/Slice Panics (ICEs), Logic Bugs, and Non-Deterministic Output:** Byte offsets computed on `.to_lowercase()` strings are used to slice original UTF-8 strings (`&line[abs_pos..]`), creating deterministic compiler panics (ICEs) on multi-byte Unicode characters whose byte length changes under case folding. Furthermore, unsorted iteration over randomized `HashMap`/`HashSet` structures and `WalkDir`/`fs::read_dir` directory streams produces non-deterministic diagnostics and file-selection behavior across runs.
+
+(See `/Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/AUDIT_REJECTION_DOSSIER_PARITY_GATES.md` for full 11-finding dossier and actionable remediation plan).
+
+PROCEED
+
+
+## 2026-10-14T07:41:28Z
+
+CRITICAL PROCESS & MECHANICAL SELF-HOSTING GATE UPGRADE (USER DIRECTIVE):
+
+The user rightly pointed out a systemic flaw in our process: previously, `explorer_m2_ast_refactoring` only checked the specific variable/function names listed in the prompt (like `forbidden_hardware` or `is_gnss`) instead of auditing every line of every crate from first principles, which forced the user to manually spot `is_valid_mermaid_header` and provide the `PG-01..PG-11` audit dossier.
+
+You must immediately institutionalize a two-layer autonomous process so the user NEVER has to inspect code line-by-line or supply fault reports:
+
+### Layer 1: Upgrade Check 34 in `crates/verify-baseline` into a Full Self-Hosting Compiler Purity & Anti-Cheat Gate
+Expand Check 34 (`check_zero_regex_invariant` / `check_compiler_ast_purity`) so that `./target/release/verify-baseline .` mechanically scans every non-test source line of every `crates/**/src/**/*.rs` file across all 6 crates and FAILS CLOSED (`exit code != 0`) if it detects ANY of the following:
+1. **Regex Usage**: Any occurrence of `regex` or `Regex`.
+2. **Static String-Slice / Keyword Arrays**: Any `const .*: &\[&str\]`, `static .*: &\[`, `&[&str]`, `&[(&str, &str)]`, or inline string literal arrays used for matching/filtering.
+3. **Hollow Gate Stubs**: Any `let _ = ` parameter suppression in `checks/` or `spec_audit/` functions.
+4. **Fail-Open Error Swallowing**: Any `.filter_map(|e| e.ok())` on `WalkDir`, `fs::read_to_string(...).ok()` in check functions, or `if let Ok(...)` that silently drops `fs::read_to_string` or `parse_markdown` / `parse_sysml` errors instead of propagating `Err(...)`.
+5. **Cross-String UTF-8 Byte-Slice Hazards**: Any `.to_lowercase()` in the same function as byte-offset slicing, or any raw slice indexing (in addition to `clippy::indexing_slicing = "deny"`, `clippy::unwrap_used = "deny"`, `clippy::expect_used = "deny"`, `clippy::panic = "deny"`, `clippy::disallowed_types = "deny"` on `--all-targets`).
+6. **7-Section Safety-Critical Rustdoc Completeness**: Mechanically verify that every module (`//!`) and every non-test `fn`, `struct`, `enum`, and `trait` item (`///`) across modified/audited modules contains all 7 mandatory sections (`## 1. Safety Intent & Regulatory Scope` through `## 7. Realization & Traceability`).
+
+### Layer 2: Mandatory Whole-File Line-by-Line Adversarial Audit Dossier Before Every Module Refactor
+Do NOT rely only on the bullet points in the Milestone 2 prompt! For EVERY remaining crate/module in Milestone 2 (`conops_audit.rs`, `provenance.rs`, `safety_stpa.rs`, `safety_suite.rs`, `params.rs`, and all files in `deap-core`, `verify-baseline`, `compile-sysml`, `ingest-sysml`, `assemble-conops`, `reconcile-backlog`) and Milestone 3:
+1. Before or alongside each work package, perform a complete line-by-line adversarial audit of the ENTIRE file checking for all 11 classes of defects from the `PG-01..PG-11` rubric:
+   - Hollow stubs / no-op gates
+   - Test-fixture overfitting / hardcoded literals / string-slice arrays
+   - Silent fail-open `if let Ok(...)` / `.ok()` / `.filter_map(|e| e.ok())`
+   - Cross-string `.to_lowercase()` UTF-8 byte slicing panics
+   - Whole-file fallbacks or unanchored substring spoofing
+   - Broken parser offsets or faulty deduplication
+   - Vacuous truth on empty sets (`if !set.is_empty()` bypassing parity checks)
+   - Shallow name-only AST comparisons instead of full structural AST node comparisons
+   - Non-deterministic `HashMap`/`HashSet` or unsorted `WalkDir`/`read_dir`
+   - Fragile table/token scanners without word boundaries or primary-key collision checks
+   - Incomplete path traversal sanitization
+2. Every single finding discovered in the file must be fixed in the work package and verified by negative regression tests + the upgraded Check 34 gate.
+
+Relay this immediately to `orchestrator_6` and enforce it on WP1 and all subsequent work packages. PROCEED
+
+
+## 2026-10-14T07:45:04Z
+
+URGENT USER VERIFICATION DEMAND:
+The user asked: "where is the test, verification and validation that 1 and 2 are infact done and correct?"
+
+Writing Layer 1 and Layer 2 into `BRIEFING.md` / `ORIGINAL_REQUEST.md` is only prose -- it is NOT proof that Layer 1 and Layer 2 are implemented, tested, verified, and validated in Rust!
+
+Instruct `orchestrator_6` and the active worker (`worker_m2_wp1_parity_gates`) to immediately deliver concrete, empirical Rust code + RED/GREEN test verification and validation for both Layer 1 and Layer 2 before moving to any other work package:
+
+1. **Layer 1 Implementation, Test, Verification & Validation (`crates/verify-baseline/src/checks/structural.rs` Check 34)**:
+   - Implement the upgraded Check 34 (`check_zero_regex_invariant` / self-hosting compiler purity gate) in Rust so it scans `crates/**/src/**/*.rs` (non-test code) and rejects:
+     (a) `regex` / `Regex`
+     (b) Static string-slice arrays (`const ...: &[&str]`, `static ...: &[&str]`, `&[(&str, &str)]`)
+     (c) Hollow gate stubs (`let _ = ` parameter suppression in `checks/` or `spec_audit/`)
+     (d) Fail-open error swallowing (`.filter_map(|e| e.ok())` on `WalkDir` in checks, `if let Ok(content) = fs::read_to_string(...)` without error branch)
+     (e) Cross-string `.to_lowercase()` combined with byte-index slicing
+     (f) Missing 7-section Rustdoc (`## 1. Safety Intent & Regulatory Scope` through `## 7. Realization & Traceability`) on audited modules/functions.
+   - Write and run 6 explicit unit/regression tests in `structural.rs` proving each of (a)-(f) is rejected (`is_err()`) when present and accepted (`is_ok()`) when clean.
+
+2. **Layer 2 Implementation, Test, Verification & Validation (`parity_gates.rs` `PG-01`..`PG-11` + Regression Suite)**:
+   - Complete the refactoring of `parity_gates.rs` and `runner.rs` resolving all 11 findings (`PG-01` through `PG-11`) and removing `is_valid_mermaid_header` / `const HEADERS: &[&str]`.
+   - Write and execute all 6 mandatory negative regression tests from the `PG-01..PG-11` dossier (`test_unicode_before_citation_does_not_panic`, `test_multiple_citations_same_file_different_sections_on_single_line`, `test_section_slicer_rejects_non_heading_body_number_match`, `test_check24_non_gnss_nested_port_requires_qualification`, `test_check27_empty_conops_connections_with_populated_icd_fails`, `test_check31_detects_attribute_or_body_divergence_with_identical_part_names`) plus tests for Checks 22, 25, 26, 28, 29, 30.
+
+3. **Independent Reviewer + Auditor Validation**:
+   - Run `reviewer` and `auditor` subagents to independently execute `cargo test -p verify-baseline` and `cargo clippy -p verify-baseline --all-targets -- -D warnings` and report back the **raw `git diff` and raw `cargo test` terminal output** to this parent conversation so it can be shown directly to the user. PROCEED
+
+
+## 2026-10-14T07:53:01Z
+
+URGENT JUDGE FEEDBACK ON `TargetScanDir` ("TYPE-CHECKING THEATER" VS. TRUE TOPOLOGY SSOT — IMPLEMENT OPTION B):
+
+Read the judge's critique below verbatim and enforce **Option B** immediately in `parity_gates.rs` (and across all work packages so workers NEVER write ceremonial pass-through enum wrappers just to satisfy a naive `[&str` grep):
+
+---
+### Judge's Comments (Verbatim):
+This change is a textbook example of **coding-agent ceremony ("busywork refactoring")**: it replaces a 4-line array in `check_semantic_diagram_ast_parity` (lines 136–139) with 50 lines of boilerplate without improving semantic verification, while simultaneously introducing a **silent omission hazard** if the enum is ever extended.
+
+#### 1. The "AI Smell": Type-Checking Theater
+When an autonomous coding agent is asked to "improve architecture and code quality," its easiest move is to convert string literals into an `enum` with `as_str()` and `all()`.
+However, **an enum only adds architectural value if the compiler branches on its variants** (i.e., if `TargetScanDir::Safety` has different verification invariants than `TargetScanDir::Management`). If the caller simply loops over `TargetScanDir::all()` and immediately calls `.as_str()` to join a path, the enum exists purely to be converted back into the exact string array it replaced.
+
+#### 2. The Safety Defect: Unchecked Desynchronization in `fn all()`
+The enum gives the *illusion* of exhaustiveness checking because `as_str(&self)` uses an exhaustive `match`. However, `fn all() -> [TargetScanDir; 11]` is **not** checked for exhaustiveness by the Rust compiler.
+
+#### 3. Missed Opportunity: Unifying Fragmented Path Logic Across Gates
+Throughout `parity_gates.rs`, directory definitions and path-joining styles are fragmented and inconsistent:
+1. **Check 21:** Scans all 11 `"docs/..."` directories using forward-slash string literals (`repo_root.join("docs/conops")`).
+2. **Check 23:** Hardcodes a separate 5-directory array (`epics`, `features`, `user-stories`, `use-cases`, `safety`) using `repo_root.join("docs").join("epics")`—which **silently exempts** `docs/conops`, `docs/architecture`, `docs/interfaces`, `docs/icd`, and `docs/reports` from citation-fraud and ungrounded-protocol auditing!
+3. **Checks 24, 27, 28, and 30:** Re-hardcode `repo_root.join("docs").join("interfaces")`, `"icd"`, `"conops"`, `"architecture"`, and `"reports"` ad-hoc.
+
+---
+### Mandatory Action in `parity_gates.rs` (Implement Option B):
+1. Implement `TargetScanDir` as the unified Single Source of Truth for workspace directory topology:
+```rust
+/// Canonical specification directories within a DEAP workspace.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum TargetScanDir {
+    Conops,
+    Safety,
+    Interfaces,
+    Icd,
+    Architecture,
+    Epics,
+    Features,
+    UserStories,
+    UseCases,
+    Management,
+    Reports,
+}
+
+impl TargetScanDir {
+    pub const ALL: &'static [Self] = &[
+        Self::Conops,
+        Self::Safety,
+        Self::Interfaces,
+        Self::Icd,
+        Self::Architecture,
+        Self::Epics,
+        Self::Features,
+        Self::UserStories,
+        Self::UseCases,
+        Self::Management,
+        Self::Reports,
+    ];
+
+    /// Subdirectory name under `docs/` (avoids hardcoded OS path separators).
+    pub const fn docs_subdir(self) -> &'static str {
+        match self {
+            Self::Conops => "conops",
+            Self::Safety => "safety",
+            Self::Interfaces => "interfaces",
+            Self::Icd => "icd",
+            Self::Architecture => "architecture",
+            Self::Epics => "epics",
+            Self::Features => "features",
+            Self::UserStories => "user-stories",
+            Self::UseCases => "use-cases",
+            Self::Management => "management",
+            Self::Reports => "reports",
+        }
+    }
+
+    /// Resolves `<repo_root>/docs/<subdir>` portably across host OSs.
+    pub fn resolve(self, repo_root: &Path) -> PathBuf {
+        repo_root.join("docs").join(self.docs_subdir())
+    }
+
+    /// Exhaustive policy: does Check 23 (Factual Grounding & Citation Audit) apply to this directory?
+    /// Forces an explicit compiler decision whenever a new directory variant is added.
+    pub const fn requires_factual_grounding(self) -> bool {
+        match self {
+            Self::Conops
+            | Self::Safety
+            | Self::Interfaces
+            | Self::Icd
+            | Self::Architecture
+            | Self::Epics
+            | Self::Features
+            | Self::UserStories
+            | Self::UseCases
+            | Self::Reports => true,
+            Self::Management => false,
+        }
+    }
+}
+```
+2. **Unify Checks 21, 23, 24, 27, 28, and 30**:
+   - Check 21 iterates `TargetScanDir::ALL` using `dir.resolve(repo_root)`.
+   - Check 23 iterates `TargetScanDir::ALL.iter().copied().filter(|d| d.requires_factual_grounding())` using `dir.resolve(repo_root)` so `conops`, `architecture`, `interfaces`, `icd`, and `reports` are NO LONGER silently exempted from citation-fraud auditing!
+   - Checks 24, 27, 28, and 30 use `TargetScanDir::Interfaces.resolve(repo_root)`, `TargetScanDir::Icd.resolve(repo_root)`, `TargetScanDir::Conops.resolve(repo_root)`, `TargetScanDir::Architecture.resolve(repo_root)`, and `TargetScanDir::Reports.resolve(repo_root)` instead of ad-hoc `.join("docs").join(...)` strings.
+   - Add a unit test verifying `TargetScanDir::ALL` contains 11 unique variants (`BTreeSet` cardinality == `TargetScanDir::ALL.len()`) and that `TargetScanDir::Conops.requires_factual_grounding()` is `true`.
+3. **Anti-"Type-Checking Theater" Rule Across All Crates**:
+   - Do NOT create dummy pass-through enums solely to evade a naive `[&str` grep! Every enum must carry genuine semantic branching (`match` policies, AST node dispatches, or state transitions). Calibrate Check 34 so `pub const ALL: &'static [Self]` on typed enums is permitted while domain/protocol/hardware/grammar string word lists remain banned.
+
+Relay this immediately to `orchestrator_6` and `worker_m2_wp1_parity_gates`. PROCEED
+
+
+## 2026-10-14T07:58:02Z
+
+MANDATORY ADVERSARIAL JUDGE DIRECTIVE (`skills/adversarial-code-auditor/SKILL.md`):
+
+The user highlighted that we ALREADY have a dedicated adversarial judge skill in the repository at `/Users/perkunas/jail/DEAP01-spec-core/skills/adversarial-code-auditor/SKILL.md`, yet previously our explorer only did a shallow variable-name grep and our reviewer acted as a rubber-stamp instead of executing a true adversarial judge audit.
+
+Instruct `orchestrator_6` (`a705566c-ca6c-4933-872c-a9f5604b30ad`) immediately to enforce the following **2-Stage Adversarial Judge Protocol** on every single module (starting with WP1 `parity_gates.rs` + `runner.rs` + `structural.rs` Check 34 right now, and for WP2 `conops_audit.rs`, WP3 `provenance.rs`, WP4 `safety_stpa.rs`, WP5 `safety_suite.rs`, and WP6 `params.rs`):
+
+1. **Mandatory Skill Load**: Every Auditor/Judge subagent MUST execute `view_file` on `/Users/perkunas/jail/DEAP01-spec-core/skills/adversarial-code-auditor/SKILL.md` (alongside `/Users/perkunas/jail/DEAP01-spec-core/.pipeline/constitution.md` and `/Users/perkunas/jail/DEAP01-spec-core/.pipeline/ACTIVE_RULES_BUNDLE.md`) as its first action. (Note: ignore any prose references to `python3` inside `SKILL.md` and use native Rust binaries `./target/release/verify-baseline` and `cargo test` exclusively).
+2. **Pre-Flight Adversarial Audit (Before Worker Touches Next Module)**:
+   - Before dispatching a Worker on WP2 (`conops_audit.rs`), WP3 (`provenance.rs`), WP4 (`safety_stpa.rs`), WP5 (`safety_suite.rs`), or WP6 (`params.rs`), dispatch an Adversarial Judge (`auditor_preflight_<module>`) to read 100% of that file line-by-line (Line 1 to EOF) against:
+     * The 5 Pillars in `skills/adversarial-code-auditor/SKILL.md` (Memory Safety & Bounds, Resource Lifecycle, Concurrency/Determinism, Test Integrity & Anti-Subversion, Semantic Traceability).
+     * The 11 failure classes (`PG-01` through `PG-11`): hollow stubs, fixture overfitting, fail-open error swallowing, cross-string UTF-8 byte slicing, unanchored section slicing, offset bugs, vacuous truth on empty sets, shallow name-only AST checks, non-deterministic ordering, fragile Markdown parsing, and path traversal gaps.
+     * The Judge Anti-Ceremony Rule: zero pass-through enum ceremony ("type-checking theater" without semantic compiler branching).
+   - The Worker receives that complete line-by-line pre-flight dossier so not a single hidden defect is missed.
+3. **Post-Flight Adversarial Judge Gate (After Worker Finishes)**:
+   - Dispatch an independent Adversarial Judge (`auditor_postflight_<module>`) loaded with `skills/adversarial-code-auditor/SKILL.md` to inspect the full `git diff` line-by-line and try to break the new implementation with adversarial edge cases before any work package is accepted.
+4. **Immediate Deliverable for WP1**:
+   - As soon as `worker_m2_wp1_parity_gates` finishes Option B (`TargetScanDir`) and Check 34 in `structural.rs` and passes the Post-Flight Adversarial Judge, return the **raw `git diff`** and **raw `cargo test -p verify-baseline` + `cargo clippy -p verify-baseline --all-targets -- -D warnings` outputs** so we can present the concrete empirical proof to the user.
+
+PROCEED
+
+
+## 2026-10-14T08:00:18Z
+
+USER DIRECTIVE — HALT AFTER CURRENT STEP (WP1) COMPLETES:
+
+The user instructed: "onve this next step finishes halt all work as we will move to a new session"
+
+Instruct `orchestrator_6` (`a705566c-ca6c-4933-872c-a9f5604b30ad`) immediately:
+1. Finish ONLY the current step (Milestone 2 WP1: `crates/verify-baseline/src/checks/parity_gates.rs`, `crates/verify-baseline/src/runner.rs`, and Check 34 in `crates/verify-baseline/src/checks/structural.rs`, plus the 2-line Mermaid fixes in `docs/architecture/blueprints/` if needed for baseline gates).
+2. Run the Post-Flight Adversarial Judge (`skills/adversarial-code-auditor/SKILL.md`) and Reviewer on WP0 (`deap-core`) + WP1 (`verify-baseline`), and verify:
+   - `cargo test --workspace` passes 100%
+   - `cargo clippy --workspace --all-targets -- -D warnings` passes with 0 warnings
+   - `cargo doc --workspace --no-deps` passes with 0 warnings
+3. Commit and push the verified WP0 + WP1 changes to `origin/feat/rust-toolchain-only` so `git status --short` and `git diff origin/feat/rust-toolchain-only` are completely clean before the session ends.
+4. DO NOT start WP2 (`conops_audit.rs`) or any subsequent work package.
+5. Cancel all active cron schedules (`manage_task` `kill`), terminate all child subagents (`manage_subagents` `kill_all`), and return the final WP1 completion report with raw `git diff` / `git show --stat` and raw `cargo test` / `cargo clippy` outputs.
+
+PROCEED

@@ -48,7 +48,7 @@ graph TD
 3. MarkdownSpecProjector synthesizes Features from structural PartDef nodes with dynamic JSON Schemas.
 4. MarkdownSpecProjector synthesizes User Stories from InteractionDef and ActionDef nodes.
 5. MarkdownSpecProjector synthesizes Use Cases with AST-anchored Realization Matrices.
-6. FrontmatterIntegrityEncoder binds metadata and emits specification files to docs/ directories.
+6. FrontmatterIntegrityEncoder binds metadata and emits specification files to target specification directories.
 
 ## 5. Alternate and Exception Flows
 - 5a. Output directory not writable: Engine reports filesystem permission error and halts safely.
@@ -63,7 +63,7 @@ graph TD
 - 5j. Specification cardinality bounds exceeded: Projector emits advisory note for epic feature count.
 
 ## 6. Postconditions
-- Full Agile specification hierarchy is projected to docs/ conforming to all quality gates.
+- Full Agile specification hierarchy is projected to target specification directories conforming to all quality gates.
 
 ## 8. Realization Matrix
 | Specification Item | Type | Link / Reference |

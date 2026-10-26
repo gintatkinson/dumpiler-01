@@ -43,12 +43,12 @@ graph TD
 
 1. **Tier 1: Functional Layer (Abstract Specification)**: Epics, Features, User Stories, Use Cases, and Logical User & Machine Interface (LUMI) specifications. LUMI is 100% platform-independent and framework-agnostic, covering three primary interface categories: Visual GUI (`gui`), Machine-to-Machine API (`mcp`/`api`), and Hardware Bus (`hardware`). LUMI supports the Evolved 3-Layer Semantic Chain (Domain State & Signal Model -> Logic & Safety State Management -> Display & Actuator Interface Binding) across canonical architectural patterns (ARINC 661 Cockpit Display Systems, Real-Time Safety Statecharts & Flight Control, Decoupled Operator Consoles & EFBs, Automated M2M Agentic Tooling, and Hardware Bus Register Mapping). Must be platform-independent and standard-agnostic. No framework keywords, specific standards designations, or hardcoded visual values allowed.
 2. **Tier 2: Runtime Configuration Parameters (Dynamic Context)**: Design tokens, dynamic mapping configurations, translation files. Single source of truth for standard-specific definitions and visual attributes.
-3. **Tier 3: Platform Implementation Profiles (Technical Execution)**: `.pipeline/profiles/<platform>.md` and codebase implementations. Govern build mechanics, performance patterns, and dependencies. Tier 3 implementation profiles belong to external implementation profile repositories and downstream customer workspaces; upstream compiler and spec-core workspaces operate strictly at Tier 1 and do not store or enforce concrete platform implementation profiles.
+3. **Tier 3: Platform Implementation Profiles (Technical Execution)**: `.pipeline/profiles/<platform>.md` and codebase implementations. Govern build mechanics, performance patterns, and dependencies.
 
 ### Core System Boundaries & Invariants
 
 - **Pure Schema-Driven Compiler**: The pipeline is an abstract compiler and verification framework. Agents are strictly forbidden from inventing, proposing, or hardcoding domain-specific concepts into pipeline logic or templates.
-- **Upstream Clean Landing Zone Invariant**: Upstream distribution templates (`DEAP-*`) contain only the abstract compiler, linters, and empty landing zones (`schema/`, `docs/epics/`, `docs/features/`, `docs/user-stories/`, `docs/use-cases/` containing only `.gitkeep`). Concrete project schemas and specifications reside exclusively in downstream application workspaces installed via `./target/release/verify-baseline setup-hooks`.
+- **Upstream Clean Landing Zone Invariant**: Upstream distribution templates (`DEAP-*`) contain only the abstract compiler, linters, and empty landing zones (`schema/`, `docs/epics/`, `docs/features/`, `docs/user-stories/`, `docs/use-cases/` containing only `.gitkeep`). Concrete project schemas and specifications reside exclusively in downstream application workspaces initialized from domain distribution templates.
 
 ## Domain Rules
 
@@ -82,17 +82,17 @@ graph TD
 - Auto-verification Failure: Any diagram or spec that references undefined operations, classes, or signals will violate the quality gates and halt the pipeline.
 
 ### Traceability
-- Every Epic MUST reference the specification section(s) it covers. Enforced by `verify-baseline` via required sections configuration.
-- Every Feature MUST include a 'Source References' section with verbatim specification clause numbers and schema paths. Every Epic, User Story, and Use Case MUST also carry a 'Source References' section (or Realization / Target Features Matrix linking to upstream sources). Enforced by `verify-baseline` via required_sections configuration in codebase_rules.json.
-- Every User Story MUST link to the Features it validates. Enforced by `verify-baseline` via Required Features Matrix validation.
-- Every Use Case MUST link to the User Stories and Features it realizes. Enforced by `verify-baseline` via Realization Matrix validation.
+- Every Epic MUST reference the specification section(s) it covers. Enforced by `./target/release/verify-baseline` (Check 15) via required sections configuration.
+- Every Feature MUST include a 'Source References' section with verbatim specification clause numbers and schema paths. Every Epic, User Story, and Use Case MUST also carry a 'Source References' section (or Realization / Target Features Matrix linking to upstream sources). Enforced by `./target/release/verify-baseline` (Check 30).
+- Every User Story MUST link to the Features it validates. Enforced by `./target/release/verify-baseline` (Check 20).
+- Every Use Case MUST link to the User Stories and Features it realizes. Enforced by `./target/release/verify-baseline` (Check 20).
 
 ### Standard & Platform Parameter Isolation
 - See top-level section [Architecture: Three-Tier Platform Isolation](#architecture-three-tier-platform-isolation) for tier isolation rules and boundary guidelines.
 
 ### Unique Backlog Identifiers
-- All local specification files MUST include a permanent unique identifier (`issue_id: <int>`) in their CommonMark metadata table at lines 1-10 instead of YAML frontmatter, mapped directly to their remote issue number.
-- Matching by title normalization is the primary selector used by the backlog reconciliation tool. To prevent collisions, all specification files of the same spec type MUST have unique normalised titles, as enforced by `verify-baseline` and rules/tracker-source-of-truth.md.
+- All local specification files MUST include a permanent unique identifier (`issue_id: <int>`) in their YAML frontmatter, mapped directly to their remote issue number.
+- Matching by title normalization is the primary selector used by the backlog reconciliation tool. To prevent collisions, all specification files of the same spec type MUST have unique normalised titles, as enforced by `./target/release/reconcile-backlog` and `rules/tracker-source-of-truth.md`.
 
 ### 1.9 Zero-Mocking Live Persistence Mandate
 - All client-side application targets (e.g., React, Flutter) MUST connect to a live, persistent database, emulator, or local register map at runtime.
@@ -104,8 +104,8 @@ graph TD
 ## Specification Standards
 
 ### Granularity Bounds
-- An Epic SHOULD contain 3-15 Features. Epics exceeding 15 Features MUST be split by the schema-specification-engineering subagent during Step 1 decomposition; Epics with fewer than 3 Features MUST be reviewed for consolidation. Enforced by schema-specification-engineering decomposition heuristics.
-- A Feature SHOULD carry 3-10 acceptance criteria. Features exceeding 10 acceptance criteria MUST be split into targeted sub-features; Features with fewer than 3 acceptance criteria MUST be expanded to ensure full scenario coverage. Enforced by `verify-baseline` and spec subagent review gates.
+- An Epic SHOULD contain 3-15 Features. Epics exceeding 15 Features MUST be split by the schema-specification-engineering worker during Step 1 decomposition; Epics with fewer than 3 Features MUST be reviewed for consolidation. Enforced by schema-specification-engineering decomposition heuristics.
+- A Feature SHOULD carry 3-10 acceptance criteria. Features exceeding 10 acceptance criteria MUST be split into targeted sub-features; Features with fewer than 3 acceptance criteria MUST be expanded to ensure full scenario coverage. Enforced by `./target/release/verify-baseline` (Check 18) and spec worker review gates.
 
 ### Epic Granularity
 - One Epic per major functional domain or protocol module.
@@ -149,7 +149,7 @@ graph TD
 - Implementation work: `feat/<issue-number>-<short-description>` branches.
 
 ### Documentation & Repository Artifact Management Standards
-- All generated markdown files include native CommonMark two-column metadata tables at lines 1-10.
+- All generated markdown files include YAML frontmatter.
 - All generated markdown files include a "Source References" section at the bottom.
 - No orphan documents -- every file must be linked from at least one tracker issue.
 - **Repository Artifact Management Mandate (Zero-Ephemeral Storage)**: All engineering artifacts, design blueprints, solution documents, architectural specifications, implementation plans, and reports MUST be created, managed, and committed directly within the active Git repository (e.g. under `docs/architecture/`, `docs/reports/`, `docs/designs/`, or `schema/`). Storing primary architectural decisions, solution documents, or engineering specifications exclusively in ephemeral application cache directories outside the repository (such as `<appDataDir>/brain/<conversation-id>/`) is strictly prohibited. Every artifact establishing architectural baselines, safety rationales, or implementation contracts must be version-controlled in Git in lockstep with the decision, ensuring full provenance, cross-session durability, and subagent accessibility.
@@ -165,41 +165,30 @@ graph TD
 - Under NO circumstances may the agent invoke any file-writing, file-modifying, or command-running tools that alter the codebase/repository files unless BOTH of the following hold: (1) the specific file and its exact changes are documented in an approved implementation plan, AND (2) the user has explicitly typed "Proceed", "Approved", or "Approve plan" in the conversation history of the current turn sequence. An authorization keyword alone is NOT sufficient. See `.agents/AGENTS.md` § Strict Planning Gate, which takes precedence, and `rules/user-authorization-lock.md` § Precedence.
 - If a plan is written, the agent MUST immediately terminate its turn and stop calling tools to wait for approval.
 - **Prohibition of Unapproved Plan Abandonment & Mandatory Plan Continuity**: Once an implementation plan has been established, approved, or has in-flight work packages, the agent is strictly forbidden from abandoning, altering, replacing, or discarding the plan without explicit user review and authorization in the current conversation turn. The agent is strictly prohibited from reacting to user feedback, criticism, or diagnostic friction by unilaterally dropping planned work packages, abandoning uncommitted changes, or impulsively proposing wholesale file deletions, purges, or scope redirections. Any proposed deviation, scope refinement, or plan adjustment MUST be documented as an updated implementation plan and explicitly approved by the user before changing execution course.
-
-### User Intent Integrity & Verbatim Pass-Through Mandate
-- **ALWAYS enforce:** Agents and coordinators are strictly prohibited from overriding, altering, rewriting, summarizing, or substituting the user's stated intentions, prompt text, or architectural parameters under any circumstances.
-- When the user provides a task prompt (including `/teamwork-preview`), that prompt MUST be preserved and passed to executing agents verbatim.
-- Coordinators are strictly forbidden from rewriting user prompts, injecting synthetic constraints, or altering the execution scope in background thought blocks.
-- Subagents must ingest repository rules directly from disk (`.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md`) rather than requiring prompt modification by the coordinator.
-
-### Subagent Dispatch Standards & Governance Invariants
-- **Verbatim User Payload Mandate**: The subagent prompt payload MUST contain the user's exact instructions verbatim. The coordinator is strictly prohibited from altering, summarizing, or wrapping the user's prompt with synthetic boilerplate.
-- **Autonomous On-Disk Governance Initialization**: Every subagent must autonomously execute `view_file` on `.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md` as its first step, without requiring prompt modification by the coordinator.
-- **Single-Prompt Serial Dispatch Rule**: Coordinators must dispatch exactly ONE subagent with ONE prompt at a time. Multi-agent concurrent dispatches are prohibited unless explicitly structured and approved by the user.
-- **Mandatory Teamwork Preview Gate**: When `/teamwork-preview` is invoked, the coordinator MUST present the full execution plan and verbatim prompt in the chat, halt, and await human approval before dispatching any subagent.
+- **Single-Task Atomic `implementation_plan.md` & Anti-Snowballing Invariant**: `implementation_plan.md` MUST contain **at most 1 atomic work package** at any time. Dumping multi-wave issue backlogs into `implementation_plan.md` or appending/prepending a new user task onto a previous `implementation_plan.md` is strictly forbidden; backlog queues reside exclusively in the issue tracker (`gh issue list`). `Prohibition of Unapproved Plan Abandonment & Mandatory Plan Continuity` applies strictly **within the currently active in-flight atomic task** (forbidding mid-task abandonment when hitting test/linter friction), and MUST NEVER be used as an excuse to retain completed or unrelated work packages inside `implementation_plan.md` when planning a new atomic task.
 
 ## Universal Quality Gates
 
 ### Quality Gates & Verification Standards
-The pipeline mechanically enforces 31 active quality gates via the native Rust toolchain (`./target/release/verify-baseline`) that halt execution on failure. All agents MUST ensure deliverables comply with these gates before declaring completion:
+The pipeline mechanically enforces 16 active quality gates that halt execution on failure. All agents MUST ensure deliverables comply with these gates before declaring completion:
 
-| Quality Gate | Enforcing Binary / Rule | Documentation Reference |
+| Quality Gate | Enforcing Validator Path | Documentation Reference |
 |---|---|---|
-| Specification Validation | `./target/release/verify-baseline --spec-only` | `rules/platform-independence.md` |
-| Model Coverage Verification | `./target/release/verify-baseline --spec-only` | `rules/platform-independence.md` |
-| Cross-Reference Integrity | `./target/release/verify-baseline` (Gate 4) | `rules/document-references.md` |
+| Specification Validation | `./target/release/verify-baseline` (Check 16) | `rules/platform-independence.md` |
+| Model Coverage Verification | `./target/release/verify-baseline` (Check 19) | `rules/platform-independence.md` |
+| Cross-Reference Integrity | `./target/release/verify-baseline` (Check 20) | `rules/document-references.md` |
 | Human Approval | `rules/user-authorization-lock.md` | `.pipeline/constitution.md` |
-| Downstream Conformance | `./target/release/verify-baseline . --no-domain` | `rules/downstream-conformance.md` |
-| UML Model Integrity | `./target/release/verify-baseline` (Gate 1) | `rules/uml-model-integrity.md` |
-| Mermaid Syntax Constraints | `./target/release/verify-baseline` (Gate 2) | `rules/platform-independence.md` |
-| Behavioral Trigger Coverage | `./target/release/verify-baseline` (Gate 27) | `rules/behavioral-trigger-coverage.md` |
-| Codebase Compliance | `./target/release/verify-baseline` (Gates 7-10, 12-15) | `rules/codebase-compliance.md` |
-| Document Cross-Reference Integrity | `./target/release/verify-baseline` (Gate 4) | `rules/document-references.md` |
-| Constitution Amendment Integrity | `./target/release/verify-baseline` (Gate 5) | `.pipeline/constitution-amendments.md` |
-| Specification File Integrity | `./target/release/verify-baseline` (Gate 3) | `rules/platform-independence.md` |
-| Spec Title Uniqueness | `./target/release/verify-baseline` (Gate 6) | `rules/tracker-source-of-truth.md` |
-| Source Reference Integrity | `./target/release/verify-baseline` (Gate 11) | `rules/codebase-compliance.md` |
-| Logical UI Validation | `./target/release/verify-baseline` (Gate 10) | `rules/platform-independence.md` |
+| Downstream Conformance | `./target/release/verify-baseline` (Check 10) | `rules/downstream-conformance.md` |
+| UML Model Integrity | `./target/release/verify-baseline` (Check 15) | `rules/uml-model-integrity.md` |
+| Mermaid Syntax Constraints | `./target/release/verify-baseline` (Check 13B) | `rules/platform-independence.md` |
+| Behavioral Trigger Coverage | `./target/release/verify-baseline` (Check 21) | `rules/behavioral-trigger-coverage.md` |
+| Codebase Compliance | `./target/release/verify-baseline` (Check 11) | `rules/codebase-compliance.md` |
+| Document Cross-Reference Integrity | `./target/release/verify-baseline` (Check 28) | `rules/document-references.md` |
+| Constitution Amendment Integrity | `./target/release/verify-baseline` (Check 29) | `.pipeline/constitution-amendments.md` |
+| Specification File Integrity | `./target/release/verify-baseline` (Check 18) | `rules/platform-independence.md` |
+| Spec Title Uniqueness | `./target/release/reconcile-backlog` | `rules/tracker-source-of-truth.md` |
+| Source Reference Integrity | `./target/release/verify-baseline` (Check 30) | `rules/codebase-compliance.md` |
+| Logical UI Validation | `./target/release/verify-baseline` (Check 25) | `rules/platform-independence.md` |
 | Safety Integrity Quality Gate | `./target/release/verify-baseline` (Check 17) | `docs/safety/README.md` |
 
 ### Phase 0 System Safety Assurance Gate
@@ -217,6 +206,7 @@ The pipeline mechanically enforces 31 active quality gates via the native Rust t
   2. **State**: Illegal transition, deadlocks, state desynchronization, uninitialized mode, unrecoverable safe-state trap, livelock.
   3. **Action**: Command omission, inadvertent/spurious execution, timing/latency violation, out-of-sequence execution, truncated/extended actuation duration.
   4. **Resource**: Memory exhaustion, buffer overflow, CPU starvation, deadline miss, power sag/brownout, thermal throttling, storage corruption.
+- **Component-Level Failure Mode Research Swarm Mandate**: During Step 1.5 Technology Stack & Architecture Research, monolithic failure mode drafting by a single worker is strictly prohibited. The coordinator MUST decompose all AST `part def` components $\{P_1, P_2, \dots, P_N\}$ declared in `.pipeline/schema.sysml` and dispatch $N$ context-isolated research subagents (role: `Component Failure Mode Researcher` or `Failure Mode Research Worker`). Each subagent receives its respective component AST fragment (name, ports, actions, operations, states, constraints) and is mandated to query applicable aerospace and systems failure mode catalogs (e.g. SAE ARP4761, MIL-HDBK-338B, RTCA DO-254, RTCA DO-178C). The subagents evaluate the 4 Universal Failure Dimensions (Interface, State, Action, Resource), assigning integer Severity ($S \in [1, 10]$), Occurrence ($O \in [1, 10]$), Detection ($D \in [1, 10]$), integer RPN ($RPN = S \times O \times D$), and explicit `SSOT`/`Derived` basis tags. The outputs MUST be aggregated into `docs/research/FAILURE_MODE_REGISTRY.md` with failure causes, local effects, system effects, and detection mechanisms. Every component MUST have at least 3 distinct failure modes documented before authorizing Step 2 STPA/FMECA matrix synthesis.
 - **Derivation-Annotation Contract**: All analytical content in the 8-pillar deliverable is an engineering derivative of the SSOT fact base, never a fact itself. Every derived cell MUST carry four annotations: (1) Input anchors (SSOT document, section, and clause, or explicit silent source set), (2) Methodology citation (Leveson STPA for L/H/UCA/LS/SC; MIL-STD-1629A/SAE ARP4761 for FMECA S/O/D/RPN; Applicable domain safety framework for integrity levels; Declared safety architecture patterns for run-time assurance hooks), (3) Derivation grade (directly evidenced, analytically derived, or declared assumption), and (4) Caveat (mandatory where product documents are silent, recording the attempt made, silent source set, and downstream impact).
 - **ASTM F3269-17 RTA & Model-Based Design Hook Mandate**: Formal safety constraints and Run-Time Assurance (RTA) Safety Net monitors MUST specify direct integration hooks for MATLAB / Simulink / Stateflow / Embedded Coder control law synthesis and Simulink Design Verifier (SLDV) invariant proving.
 - **Forbidden Math Delimiters on Alphanumeric IDs**: Traceability keys and non-mathematical identifiers (such as requirement IDs `SC-XX`, hazard tags `H-X`, regulatory objective codes (e.g. `OBJ-XX`), loss tags `L-X`, and UCA codes `UCA-X`) MUST NOT be wrapped in LaTeX math delimiters `$...$`. Bold formatting (`**SC-01**`, `**H-1**`) MUST be used instead.
@@ -246,8 +236,21 @@ The pipeline mechanically enforces 31 active quality gates via the native Rust t
 - Baseline conformance must be verified using the configured verification script, which asserts that all baseline files are present, validates type compatibility, and compiles/tests the project with a clean exit code.
 
 ### Downstream Single Source of Truth (SSOT) & Clean Baseline Mandate
-- **Single Source of Truth (SSOT)**: Master architecture blueprints (`DEAP_MASTER_ARCHITECTURE.md`, `THREE_TIER_GOVERNANCE_BLUEPRINT.md`, `SYSML_SSOT_BIDIRECTIONAL_SYNCHRONIZATION_ARCHITECTURE.md`) reside exclusively in the central upstream specification repository (`DEAP01-spec-core`). Downstream repositories are strictly forbidden from copying or duplicating master blueprints locally. All downstream projects MUST reference upstream specifications via URLs or relative submodule paths.
+- **Single Source of Truth (SSOT)**: Master architecture blueprints -- including legacy sentinel filenames (`DEAP_MASTER_ARCHITECTURE.md`, `THREE_TIER_GOVERNANCE_BLUEPRINT.md`) and all 12 canonical architecture blueprints residing in `docs/architecture/blueprints/` -- reside exclusively in the central upstream specification repository (`DEAP01-spec-core`). Downstream repositories are strictly forbidden from copying or duplicating master blueprints locally. All downstream projects MUST reference upstream specifications via URLs or relative submodule paths:
+  - `DEAP_SYSML_V2_INGESTION_ENGINE_BLUEPRINT.md`
+  - `SYSML_SSOT_BIDIRECTIONAL_SYNCHRONIZATION_ARCHITECTURE.md`
+  - `DEAP_DETERMINISTIC_SAFETY_SPECIFICATION_COMPILER_BLUEPRINT.md`
+  - `DEAP_MULTI_TOOLCHAIN_SYNTHESIS_ARCHITECTURE.md`
+  - `DEAP_LOGICAL_INTERFACE_SPECIFICATION_BLUEPRINT.md`
+  - `MULTI_PROVIDER_GITLAB_INFRASTRUCTURE_ARCHITECTURE.md`
+  - `PERSISTENCE_ARCHITECTURE.md`
+  - `SAFETY_CRITICAL_REALTIME_UI_FRAMEWORK.md`
+  - `RUNTIME_METADATA_ENGINE.md`
+  - `SPECKIT_NATIVE_INTEGRATION.md`
+  - `DEAP_LOCAL_AIRGAPPED_DEEPSEEK_WORKSTATION_BLUEPRINT.md`
+  - `DEAP_DEEPSEEK_HARNESS_INTEGRATION_BLUEPRINT.md`
 - **Clean Baseline & Version Control Mandate**: Every downstream repository MUST maintain a valid `.gitignore` file in its root directory. OS-generated metadata files (such as `.DS_Store`) and build artifacts are strictly forbidden from being committed or present in the working tree or git index.
+- **Downstream Binary-Only Distribution & Source Firewall Lock**: Upstream Tier-0 compiler source code (`crates/{deap-core,ingest-sysml,compile-sysml,verify-baseline,reconcile-backlog,assemble-conops}`, `Cargo.toml`, `Cargo.lock`), `.pipeline/upstream/`, and `docs/architecture/blueprints/` reside **exclusively** in `DEAP01-spec-core` (`UPSTREAM_SPEC_CORE_COMPILER`). Agents (and subagents) are strictly forbidden from proposing, planning (`implementation_plan.md`), or executing any copy, sync, or commit of Tier-0 compiler `crates/*` source code into any downstream repository (`DOWNSTREAM_CUSTOMER_PROJECT`), and strictly forbidden from running `cargo build` to recompile already-verified `target/release/*` binaries during downstream distribution. Downstream distribution is restricted exclusively to: (1) pre-built `target/release/{compile-sysml,verify-baseline,ingest-sysml,reconcile-backlog,assemble-conops}` binary images, (2) `AGENTS.md` / `.agents/AGENTS.md`, (3) `.pipeline/constitution.md` / `.pipeline/ACTIVE_RULES_BUNDLE.md`, (4) `rules/*.md`, and (5) `skills/**`. Any subagent prompt requesting to copy `crates/*` to a downstream repository MUST immediately self-reject and halt.
 
 ## CMMI Level 3 & Scrum Issue Lifecycle Rules
 
@@ -256,12 +259,12 @@ The pipeline explicitly substantiates CMMI Level 3 alignment across key engineer
 
 | Process Area (CMMI Acronym) | Enforcing Mechanisms & Pipeline Artifacts |
 |---|---|
-| Requirements Management (REQM) | `tracker-source-of-truth.md`, `reconcile-backlog` |
-| Verification (VER) | `verify-baseline` specification auditor |
+| Requirements Management (REQM) | `tracker-source-of-truth.md`, `./target/release/reconcile-backlog` |
+| Verification (VER) | Native Rust workspace test suite & `./target/release/verify-baseline` |
 | Validation (VAL) | Product Owner `Closed` state transition & verification walkthroughs |
 | Configuration Management (CM) | Git-tracked specification files, `constitution-amendments.md` |
 | Technical Solution (TS) | 3-Layer LUI Definition of Done & implementation profiles |
-| Product Integration (PI) | Automated baseline verification `verify-baseline` |
+| Product Integration (PI) | Automated baseline verification `./target/release/verify-baseline . --no-domain` |
 
 
 ### Separation of Verification and Validation

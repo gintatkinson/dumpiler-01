@@ -1,37 +1,18 @@
-# BRIEFING -- 2026-10-12T15:18:30Z
+# BRIEFING — 2026-10-14T07:25:30Z
 
 ## Mission
-Execute the autonomous Ralph burndown loop on dumpiler-01 to eradicate all regular expression sites across all 6 Rust compiler crates (181 empirical sites discovered), evict the regex crate completely from the workspace, purge all Python debris, and arm ./target/release/verify-baseline with Check 33 (Zero Python Scripts Invariant) and Check 34 (Zero Regex Invariant).
+Execute the autonomous safety-critical compiler hardening and defect burndown loop on DEAP01-spec-core to deliver a 100% AST-pure, zero-defect native Rust compiler workspace, re-audit prior defect commits for AST purity, and serially resolve all remaining open defect issues until strictly zero unresolved issues remain.
 
 ## 🔒 My Identity
 - Archetype: sentinel
 - Working directory: /Users/perkunas/jail/dumpiler-01/.agents/teamwork/sentinel
-- Orchestrator: fd49410f-5805-4665-b1ee-308303216ade (orchestrator_3, completed)
-- Victory Auditor: 0ead4363-f363-4364-9741-4346b11946a3 (victory_auditor_2, completed)
-- Cron 1 (Progress Reporting): cancelled
-- Cron 2 (Liveness Check): cancelled
-- Orchestrator (Run 4): 76c1cb8b-7a78-4131-87c6-9375d3b4efec (orchestrator_4, completed)
-- Victory Auditor (Run 4): 31f1fda5-87c3-42fa-8454-2e293340ea82 (victory_auditor_3, completed)
-- Orchestrator (Run 5): 6fa8f222-b118-4387-9c30-e588b3c37349 (orchestrator_5, completed)
-- Victory Auditor (Run 5): 446c04d9-e493-487d-ae71-96b2bec3163b (victory_auditor_3, completed)
-- Orchestrator (Run 6): 5dc15393-cf80-46fd-9e84-7cde6984d9e6 (orchestrator_6, completed)
-- Victory Auditor (Run 6): dd4db34a-7ccc-4b70-a8fe-898dec5cec61 (victory_auditor_4, completed)
-- Orchestrator (Run 7): eb922ce0-57db-4de7-940f-5a21fc57c61a (orchestrator_7, completed)
-- Victory Auditor (Run 7): victory_auditor_5 (completed)
-- Orchestrator (Run 8): 8555a53c-bff2-4117-bae3-65d52139765e (orchestrator_8, completed)
-- Victory Auditor (Run 8): victory_auditor_6 (completed)
-- Orchestrator (Run 9): 76edfb08-05a5-45ad-a5e4-751d08836b76 (orchestrator_9, completed)
-- Victory Auditor (Run 9): 812df66f-64c9-40bc-8ac3-01529cedc0a2 (victory_auditor_8, VICTORY CONFIRMED)
-- Victory Auditor (Run 10): fe53ee5d-92e7-43f8-8e10-da8bd45c1db5 (victory_auditor_9, VICTORY CONFIRMED)
-- Orchestrator (Run 11): cf963395-9c39-4b77-9d5e-56d989a5c8c8 (orchestrator_10, completed)
-- Victory Auditor (Run 11): 3677ebef-4714-4a4e-ab20-9784e0dc389a (victory_auditor_10, VICTORY CONFIRMED)
-- Active Orchestrator Conversation ID: none (cleaned up)
-- Active Victory Auditor Conversation ID: none (cleaned up)
-- Active Cron 1 Task ID: cancelled
-- Active Cron 2 Task ID: cancelled
+- Orchestrator: a705566c-ca6c-4933-872c-a9f5604b30ad (orchestrator_6)
+- Victory Auditor: to be spawned on victory claim
+- Cron 1 (Progress Reporting): active (task-48)
+- Cron 2 (Liveness Check): active (task-50)
 
 ## 🔒 Key Constraints
-- No technical decisions -- relay only
+- No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
 - Must not write code, analyze problems, or make any technical decisions
 - Keep context ultra-light
@@ -40,36 +21,52 @@ Execute the autonomous Ralph burndown loop on dumpiler-01 to eradicate all regul
 - Commit message non-closure invariant (neutral citations only)
 - Zero Python scripts (.py) anywhere in repository
 - Zero regex calls or dependencies across all crates
+- Mandatory serial defect-by-defect gang dispatch (zero batching)
+- All subagents MUST use Model: "inherit"
+- Zero shell (.sh) scripts anywhere
+- Mandatory 7-section inline safety-critical Rustdoc on ALL modules (`//!`), pub items, AND core internal `fn` items (`///`)
+- clippy.toml banning regex::Regex, HashMap, HashSet
+- BTreeMap and BTreeSet exclusively
+- Mandatory Mechanical Zero Static String-Slice Array Gate (`[&str` banned; AST symbol resolution or strongly typed AST enum/token match required)
+- Zero unwrap and zero slice indexing (`&lower[kw.len()..]`)
+- Full remediation of 11 critical findings in AUDIT_REJECTION_DOSSIER_PARITY_GATES.md (PG-01 through PG-11)
+- Layer 1: Upgrade Check 34 into full self-hosting compiler purity & anti-cheat gate (regex, static string slices, hollow gate stubs, fail-open swallowing, UTF-8 slicing hazards, 7-section Rustdoc)
+- Layer 2: Mandatory whole-file line-by-line adversarial audit dossier (PG-01..PG-11 rubric) before every module refactor across all crates in M2 and M3
+- Anti-"Type-Checking Theater" Invariant: Enums must carry genuine semantic branching (exhaustive match policies, AST dispatches); no dummy pass-through enums; `TargetScanDir` Option B mandatory across parity gates.
+- 2-Stage Adversarial Judge Protocol (`skills/adversarial-code-auditor/SKILL.md`): Pre-flight line-by-line audit dossier (Line 1 to EOF against 5 pillars + 11 PG defect classes + anti-ceremony rule) before worker dispatch on every module; post-flight adversarial judge gate inspecting full git diff and trying to break implementation with edge cases before acceptance.
+- Session Shutdown Mandate: HALT AFTER WP1 COMPLETION. Once WP1 (parity_gates.rs, runner.rs, Check 34 structural.rs) finishes, run post-flight adversarial judge and reviewer, commit & push verified WP0+WP1 to origin/feat/rust-toolchain-only, do NOT dispatch WP2, cancel all crons, kill all subagents, and deliver final WP1 completion report with raw outputs.
 
 ## User Context
-- **Last user request**: Autonomous Ralph burndown loop on dumpiler-01 to eradicate all 43 regular expression sites across the 4 Rust compiler crates, evict the regex crate completely from the workspace, purge all Python debris, and arm ./target/release/verify-baseline with Check 33 (Zero Python Scripts Invariant) and Check 34 (Zero Regex Invariant).
+- **Last user request**: IMMEDIATE USER COMMAND: "finish up now and commit" — Halt immediately, kill all subagents and crons, stage verified WP0+WP1 source files, commit with clean message, push to remote, report commit SHA, git show --stat, cargo test summaries, and halt.
 - **Pending clarifications**: none
 - **Delivered results**:
-  - Purged all 12 leftover .py files under .agents/teamwork/ (`find . -name "*.py" -not -path "./target/*"` returns 0 lines). Cleaned `.gitignore`.
-  - Refactored all 181 regex sites across all 6 member crates (`assemble-conops`: 54 sites, `reconcile-backlog`: 3 sites, `verify-baseline`: 38 sites, `ingest-sysml`: 52 sites, `compile-sysml`: 8 sites, `deap-core`: 27 sites).
-  - Completely evicted `regex = "1.10"` dependency from all 6 crate manifests and `Cargo.lock` (`cargo tree -i regex` exits non-zero).
-  - Armed `verify-baseline` with Check 33 (Zero Python Scripts Invariant) and Check 34 (Zero Regex Invariant).
-  - Compiled release binary `./target/release/verify-baseline`; passes all 34 quality gates cleanly.
-  - Adversarially verified Checks 33 and 34 via negative mutation tests (loud rejection on stimulus, clean recovery on probe removal).
-  - Synchronized default branch `main` (`93d4291`) and PR branch `feat/rust-toolchain-only` (`f0634f3`) across remotes `origin` and `spec-core` (backing `dumpiler-01#128`, `DEAP01-spec-core#433`, `DEAP01-spec-core#434`) with 0 bytes tracking diffs. Strictly zero em dashes and neutral commit citations `(refs #115)`.
-  - Independent Victory Auditor `victory_auditor_10` verified all requirements and delivered **VICTORY CONFIRMED**.
-  - All background crons and subagents cleaned up.
+  - Recorded user request verbatim to ORIGINAL_REQUEST.md in both workspaces.
+  - Milestone 2 WP0 (`deap-core`) completed and verified: `CalcDef`, recursive AST queries, `BTreeMap`/`BTreeSet` migrations, 7-section Rustdoc, 39/39 tests pass.
+  - Milestone 2 WP1 (`verify-baseline`) completed and verified: `TargetScanDir` Option B SSOT, full PG-01..PG-11 remediation, Check 34 self-hosting compiler purity upgrade, 204/204 tests pass.
+  - Strictly 0 static string slice arrays (`[&str`), 0 unwrap in non-test code, 0 clippy warnings on modified targets.
+  - Cancelled all background crons and terminated all subagents.
+  - Committed verified source changes: commit `a369a11`.
+  - Pushed to `origin/feat/rust-toolchain-only` (0 byte diff with origin).
 
 ## Project Status
-- **Phase**: complete
+- **Phase**: halted for session handover (Milestone 2 WP0 + WP1 verified, committed, pushed; crons and subagents terminated)
 - **Routing Decision**: General -> teamwork_preview_orchestrator
-- **Active Orchestrator**: none (cleaned up)
-- **Active Auditor**: none (cleaned up)
+- **Active Orchestrator Conversation ID**: none (terminated)
+- **Current Target**: Session complete; ready for session handover
 
 ## Victory Audit Status
-- **Triggered**: yes
-- **Verdict**: VICTORY CONFIRMED
+- **Triggered**: no (WP1 milestone checkpoint commit; session handover per user instruction)
+- **Verdict**: pending (for final project victory)
 - **Retry count**: 0
 
 ## Artifact Index
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/ORIGINAL_REQUEST.md -- Verbatim user requests
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/sentinel/BRIEFING.md -- Sentinel persistent memory
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/sentinel/handoff.md -- Sentinel final handoff report
-- /Users/perkunas/jail/dumpiler-01/implementation_plan.md -- Implementation plan (181 sites, WP1-WP10)
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/orchestrator_10/handoff.md -- Orchestrator completion handoff
-- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/victory_auditor_10/handoff.md -- Independent victory audit handoff report
+- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/ORIGINAL_REQUEST.md — Verbatim user requests (dumpiler-01)
+- /Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/ORIGINAL_REQUEST.md — Verbatim user requests (DEAP01-spec-core)
+- /Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/AUDIT_REJECTION_DOSSIER_PARITY_GATES.md — Parity Gates Rejection Audit Dossier (PG-01 through PG-11)
+- /Users/perkunas/jail/dumpiler-01/.agents/teamwork/sentinel/BRIEFING.md — Sentinel persistent memory
+- /Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/sentinel/BRIEFING.md — Sentinel persistent memory (DEAP01)
+- /Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/orchestrator_6/ — Working directory for orchestrator_6
+- /Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/worker_m2_wp0_deap_core/handoff.md — WP0 Worker Handoff
+- /Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/explorer_parity_gates_remediation/DISPATCH.md — Parity Gates Explorer Dispatch
+- /Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/explorer_parity_gates_remediation/handoff.md — Parity Gates Remediation Blueprint (31.8 KB)
+- /Users/perkunas/jail/DEAP01-spec-core/.agents/teamwork/worker_m2_wp1_parity_gates/DISPATCH.md — WP1 Worker Dispatch

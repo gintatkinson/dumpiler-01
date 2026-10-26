@@ -301,7 +301,7 @@ satisfies both. What was missing was procedure and audit trail, not permission.
 
 **Every amendment is logged.** `.pipeline/constitution-amendments.md` is append-only and
 records the resulting SHA-256 of the constitution.
-`tests/test_constitution_integrity.py` asserts the file matches the newest entry, so an
+`./target/release/verify-baseline` asserts the file matches the newest entry, so an
 unlogged edit -- by a human, an agent, or a merge -- fails the suite.
 
 #### Procedure
@@ -343,7 +343,7 @@ unlogged edit -- by a human, an agent, or a merge -- fails the suite.
 - If the human's approval is ambiguous, ask. An amendment applied on a misread
   approval is worse than an unfixed divergence, because the audit trail will record it
   as approved.
-- Recording a divergence in the baseline verification rules registry under `KNOWN_DOC_DIVERGENCES` is the
+- Recording a divergence in `crates/verify-baseline` `KNOWN_DOC_DIVERGENCES` is the
   correct action when approval is not yet available. A divergence left undocumented
   becomes indistinguishable from a bug.
 

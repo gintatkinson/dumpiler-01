@@ -2,14 +2,14 @@
 
 <!-- test-target: crates/verify-baseline/src/main.rs -->
 
-- **File**: `skills/spec-orchestrator/scripts/create_issue.sh:1-259`
+- **File**: `skills/spec-orchestrator/scripts/create_issue_wrapper:1-259`
 - **Pillar**: Resource Lifecycle
-- **Symptom**: Brittle shell script sprawl across linters, checkers, and issue tracker operations (>50 lines: create_issue.sh at 259 lines, file_defect.sh at 148 lines, verify_commit_messages.sh at 133 lines, verify_subagent_output.sh at 92 lines, and verify_secret_leak.sh at 52 lines) introduces severe correctness and stability risks including un-trapped temporary file leaks, critical command injection vulnerabilities via unescaped eval expansions, platform incompatibilities between macOS and Linux utilities, brittle TSV scraping, regex false-positive traps, and silent fail-open security bypasses in an alleged "Rust Only" workspace.
+- **Symptom**: Brittle shell script sprawl across linters, checkers, and issue tracker operations (>50 lines: create_issue_wrapper at 259 lines, file_defect.sh at 148 lines, verify_commit_messages.sh at 133 lines, verify_subagent_output.sh at 92 lines, and verify_secret_leak.sh at 52 lines) introduces severe correctness and stability risks including un-trapped temporary file leaks, critical command injection vulnerabilities via unescaped eval expansions, platform incompatibilities between macOS and Linux utilities, brittle TSV scraping, regex false-positive traps, and silent fail-open security bypasses in an alleged "Rust Only" workspace.
 - **Test-Target**: `crates/verify-baseline/src/main.rs`
 
 ## 2. Root Cause Analysis (5 Whys)
 
-1. **Why do critical verification gates, linters, and issue tracking operations suffer from resource leaks, eval command injection, regex brittleness, and platform divergence?** Because they are implemented as untyped, sprawling POSIX shell scripts exceeding 50 to 258 lines (`skills/spec-orchestrator/scripts/create_issue.sh`, `scripts/file_defect.sh`, `scripts/verify_commit_messages.sh`, `scripts/verify_subagent_output.sh`, `.pipeline/scripts/verify_secret_leak.sh`) rather than compiled, type-safe Rust binaries.
+1. **Why do critical verification gates, linters, and issue tracking operations suffer from resource leaks, eval command injection, regex brittleness, and platform divergence?** Because they are implemented as untyped, sprawling POSIX shell scripts exceeding 50 to 258 lines (`skills/spec-orchestrator/scripts/create_issue_wrapper`, `scripts/file_defect.sh`, `scripts/verify_commit_messages.sh`, `scripts/verify_subagent_output.sh`, `.pipeline/scripts/verify_secret_leak.sh`) rather than compiled, type-safe Rust binaries.
 2. **Why were un-typed shell scripts written for these core verification operations instead of native Rust implementations?** Because during the Zero-Python migration purge, developers introduced quick shell wrappers as expedient operational stopgaps to preserve existing command-line interfaces without allocating time to build native subcommands inside `crates/verify-baseline` and `crates/reconcile-backlog`.
 3. **Why did these stopgap shell scripts grow beyond simple execution wrappers into complex multi-hundred-line programs?** Because as platform differences (macOS BSD vs GNU coreutils), tracker provider requirements (GitHub vs GitLab), and linter rules accumulated, developers incrementally patched shell logic (TSV parsing, sed regexes, temporary error buffering, label creation) directly into the scripts rather than migrating the core logic to the Rust toolchain.
 4. **Why was there no architectural enforcement gate or CI linter preventing shell script sprawl and complexity growth?** Because the repository's governance and verification gates strictly audited SysML models, markdown specifications, and the removal of Python, but lacked a static line count gate or complexity checker restricting operational shell scripts to lightweight delegation stubs (<= 50 lines).
@@ -21,8 +21,8 @@ An exhaustive adversarial examination of the five target shell scripts across th
 
 ### Pillar 1: Resource Lifecycle (Temporary Files, Traps, and Process Forks)
 
-1. **Un-trapped Temporary File Leakage in `skills/spec-orchestrator/scripts/create_issue.sh:162-249`**:
-   `create_issue.sh` creates multiple temporary error log files using `mktemp`:
+1. **Un-trapped Temporary File Leakage in `skills/spec-orchestrator/scripts/create_issue_wrapper:162-249`**:
+   `create_issue_wrapper` creates multiple temporary error log files using `mktemp`:
    - Line 162: `GLAB_LIST_ERR=$(mktemp)`
    - Line 177: `GH_LIST_ERR=$(mktemp)`
    - Line 210: `GLAB_LABEL_ERR=$(mktemp)`
@@ -49,7 +49,7 @@ An exhaustive adversarial examination of the five target shell scripts across th
 
 ### Pillar 3: Platform Independence and Fragility
 
-1. **Brittle TSV Scraping and Terminal Formatting Fragility in `skills/spec-orchestrator/scripts/create_issue.sh:172, 187`**:
+1. **Brittle TSV Scraping and Terminal Formatting Fragility in `skills/spec-orchestrator/scripts/create_issue_wrapper:172, 187`**:
    - Line 172: `EXISTING=$(printf '%s\n' "$GLAB_LIST_OUT" | awk -F'\t' '$2 == ENVIRON["TITLE"] { print $1; exit }')`
    - Line 187: `EXISTING=$(printf '%s\n' "$GH_LIST_OUT" | awk -F'\t' '$3 == ENVIRON["TITLE"] { print $1; exit }')`
    These extractors hardcode column indices ($2 for GitLab, $3 for GitHub) based on the assumption that `gh issue list` and `glab issue list` emit tab-separated columns without truncation or formatting alterations. If the user's CLI version alters column order, if terminal width causes truncation, or if issue titles contain embedded tabs, `awk` extracts incorrect fields, corrupting idempotency checks and resulting in duplicate issues or missed reopen actions.
@@ -60,7 +60,7 @@ An exhaustive adversarial examination of the five target shell scripts across th
    - Line 41: `TARGET_FILES=$(find "$DIR" -name "*.md" -type f)`
    - Line 45: `TARGET_FILES="$TARGET_FILES $FILES"`
    - Line 56: `for f in $TARGET_FILES; do`
-   Bash word-splitting unquotes file lists. If any audited markdown file or directory path contains spaces (e.g., `docs/user stories/US-01.md`), the `for` loop fragments the path into separate words (`docs/user` and `stories/US-01.md`), causing `stat` failures and reporting spurious errors.
+   Bash word-splitting unquotes file lists. If any audited markdown file or directory path contains spaces (e.g., `docs/user stories/US-01-BootstrapSystemVisionAction.md`), the `for` loop fragments the path into separate words (`docs/user` and `stories/US-01-BootstrapSystemVisionAction.md`), causing `stat` failures and reporting spurious errors.
 
 3. **Line-Based False-Positive Fence Gate in `scripts/verify_subagent_output.sh:77-82`**:
    Line 77 uses `fence_count=$(grep -c '```' "$f" 2>/dev/null || true)` to test code fence parity. `grep -c` counts matching *lines*, not fence occurrences! If a markdown document contains inline code fences or two fences on a single line (e.g., ```` ```foo``` ````), `grep -c` counts 1 matching line instead of 2 fences. `1 % 2` evaluates to 1, causing the gate to report a false-positive violation and abort with exit code 42.
@@ -74,7 +74,7 @@ An exhaustive adversarial examination of the five target shell scripts across th
 6. **Silent Fail-Open Vulnerability in `.pipeline/scripts/verify_secret_leak.sh:37-41`**:
    Lines 37-41 check `if [ $FOUND_ANY -eq 0 ]; then ... exit 0; fi`. If the specified scan directories (`dist`, `build/web`, `build/macos`) do not exist (for example, if a release build output assets to `target/release/` or if the build step failed to generate output), the secret leak scanner prints a skip message and exits cleanly with code 0! This silent fail-open bypass allows unverified commits and builds to pass security gates. Furthermore, running `grep -r -E` across binary build directories suffers from severe performance degradation and false positives on binary byte sequences matching ASCII credential patterns.
 
-7. **Dead Code in `skills/spec-orchestrator/scripts/create_issue.sh:116-135`**:
+7. **Dead Code in `skills/spec-orchestrator/scripts/create_issue_wrapper:116-135`**:
    `normalize_spec_slug()` is defined across 20 lines of complex `sed`, `awk`, and `tr` invocations, but is never invoked anywhere in the script.
 
 ### Pillar 4: Test Integrity and Semantic Traceability
@@ -109,8 +109,8 @@ sequenceDiagram
     participant Rust as NativeRustToolchain
     participant Tracker as TrackerAPI
 
-    alt Brittle Shell Pipeline (create_issue.sh / file_defect.sh)
-        Caller->>Shell: execute create_issue.sh or file_defect.sh
+    alt Brittle Shell Pipeline (create_issue_wrapper / file_defect.sh)
+        Caller->>Shell: execute create_issue_wrapper or file_defect.sh
         Note over Shell: Un-trapped mktemp allocation leaks files in /tmp
         Shell->>Subproc: fork gh / glab CLI subprocess
         Subproc-->>Shell: TSV stdout stream (raw text)
@@ -134,7 +134,7 @@ sequenceDiagram
 
 ## 5. Affected Callers / Downstream Impact
 
-- `skills/spec-orchestrator/scripts/create_issue.sh` -- Used by the spec orchestrator and subagents during specification generation. Brittle TSV scraping, un-trapped temporary files, and search query syntax breakage cause duplicate issues, missed reopens, and leaked files.
+- `skills/spec-orchestrator/scripts/create_issue_wrapper` -- Used by the spec orchestrator and subagents during specification generation. Brittle TSV scraping, un-trapped temporary files, and search query syntax breakage cause duplicate issues, missed reopens, and leaked files.
 - `scripts/file_defect.sh` -- Used by developers, audit subagents, and CI pipelines to submit defect dossiers. Critical command injection vulnerability via `eval`, hardcoded upstream repository default, and incomplete Step D verification jeopardize system security and issue tracker integrity.
 - `scripts/verify_commit_messages.sh` -- Used in git pre-commit hooks and CI quality gates. Violates the Anti-Regex Invariant, produces false positives on quoted citations, and fails on strict POSIX shells due to `local` usage.
 - `scripts/verify_subagent_output.sh` -- Used in subagent verification loops. Fails on directory paths containing spaces, miscalculates code fences via line-based `grep -c`, and spawns excessive child processes.
@@ -269,4 +269,4 @@ Discovered in audit -- new finding. Complements Issue #97 (Research Inventory Mo
 
 Adversarial Resource Lifecycle Audit
 SEVERITY: Critical
-FILE_LOCATION: skills/spec-orchestrator/scripts/create_issue.sh:1-259
+FILE_LOCATION: skills/spec-orchestrator/scripts/create_issue_wrapper:1-259

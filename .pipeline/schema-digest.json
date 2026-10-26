@@ -1,9 +1,10 @@
 {
-  "sha256": "a7f2b280c486b638783034deb9b85a19d2af7bd1b689e2f77df39830e54433dd",
-  "total_lines": 6351,
+  "sha256": "d8794433d03ef7832e72a09e4935bc060380a41a08c330c27c8afa31ab8a1875",
+  "total_lines": 6520,
   "node_counts": {
     "action_defs": 51,
     "attribute_defs": 20,
+    "calc_defs": 0,
     "capability_defs": 0,
     "connection_defs": 16,
     "constraint_defs": 1,
@@ -32,6 +33,7 @@
     "ASTStreamPort",
     "AgileProjectionEngine",
     "AgileProjectionFSM",
+    "AgileProjectionInteraction",
     "AllocateNodeAction",
     "ArenaAllocator",
     "ArenaPageLifecycleStatechart",
@@ -48,11 +50,13 @@
     "CodeArtifactPort",
     "CodeGenEngine",
     "CodeGenFSM",
+    "CodeGenInteraction",
     "CommonMarkTableLexer",
     "CommonMarkTableLexerStatechart",
     "CompilerAssurance",
     "CompilerAssuranceEngine",
     "CompilerAssuranceFSM",
+    "CompilerAssuranceInteraction",
     "CompilerLifecycleModes",
     "CompilerRulePort",
     "ConOps",
@@ -63,6 +67,7 @@
     "DEAPCompilerSystem",
     "DEAP_Compiler_System",
     "DiagnosticCatalogFSM",
+    "DiagnosticCatalogInteraction",
     "DiagnosticErrorCatalog",
     "DiagnosticErrorCatalogEngine",
     "DiagnosticPort",
@@ -83,11 +88,14 @@
     "FrontmatterIntegrityEncoder",
     "GrammarLoweringEngine",
     "GrammarLoweringFSM",
+    "GrammarLoweringInteraction",
     "HumanEngineer",
+    "ICDContractInteraction",
     "ICDContractSynthesisFSM",
     "ICDEngine",
     "ICDInterconnectPort",
     "IngestSchemaAction",
+    "IngestSchemaInteraction",
     "InterconnectContracts",
     "InterfaceMatrixBuilder",
     "InvariantBootstrapEngine",
@@ -96,9 +104,11 @@
     "MalformedASTPayload",
     "MarkdownSpecProjector",
     "MetrologyFlowEngine",
+    "MetrologyFlowInteraction",
     "MetrologyFlowPort",
     "MultiTargetCodegen",
     "NamespaceUuidGenerator",
+    "NodeAllocationInteraction",
     "NodeArenaASTGraphEngine",
     "NodeTableIndex",
     "OA_01_01_Ingest_System_Vision",
@@ -351,6 +361,7 @@
     "ResourceExhaustionFlood",
     "SafetyAssuranceEngine",
     "SafetyPort",
+    "SafetyTraceabilityInteraction",
     "SolveFlowsAction",
     "SolveStateDynamicsAction",
     "SourceLocationMapper",
@@ -359,6 +370,7 @@
     "StateHierarchyFlattener",
     "StateMachineSolverEngine",
     "StateSolverExecutionStatechart",
+    "StateSolverInteraction",
     "StateSolverPort",
     "SynthesizeCodeAction",
     "SynthesizeICDContractsAction",
@@ -368,6 +380,7 @@
     "SystemExecutionLifecycle",
     "SystemVision",
     "SystemVisionEngine",
+    "SystemVisionInteraction",
     "SystemVisionLifecycleStatechart",
     "TargetAstTranspiler",
     "TemplateRenderingEngine",
@@ -507,10 +520,1111 @@
     "uuid_version",
     "vocabValidator"
   ],
-  "operational_activities": [],
-  "operational_exchanges": [],
-  "operational_scenarios": [],
-  "operational_nodes": [],
+  "operational_activities": [
+    {
+      "id": "OA-01",
+      "name": "OA_01_Ingest_OEM_Artifacts",
+      "doc": "Ingest OEM documentation and structural schema artifacts into the compiler",
+      "performer": "",
+      "inputs": [
+        "raw_schema_source"
+      ],
+      "outputs": [
+        "parsed_syntax_tokens"
+      ]
+    },
+    {
+      "id": "OA-02",
+      "name": "OA_01_01_Ingest_System_Vision",
+      "doc": "Subsystem 01: Ingest system vision and foundational invariant specifications",
+      "performer": "",
+      "inputs": [
+        "system_vision_source"
+      ],
+      "outputs": [
+        "foundational_invariants"
+      ]
+    },
+    {
+      "id": "OA-03",
+      "name": "OA_01_02_Ingest_Universal_Schema",
+      "doc": "Subsystem 02: Ingest universal schemas across SysML, OpenAPI, Protobuf, and Markdown formats",
+      "performer": "",
+      "inputs": [
+        "raw_schema_payload"
+      ],
+      "outputs": [
+        "canonical_ast_tokens"
+      ]
+    },
+    {
+      "id": "OA-04",
+      "name": "OA_01_1_Format_Detection",
+      "doc": "Classify raw schema formats (SysML, OpenAPI, Protobuf, CommonMark)",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-05",
+      "name": "OA_01_2_Token_Lexing",
+      "doc": "Stream-tokenize raw schema inputs into canonical token representations",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-06",
+      "name": "OA_01_3_Syntax_Normalization",
+      "doc": "Normalize multi-format token streams into canonical schema inputs",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-07",
+      "name": "OA_02_Parse_SysML_AST",
+      "doc": "Parse ingested schema sources into SysML v2 / KerML Abstract Syntax Tree",
+      "performer": "",
+      "inputs": [
+        "parsed_syntax_tokens"
+      ],
+      "outputs": [
+        "arena_ast_graph"
+      ]
+    },
+    {
+      "id": "OA-08",
+      "name": "OA_02_01_Construct_Node_Arena",
+      "doc": "Subsystem 03: Construct node arena and allocate AST memory slots",
+      "performer": "",
+      "inputs": [
+        "token_stream"
+      ],
+      "outputs": [
+        "arena_slots"
+      ]
+    },
+    {
+      "id": "OA-09",
+      "name": "OA_02_02_Lower_Grammar_Constructs",
+      "doc": "Subsystem 04: Lower SysML v2 and KerML grammar constructs",
+      "performer": "",
+      "inputs": [
+        "parsed_cst"
+      ],
+      "outputs": [
+        "lowered_ast"
+      ]
+    },
+    {
+      "id": "OA-10",
+      "name": "OA_02_1_KerML_AST_Build",
+      "doc": "Build KerML base syntax tree from normalized token stream",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-11",
+      "name": "OA_02_2_Node_Allocation",
+      "doc": "Allocate uniform memory slots in contiguous typed AST node arena",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-12",
+      "name": "OA_02_3_Topological_Index",
+      "doc": "Index topological paths and compute RFC 4122 UUIDv5 node identifiers",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-13",
+      "name": "OA_03_Validate_Model_Semantics",
+      "doc": "Validate AST semantics, typing, referential integrity, and domain constraints",
+      "performer": "",
+      "inputs": [
+        "arena_ast_graph"
+      ],
+      "outputs": [
+        "validated_semantic_model"
+      ]
+    },
+    {
+      "id": "OA-14",
+      "name": "OA_03_01_Verify_Metrology_Flows",
+      "doc": "Subsystem 05: Verify 7D physical metrology and flow networks",
+      "performer": "",
+      "inputs": [
+        "ast_flow_graph"
+      ],
+      "outputs": [
+        "metrology_verified_model"
+      ]
+    },
+    {
+      "id": "OA-15",
+      "name": "OA_03_02_Solve_State_Transitions",
+      "doc": "Subsystem 06: Solve spatio-temporal state transitions and reachability",
+      "performer": "",
+      "inputs": [
+        "state_machine_definitions"
+      ],
+      "outputs": [
+        "solved_state_matrix"
+      ]
+    },
+    {
+      "id": "OA-16",
+      "name": "OA_03_1_Type_Checking",
+      "doc": "Verify port and feature type compatibility across connection endpoints",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-17",
+      "name": "OA_03_2_Metrology_Verification",
+      "doc": "Verify 7-dimensional physical metrology and flow conservation laws",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-18",
+      "name": "OA_03_3_State_Reachability",
+      "doc": "Verify discrete state reachability and evaluate transition matrices",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-19",
+      "name": "OA_04_Transpile_Safety_Artifacts",
+      "doc": "Transpile verified model into 10-pillar STPA and safety assurance artifacts",
+      "performer": "",
+      "inputs": [
+        "validated_semantic_model"
+      ],
+      "outputs": [
+        "safety_assurance_suite"
+      ]
+    },
+    {
+      "id": "OA-20",
+      "name": "OA_04_01_Verify_Safety_Traceability",
+      "doc": "Subsystem 07: Verify formal safety traceability and regulatory objectives",
+      "performer": "",
+      "inputs": [
+        "semantic_model"
+      ],
+      "outputs": [
+        "formal_safety_evidence"
+      ]
+    },
+    {
+      "id": "OA-21",
+      "name": "OA_04_02_Verify_ICD_Interconnect_Contracts",
+      "doc": "Subsystem 08: Verify Level 1C ICD interconnect contracts",
+      "performer": "",
+      "inputs": [
+        "interface_definitions"
+      ],
+      "outputs": [
+        "verified_icd_contracts"
+      ]
+    },
+    {
+      "id": "OA-22",
+      "name": "OA_04_1_STPA_Matrix_Synthesis",
+      "doc": "Synthesize formal safety constraint matrices from model invariants",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-23",
+      "name": "OA_04_2_UCA_Derivation",
+      "doc": "Derive 4-mode Unsafe Control Actions across controller action interfaces",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-24",
+      "name": "OA_04_3_FMECA_Generation",
+      "doc": "Generate FMECA component failure mode criticality matrices",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-25",
+      "name": "OA_05_Synthesize_Downstream_Projections",
+      "doc": "Synthesize downstream architectural projections, ICD interfaces, and code",
+      "performer": "",
+      "inputs": [
+        "validated_semantic_model"
+      ],
+      "outputs": [
+        "generated_specifications"
+      ]
+    },
+    {
+      "id": "OA-26",
+      "name": "OA_05_01_Project_Agile_Backlog",
+      "doc": "Subsystem 09: Project Agile backlog specifications (Epics, Features, Stories, Use Cases)",
+      "performer": "",
+      "inputs": [
+        "verified_model_ast"
+      ],
+      "outputs": [
+        "projected_backlog_specs"
+      ]
+    },
+    {
+      "id": "OA-27",
+      "name": "OA_05_02_Synthesize_Multi_Target_CodeGen",
+      "doc": "Subsystem 10: Synthesize multi-target code generation and simulation bindings",
+      "performer": "",
+      "inputs": [
+        "target_ast_nodes"
+      ],
+      "outputs": [
+        "synthesized_code_artifacts"
+      ]
+    },
+    {
+      "id": "OA-28",
+      "name": "OA_05_1_Agile_Backlog_Projection",
+      "doc": "Lower AST into canonical Markdown specifications for Epics, Features, Stories",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-29",
+      "name": "OA_05_2_Multi_Target_CodeGen",
+      "doc": "Generate multi-target code artifacts and simulation bindings",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-30",
+      "name": "OA_05_3_Interface_Binding",
+      "doc": "Synthesize 3-layer LUMI interface bindings and platform adapters",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-31",
+      "name": "OA_06_Verify_Baseline_Parity",
+      "doc": "Verify multi-file baseline parity, AST alignment, and governance quality gates",
+      "performer": "",
+      "inputs": [
+        "generated_specifications"
+      ],
+      "outputs": [
+        "baseline_audit_report"
+      ]
+    },
+    {
+      "id": "OA-32",
+      "name": "OA_06_01_Triage_Diagnostic_Catalog",
+      "doc": "Subsystem 11: Triage diagnostic error catalog and compile diagnostic reports",
+      "performer": "",
+      "inputs": [
+        "compiler_diagnostics"
+      ],
+      "outputs": [
+        "triaged_error_catalog"
+      ]
+    },
+    {
+      "id": "OA-33",
+      "name": "OA_06_02_Assure_Compiler_Performance_Gates",
+      "doc": "Subsystem 12: Assure compiler performance and quality gate conformance",
+      "performer": "",
+      "inputs": [
+        "gate_evidence_suite"
+      ],
+      "outputs": [
+        "conformance_audit_certificate"
+      ]
+    },
+    {
+      "id": "OA-34",
+      "name": "OA_06_1_Diagnostic_Catalog_Scan",
+      "doc": "Scan diagnostic error catalog and aggregate compiler diagnostics",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-35",
+      "name": "OA_06_2_Baseline_Parity_Audit",
+      "doc": "Execute closed-loop baseline verification across 31 quality gates",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-36",
+      "name": "OA_06_3_Performance_Benchmarking",
+      "doc": "Benchmark compiler throughput, memory allocations, and latency bounds",
+      "performer": "",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "OA-37",
+      "name": "VerifyCompilerAssuranceAction",
+      "doc": "Action pipeline for executing headless CLI commands and compiling performance assurance metrics",
+      "performer": "",
+      "inputs": [
+        "cli_in"
+      ],
+      "outputs": [
+        "metrics_out"
+      ]
+    },
+    {
+      "id": "OA-38",
+      "name": "AllocateNodeAction",
+      "doc": "Action pipeline for allocating AST node slots and indexing topological graph edges",
+      "performer": "",
+      "inputs": [
+        "token_stream"
+      ],
+      "outputs": [
+        "ast_graph"
+      ]
+    },
+    {
+      "id": "OA-39",
+      "name": "TriageDiagnosticAction",
+      "doc": "Action pipeline for receiving, categorizing, and formatting compiler diagnostics",
+      "performer": "",
+      "inputs": [
+        "diag_in"
+      ],
+      "outputs": [
+        "diag_out"
+      ]
+    },
+    {
+      "id": "OA-40",
+      "name": "ProjectAgileSpecificationsAction",
+      "doc": "Action pipeline for lowering SysML AST into Agile Epics, Features, User Stories, and Use Cases",
+      "performer": "",
+      "inputs": [
+        "icd_in"
+      ],
+      "outputs": [
+        "specs_out"
+      ]
+    },
+    {
+      "id": "OA-41",
+      "name": "VerifySafetyTraceabilityAction",
+      "doc": "Action pipeline for constructing bipartite traceability graphs and verifying safety matrices",
+      "performer": "",
+      "inputs": [
+        "metrology_in",
+        "state_in"
+      ],
+      "outputs": [
+        "safety_out"
+      ]
+    },
+    {
+      "id": "OA-42",
+      "name": "SynthesizeICDContractsAction",
+      "doc": "Action pipeline for constructing N x N interface matrices and validating port contracts",
+      "performer": "",
+      "inputs": [
+        "safety_in"
+      ],
+      "outputs": [
+        "icd_out"
+      ]
+    },
+    {
+      "id": "OA-43",
+      "name": "SynthesizeCodeAction",
+      "doc": "Action pipeline for compiling specification models into target language source files",
+      "performer": "",
+      "inputs": [
+        "specs_in"
+      ],
+      "outputs": [
+        "code_out"
+      ]
+    },
+    {
+      "id": "OA-44",
+      "name": "SolveFlowsAction",
+      "doc": "Action pipeline for dimensional analysis and flow conservation solving",
+      "performer": "",
+      "inputs": [
+        "stream_in"
+      ],
+      "outputs": [
+        "metrology_out"
+      ]
+    },
+    {
+      "id": "OA-45",
+      "name": "SolveStateDynamicsAction",
+      "doc": "Action pipeline for resolving state machines and reachability matrices",
+      "performer": "",
+      "inputs": [
+        "stream_in"
+      ],
+      "outputs": [
+        "state_out"
+      ]
+    },
+    {
+      "id": "OA-46",
+      "name": "LowerSysMLAction",
+      "doc": "Action pipeline for lowering SysML v2 syntax into canonical KerML semantic representations",
+      "performer": "",
+      "inputs": [
+        "graph_in"
+      ],
+      "outputs": [
+        "stream_out"
+      ]
+    },
+    {
+      "id": "OA-47",
+      "name": "BootstrapSystemVisionAction",
+      "doc": "Action pipeline for system vision rule derivation and invariant checking",
+      "performer": "",
+      "inputs": [],
+      "outputs": [
+        "rules"
+      ]
+    },
+    {
+      "id": "OA-48",
+      "name": "ClassifyFormatAction",
+      "doc": "Autonomous format classifier action",
+      "performer": "",
+      "inputs": [
+        "input"
+      ],
+      "outputs": [
+        "output"
+      ]
+    },
+    {
+      "id": "OA-49",
+      "name": "TokenizeStreamAction",
+      "doc": "Stream tokenization action converting schema streams into typed tokens",
+      "performer": "",
+      "inputs": [
+        "input"
+      ],
+      "outputs": [
+        "output"
+      ]
+    },
+    {
+      "id": "OA-50",
+      "name": "RecoverSyncAction",
+      "doc": "Delimiter synchronization recovery action",
+      "performer": "",
+      "inputs": [
+        "input"
+      ],
+      "outputs": [
+        "output"
+      ]
+    },
+    {
+      "id": "OA-51",
+      "name": "IngestSchemaAction",
+      "doc": "End-to-end schema classification and tokenization action pipeline",
+      "performer": "",
+      "inputs": [
+        "schema_file"
+      ],
+      "outputs": [
+        "token_stream"
+      ]
+    }
+  ],
+  "operational_exchanges": [
+    {
+      "id": "OpTx-01",
+      "name": "c_cli_in_to_compilerAssurance_cli_in",
+      "source_port": "cli_in",
+      "target_port": "compilerAssurance.cli_in",
+      "source_part": "DEAPCompilerSystem",
+      "target_part": "compilerAssurance",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-02",
+      "name": "c_compilerAssurance_metrics_out_to_metrics_out",
+      "source_port": "compilerAssurance.metrics_out",
+      "target_port": "metrics_out",
+      "source_part": "compilerAssurance",
+      "target_part": "",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-03",
+      "name": "c_schema_in_to_universalIngestion_schema_in",
+      "source_port": "schema_in",
+      "target_port": "universalIngestion.schema_in",
+      "source_part": "DEAPCompilerSystem",
+      "target_part": "universalIngestion",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-04",
+      "name": "c_systemVision_rules_out_to_universalIngestion_rules_in",
+      "source_port": "systemVision.rules_out",
+      "target_port": "universalIngestion.rules_in",
+      "source_part": "systemVision",
+      "target_part": "universalIngestion",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-05",
+      "name": "c_universalIngestion_token_out_to_nodeArenaASTGraph_token_in",
+      "source_port": "universalIngestion.token_out",
+      "target_port": "nodeArenaASTGraph.token_in",
+      "source_part": "universalIngestion",
+      "target_part": "nodeArenaASTGraph",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-06",
+      "name": "c_nodeArenaASTGraph_ast_graph_out_to_grammarLowering_ast_in",
+      "source_port": "nodeArenaASTGraph.ast_graph_out",
+      "target_port": "grammarLowering.ast_in",
+      "source_part": "nodeArenaASTGraph",
+      "target_part": "grammarLowering",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-07",
+      "name": "c_grammarLowering_ast_out_to_metrologyFlow_ast_in",
+      "source_port": "grammarLowering.ast_out",
+      "target_port": "metrologyFlow.ast_in",
+      "source_part": "grammarLowering",
+      "target_part": "metrologyFlow",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-08",
+      "name": "c_grammarLowering_ast_out_to_stateMachineSolver_ast_in",
+      "source_port": "grammarLowering.ast_out",
+      "target_port": "stateMachineSolver.ast_in",
+      "source_part": "grammarLowering",
+      "target_part": "stateMachineSolver",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-09",
+      "name": "c_metrologyFlow_metrology_out_to_safetyAssurance_metrology_in",
+      "source_port": "metrologyFlow.metrology_out",
+      "target_port": "safetyAssurance.metrology_in",
+      "source_part": "metrologyFlow",
+      "target_part": "safetyAssurance",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-10",
+      "name": "c_stateMachineSolver_state_out_to_safetyAssurance_state_in",
+      "source_port": "stateMachineSolver.state_out",
+      "target_port": "safetyAssurance.state_in",
+      "source_part": "stateMachineSolver",
+      "target_part": "safetyAssurance",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-11",
+      "name": "c_safetyAssurance_safety_out_to_icdEngine_safety_in",
+      "source_port": "safetyAssurance.safety_out",
+      "target_port": "icdEngine.safety_in",
+      "source_part": "safetyAssurance",
+      "target_part": "icdEngine",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-12",
+      "name": "c_icdEngine_icd_out_to_agileProjection_icd_in",
+      "source_port": "icdEngine.icd_out",
+      "target_port": "agileProjection.icd_in",
+      "source_part": "icdEngine",
+      "target_part": "agileProjection",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-13",
+      "name": "c_agileProjection_specs_out_to_codeGen_specs_in",
+      "source_port": "agileProjection.specs_out",
+      "target_port": "codeGen.specs_in",
+      "source_part": "agileProjection",
+      "target_part": "codeGen",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-14",
+      "name": "c_codeGen_code_out_to_code_out",
+      "source_port": "codeGen.code_out",
+      "target_port": "code_out",
+      "source_part": "codeGen",
+      "target_part": "",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-15",
+      "name": "c_universalIngestion_diag_out_to_diagnosticCatalog_diag_in",
+      "source_port": "universalIngestion.diag_out",
+      "target_port": "diagnosticCatalog.diag_in",
+      "source_part": "universalIngestion",
+      "target_part": "diagnosticCatalog",
+      "protocol": ""
+    },
+    {
+      "id": "OpTx-16",
+      "name": "c_diagnosticCatalog_diag_out_to_diag_out",
+      "source_port": "diagnosticCatalog.diag_out",
+      "target_port": "diag_out",
+      "source_part": "diagnosticCatalog",
+      "target_part": "",
+      "protocol": ""
+    }
+  ],
+  "operational_scenarios": [
+    {
+      "id": "SCN-01",
+      "name": "UC_12_Compiler_Performance_Assurance_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-02",
+      "name": "UC_03_Node_Arena_Memory_Management_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-03",
+      "name": "UC_11_Diagnostic_Catalog_Triage_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-04",
+      "name": "UC_09_Agile_Specification_Projection_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-05",
+      "name": "UC_07_Safety_Assurance_and_Traceability_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-06",
+      "name": "UC_08_ICD_Interconnect_Contract_Generation_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-07",
+      "name": "UC_10_Multi_Target_CodeGen_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-08",
+      "name": "UC_05_Physical_Metrology_and_Flow_Conservation_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-09",
+      "name": "UC_06_State_Machine_Solver_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-10",
+      "name": "UC_04_SysML_Grammar_Lowering_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-11",
+      "name": "UC_01_System_Vision_and_Foundational_Invariants",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    },
+    {
+      "id": "SCN-12",
+      "name": "UC_02_Universal_Schema_Ingestion_Workflow",
+      "actor": "",
+      "objective": "",
+      "steps": []
+    }
+  ],
+  "operational_nodes": [
+    {
+      "name": "HumanEngineer",
+      "node_type": "Part",
+      "doc": "External human systems engineer interacting with compiler tooling and schemas",
+      "allocated_activities": []
+    },
+    {
+      "name": "CIContinuousIntegrationRunner",
+      "node_type": "Part",
+      "doc": "Continuous Integration runner executing automated compilation and verification gates",
+      "allocated_activities": []
+    },
+    {
+      "name": "RemoteArtifactRegistry",
+      "node_type": "Part",
+      "doc": "Remote artifact registry storing and serving upstream models and dependencies",
+      "allocated_activities": []
+    },
+    {
+      "name": "DownstreamApplicationHost",
+      "node_type": "Part",
+      "doc": "Downstream application host executing synthesized projections and runtime modules",
+      "allocated_activities": []
+    },
+    {
+      "name": "DEAPCompilerSystem",
+      "node_type": "Part",
+      "doc": "Level 1 System of Interest (SoI) Architecture Definition",
+      "allocated_activities": []
+    },
+    {
+      "name": "CompilerAssuranceEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for compiler performance profiling, CLI orchestration, and regression assurance",
+      "allocated_activities": []
+    },
+    {
+      "name": "CliCommandDispatcher",
+      "node_type": "Part",
+      "doc": "Headless command line interface parser and subcommand execution dispatcher",
+      "allocated_activities": []
+    },
+    {
+      "name": "PerformanceProfiler",
+      "node_type": "Part",
+      "doc": "High-resolution performance profiler capturing heap allocations, AST throughput, and wall-clock latencies",
+      "allocated_activities": []
+    },
+    {
+      "name": "RegressionInoculationRunner",
+      "node_type": "Part",
+      "doc": "Regression inoculation test runner verifying compilation benchmarks and semantic invariant preservation",
+      "allocated_activities": []
+    },
+    {
+      "name": "NodeArenaASTGraphEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for contiguous memory arena allocation and AST graph indexing",
+      "allocated_activities": []
+    },
+    {
+      "name": "ArenaAllocator",
+      "node_type": "Part",
+      "doc": "Uniform-slot contiguous virtual memory chunk allocator for AST nodes",
+      "allocated_activities": []
+    },
+    {
+      "name": "NodeTableIndex",
+      "node_type": "Part",
+      "doc": "Zero-indirection scalar NodeIndex lookup and topological table indexing",
+      "allocated_activities": []
+    },
+    {
+      "name": "AstInterner",
+      "node_type": "Part",
+      "doc": "String and structural symbol interner eliminating redundant AST allocations",
+      "allocated_activities": []
+    },
+    {
+      "name": "DiagnosticErrorCatalogEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for standardized compiler diagnostic error cataloging and triage",
+      "allocated_activities": []
+    },
+    {
+      "name": "ErrorCodeRegistry",
+      "node_type": "Part",
+      "doc": "Error code registry maintaining unique E-codes, severity levels, and remediation templates",
+      "allocated_activities": []
+    },
+    {
+      "name": "SourceLocationMapper",
+      "node_type": "Part",
+      "doc": "Source location mapper resolving byte spans to exact 1-indexed line and column coordinates",
+      "allocated_activities": []
+    },
+    {
+      "name": "DiagnosticReportFormatter",
+      "node_type": "Part",
+      "doc": "Diagnostic report formatter rendering ANSI terminal diagnostics, JSON payloads, and SARIF streams",
+      "allocated_activities": []
+    },
+    {
+      "name": "AgileProjectionEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for projecting SysML AST into Agile specification markdown hierarchies",
+      "allocated_activities": []
+    },
+    {
+      "name": "MarkdownSpecProjector",
+      "node_type": "Part",
+      "doc": "Markdown specification projector lowering packages to Epics, parts to Features, actions to Stories",
+      "allocated_activities": []
+    },
+    {
+      "name": "FrontmatterIntegrityEncoder",
+      "node_type": "Part",
+      "doc": "Frontmatter encoder maintaining YAML metadata, UUIDv5 identifiers, and issue linkages",
+      "allocated_activities": []
+    },
+    {
+      "name": "BacklogChecklistReconciler",
+      "node_type": "Part",
+      "doc": "Backlog checklist reconciler updating checkmarks and cross-references against live tracker state",
+      "allocated_activities": []
+    },
+    {
+      "name": "SafetyAssuranceEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for Formal Safety, Traceability & Regulatory Verification",
+      "allocated_activities": []
+    },
+    {
+      "name": "BipartiteGraphBuilder",
+      "node_type": "Part",
+      "doc": "Deterministic 7-tier bipartite DAG construction and reachability indexing",
+      "allocated_activities": []
+    },
+    {
+      "name": "DisjointTierValidator",
+      "node_type": "Part",
+      "doc": "Enforces strict disjoint tier partitioning and adjacent-only edges",
+      "allocated_activities": []
+    },
+    {
+      "name": "BidirectionalSweepEngine",
+      "node_type": "Part",
+      "doc": "Bidirectional forward and backward reachability sweeps",
+      "allocated_activities": []
+    },
+    {
+      "name": "DiagnosticSentinelSink",
+      "node_type": "Part",
+      "doc": "Error sink and diagnostic sentinel emission for safety invariants",
+      "allocated_activities": []
+    },
+    {
+      "name": "ICDEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for Level 1C Interface Control Document (ICD) contracts",
+      "allocated_activities": []
+    },
+    {
+      "name": "InterfaceMatrixBuilder",
+      "node_type": "Part",
+      "doc": "Canonical N x N interface matrix builder and lexicographical coordinate assigner",
+      "allocated_activities": []
+    },
+    {
+      "name": "PortCompatibilityChecker",
+      "node_type": "Part",
+      "doc": "Port type, protocol, and signal dictionary compatibility validator",
+      "allocated_activities": []
+    },
+    {
+      "name": "ContractSerializer",
+      "node_type": "Part",
+      "doc": "Interface contract serializer emitting machine-readable and tabular ICD specifications",
+      "allocated_activities": []
+    },
+    {
+      "name": "CodeGenEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for multi-target code generation and simulation runtime bindings",
+      "allocated_activities": []
+    },
+    {
+      "name": "TargetAstTranspiler",
+      "node_type": "Part",
+      "doc": "Target AST transpiler mapping SysML classifiers into language-specific AST structures",
+      "allocated_activities": []
+    },
+    {
+      "name": "TemplateRenderingEngine",
+      "node_type": "Part",
+      "doc": "Deterministic template rendering engine synthesizing Rust, C++, Python, and Flutter artifacts",
+      "allocated_activities": []
+    },
+    {
+      "name": "CodeArtifactFormatter",
+      "node_type": "Part",
+      "doc": "Code artifact formatter applying canonical language indentation, style guides, and linters",
+      "allocated_activities": []
+    },
+    {
+      "name": "MetrologyFlowEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for physical unit metrology and flow conservation verification",
+      "allocated_activities": []
+    },
+    {
+      "name": "DimensionalUnitChecker",
+      "node_type": "Part",
+      "doc": "Dimensional analysis and SI 7D base unit coherence checker",
+      "allocated_activities": []
+    },
+    {
+      "name": "FlowConservationSolver",
+      "node_type": "Part",
+      "doc": "Kirchhoff flow conservation and mass/energy conservation solver",
+      "allocated_activities": []
+    },
+    {
+      "name": "ConservationNetworkRouter",
+      "node_type": "Part",
+      "doc": "Topological flow network router validating directed port connections and flow rates",
+      "allocated_activities": []
+    },
+    {
+      "name": "StateMachineSolverEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for discrete state machines and temporal transition reachability",
+      "allocated_activities": []
+    },
+    {
+      "name": "StateHierarchyFlattener",
+      "node_type": "Part",
+      "doc": "Hierarchical composite state flattener resolving orthostates and entry/exit actions",
+      "allocated_activities": []
+    },
+    {
+      "name": "DiscreteTransitionSolver",
+      "node_type": "Part",
+      "doc": "Discrete transition solver evaluating guards, events, and deterministic transition firing",
+      "allocated_activities": []
+    },
+    {
+      "name": "ReachabilityMatrixEvaluator",
+      "node_type": "Part",
+      "doc": "Reachability graph evaluator proving deadlock-free execution and state reachability",
+      "allocated_activities": []
+    },
+    {
+      "name": "GrammarLoweringEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for OMG SysML v2 / KerML grammar parsing and semantic lowering",
+      "allocated_activities": []
+    },
+    {
+      "name": "KerMLTokenStream",
+      "node_type": "Part",
+      "doc": "KerML root token stream provider and lexical keyword tokenizer",
+      "allocated_activities": []
+    },
+    {
+      "name": "SysMLv2GrammarParser",
+      "node_type": "Part",
+      "doc": "Recursive descent SysML v2 parser constructing typed AST classifier elements",
+      "allocated_activities": []
+    },
+    {
+      "name": "ASTLoweringEngine",
+      "node_type": "Part",
+      "doc": "Semantic lowering pipeline resolving feature usages, port conjugation, and type inheritance",
+      "allocated_activities": []
+    },
+    {
+      "name": "SystemVisionEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for System Vision, Bootstrapping & Foundational Invariants",
+      "allocated_activities": []
+    },
+    {
+      "name": "InvariantBootstrapEngine",
+      "node_type": "Part",
+      "doc": "Invariant bootstrapper establishing foundational compiler constraints and namespace anchors",
+      "allocated_activities": []
+    },
+    {
+      "name": "NamespaceUuidGenerator",
+      "node_type": "Part",
+      "doc": "Deterministic RFC 4122 UUIDv5 topological namespace hashing engine",
+      "allocated_activities": []
+    },
+    {
+      "name": "DomainVocabularyValidator",
+      "node_type": "Part",
+      "doc": "Domain vocabulary validator enforcing zero hardcoded domain semantics",
+      "allocated_activities": []
+    },
+    {
+      "name": "UniversalIngestionEngine",
+      "node_type": "Part",
+      "doc": "Primary execution engine for multi-format schema ingestion and normalization",
+      "allocated_activities": []
+    },
+    {
+      "name": "FormatClassifier",
+      "node_type": "Part",
+      "doc": "Autonomous format classifier identifying SysML, CommonMark, Protobuf, and OpenAPI schemas",
+      "allocated_activities": []
+    },
+    {
+      "name": "CommonMarkTableLexer",
+      "node_type": "Part",
+      "doc": "Deterministic pushdown automaton table lexer for CommonMark table ingestion",
+      "allocated_activities": []
+    },
+    {
+      "name": "ProtobufParser",
+      "node_type": "Part",
+      "doc": "Binary and textual Protocol Buffer schema parser",
+      "allocated_activities": []
+    },
+    {
+      "name": "OpenApiParser",
+      "node_type": "Part",
+      "doc": "OpenAPI / JSON Schema definition parser and structural object lowerer",
+      "allocated_activities": []
+    }
+  ],
   "file_manifest": [
     {
       "path": "schema/conops/activities.sysml",
@@ -545,14 +1659,14 @@
       "sha256": "d5e3fe03e38557e32476e5c50ba25efc639b4d7f2fd7e981a07277a12600b6d3",
       "bytes": 4118,
       "lines": 107,
-      "entities": 17
+      "entities": 50
     },
     {
       "path": "schema/subsystems/compiler_assurance/architecture.sysml",
       "sha256": "4ab931e8492deb92e5b589bb768a52fb56f57122476d74242a934b4ba83a5f31",
       "bytes": 1297,
       "lines": 32,
-      "entities": 4
+      "entities": 15
     },
     {
       "path": "schema/subsystems/compiler_assurance/behavior.sysml",
@@ -573,7 +1687,7 @@
       "sha256": "dc83e34ba99556d93909e2661a479535e11ec1c1dcbf18b136ea77699d10ab5f",
       "bytes": 1322,
       "lines": 36,
-      "entities": 4
+      "entities": 19
     },
     {
       "path": "schema/subsystems/core_metamodel_node_arena/behavior.sysml",
@@ -594,7 +1708,7 @@
       "sha256": "21c69aaac567ec037ec59e872bcb317411d11bd3f875964d1d560910c7221b3e",
       "bytes": 1285,
       "lines": 32,
-      "entities": 4
+      "entities": 15
     },
     {
       "path": "schema/subsystems/diagnostic_error_catalog/behavior.sysml",
@@ -615,7 +1729,7 @@
       "sha256": "1a44f9931875e942e9ef6dba75fc9bb11d245414e64a7524a9b9305d5524e754",
       "bytes": 1329,
       "lines": 32,
-      "entities": 4
+      "entities": 15
     },
     {
       "path": "schema/subsystems/downstream_agile_projections/behavior.sysml",
@@ -636,7 +1750,7 @@
       "sha256": "96c619ff3e6fd3d0411d93d3005f265a761ed41e4380a041588e489bc32d513d",
       "bytes": 1708,
       "lines": 46,
-      "entities": 6
+      "entities": 21
     },
     {
       "path": "schema/subsystems/formal_safety_traceability/behavior.sysml",
@@ -657,7 +1771,7 @@
       "sha256": "7b0833aa176ff19a4245afa4e7c6957f00137f39cc9c22528641fcb166f95912",
       "bytes": 1200,
       "lines": 32,
-      "entities": 4
+      "entities": 15
     },
     {
       "path": "schema/subsystems/interconnect_contracts/behavior.sysml",
@@ -678,7 +1792,7 @@
       "sha256": "0a5c9cdfef8429bd7f441b65c7ce19b516c4b9c08bd4990aadb974e148d0653b",
       "bytes": 1266,
       "lines": 32,
-      "entities": 4
+      "entities": 15
     },
     {
       "path": "schema/subsystems/multi_target_codegen/behavior.sysml",
@@ -699,7 +1813,7 @@
       "sha256": "79c5a17ad003781f91c9b8e6c38c49ab260d97a2604bc8e3b66cfb6110af2fd3",
       "bytes": 1340,
       "lines": 35,
-      "entities": 4
+      "entities": 18
     },
     {
       "path": "schema/subsystems/physical_metrology_flows/behavior.sysml",
@@ -720,7 +1834,7 @@
       "sha256": "d88150c4126379d8491774b849f8f02cfaf63063dec1278f6d552bab94e00949",
       "bytes": 1391,
       "lines": 35,
-      "entities": 4
+      "entities": 18
     },
     {
       "path": "schema/subsystems/spatio_temporal_state_solvers/behavior.sysml",
@@ -741,7 +1855,7 @@
       "sha256": "00e2155cf12e77fe879da11f9fd89289dda797dc582d4d5e1c9dce42ee8790bb",
       "bytes": 1288,
       "lines": 35,
-      "entities": 4
+      "entities": 18
     },
     {
       "path": "schema/subsystems/sysml_grammar_lowering/behavior.sysml",
@@ -762,7 +1876,7 @@
       "sha256": "6230fe3c6654e561e1f29312915f7a6d13f6331d4463d9fd787c5bda5ac8f087",
       "bytes": 1240,
       "lines": 33,
-      "entities": 4
+      "entities": 16
     },
     {
       "path": "schema/subsystems/system_vision/behavior.sysml",
@@ -783,7 +1897,7 @@
       "sha256": "63d3c4ab876e3ca09cd1ec298e9c40c68950499a83f043c9d6424ea1f8c4ac00",
       "bytes": 1690,
       "lines": 45,
-      "entities": 5
+      "entities": 25
     },
     {
       "path": "schema/subsystems/universal_schema_ingestion/behavior.sysml",

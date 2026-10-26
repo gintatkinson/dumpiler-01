@@ -28,35 +28,22 @@ This platform explicitly declares **MATLAB / Simulink / Stateflow / Embedded Cod
 - `.pipeline/`: Constitution (`constitution.md`), active governance rules bundle (`ACTIVE_RULES_BUNDLE.md`), domain specifications, and execution profiles (`profiles/<platform>.md`).
 - `rules/` & `skills/`: Platform engineering rules and agent workflow skills.
 - `schema/`: Contract definitions and SysML v2 schemas.
-- Semantic acceptance verification: Automated baseline verification and compliance checks via pipeline scripts.
+- `target/release/`: Precompiled native Rust compiler, baseline verification, ConOps assembly, and backlog reconciliation binaries distributed with cryptographic SHA-256 provenance in `.pipeline/toolchain-manifest.json`.
+- Semantic acceptance verification: Automated baseline verification and compliance checks via pipeline binaries.
 
 ---
 
 ## High-Performance Native Rust Toolchain
 
-The repository embeds a compiled, high-performance native Rust toolchain (`Cargo.toml` workspace) delivering sub-second execution across all core digital engineering compiler gates:
+The repository includes precompiled, high-performance native Rust binaries (`./target/release/`) with cryptographic SHA-256 provenance tracked in `.pipeline/toolchain-manifest.json`, delivering sub-second execution across all core digital engineering compiler gates:
 
-| Crate | Binary / Target | Role & Architectural Responsibilities |
-| :--- | :--- | :--- |
-| `crates/ingest-sysml` | `./target/release/ingest-sysml` | **Ground 0.0 Ingestion Engine**: High-throughput parsing and normalization of unstructured OEM documentation, PDF manuals, BOM markdown tables, and Level 1C ICD registers into canonical SysML v2 textual models. |
-| `crates/compile-sysml` | `./target/release/compile-sysml` | **SysML v2 / KerML Compiler & STPA Transpiler**: Deterministic SysML v2 compilation, semantic validation, bidirectional AST synchronization (`--reverse-sync`, `--forward-sync`), and formal STPA / FMECA constraint transpilation. |
-| `crates/assemble-conops` | `./target/release/assemble-conops` | **ConOps & Mission Intent Assembly Engine**: High-throughput deterministic assembly of modular ConOps and Mission Intent units into canonical master specifications with parameter binding and TOC generation. |
-| `crates/reconcile-backlog` | `./target/release/reconcile-backlog` | **Backlog Reconciliation Engine**: High-performance bidirectional synchronization of local Markdown specifications, frontmatter metadata, and issue tracker checklists. |
-| `crates/verify-baseline` | `./target/release/verify-baseline` | **Checks 10-32 Quality Gate Verifier**: Ultra-fast baseline conformance, KaTeX math parsing, Mermaid diagram validation, and semantic diagram-to-AST parity auditor. |
-| `crates/deap-core` | `libdeap_core.rlib` | **Shared Core Foundation**: Shared AST representations, Markdown & KaTeX lexer/scanner, diagnostic reporting, defect dossier synthesis, and repository rule engines. |
-
-### Toolchain Build & Verification Commands
-
-```bash
-# Verify all crates compile cleanly (0 issues)
-cargo check
-
-# Run all unit, integration, and doc-tests
-cargo test
-
-# Build optimized release binaries
-cargo build --release
-```
+| Binary / Target | Role & Architectural Responsibilities |
+| :--- | :--- |
+| `./target/release/ingest-sysml` | **Ground 0.0 Ingestion Engine**: High-throughput parsing and normalization of unstructured OEM documentation, PDF manuals, BOM markdown tables, and Level 1C ICD registers into canonical SysML v2 textual models. |
+| `./target/release/compile-sysml` | **SysML v2 / KerML Compiler & STPA Transpiler**: Deterministic SysML v2 compilation, semantic validation, bidirectional AST synchronization (`--reverse-sync`, `--forward-sync`), and formal STPA / FMECA constraint transpilation. |
+| `./target/release/assemble-conops` | **ConOps & Mission Intent Assembly Engine**: High-throughput deterministic assembly of modular ConOps and Mission Intent units into canonical master specifications with parameter binding and TOC generation. |
+| `./target/release/reconcile-backlog` | **Backlog Reconciliation Engine**: High-performance bidirectional synchronization of local Markdown specifications, frontmatter metadata, and issue tracker checklists. |
+| `./target/release/verify-baseline` | **Checks 10-40 Quality Gate Verifier**: Ultra-fast baseline conformance, KaTeX math parsing, Mermaid diagram validation, and semantic diagram-to-AST parity auditor. |
 
 ---
 
@@ -83,11 +70,11 @@ For customer projects starting with unstructured OEM technical documentation, PD
 
 ### 3.2 In-Place Pipeline Tooling Update
 
-To update local pipeline tooling, governance rules, and verification scripts in-place at any time without re-onboarding:
+To configure Git hooks and verify local pipeline tooling and governance rules in-place at any time without re-onboarding:
 
 ```bash
-# Update local pipeline tooling in-place
-cargo build --release --workspace && ./target/release/verify-baseline setup-hooks
+# Configure git hooks and verify local pipeline tooling in-place
+./target/release/verify-baseline setup-hooks . && ./target/release/verify-baseline . --no-domain
 ```
 
 ### 3.3 Mandatory Agent Initialization Sequence (Universal Initialization Sequence)
@@ -99,7 +86,7 @@ Immediately following installation, any AI agent (Antigravity, Claude Code, Curs
 1. **Read Governance Constitution**: Execute `view_file` on `.pipeline/constitution.md` to ingest the platform-independent functional governance layer and zero-mocking persistence mandates.
 2. **Load Project Skills**: Execute `view_file` on `skills/feature-driven-implementation/SKILL.md` (and any active skills under `skills/` or `.agents/skills/`) to initialize feature-driven implementation protocols and review gates.
 3. **Load Governance Rules**: Execute `view_file` on `.pipeline/ACTIVE_RULES_BUNDLE.md` to ingest the complete, consolidated suite of active governance rules in a single read (covering dual-track MBD, SysML SSOT completeness, role boundary locks, and TDD mandates).
-4. **Verify Compiler Toolchain Baseline**: Verify that the compiler workspace builds cleanly by executing cargo check --workspace. (In downstream customer application workspaces executing feature-driven implementation, load the project's designated platform profile).
+4. **Load Platform Profile**: In downstream customer application workspaces executing feature-driven implementation, load the project's designated platform profile (`.pipeline/profiles/<target_platform>.md`).
 5. **Bootstrap Tracker Labels & Verify Baseline**: Verify that repository issue tracker labels and baseline conformance pass by running `./target/release/verify-baseline . --no-domain`.
 
 ---
@@ -621,8 +608,8 @@ Execute Two-Path (Dual-Track) Model-Based Design (MBD) simulation synthesis and 
    - Solver & Synthesis Baseline: Configure models for deterministic fixed-step discrete solvers (`FixedStepDiscrete`, $dt = 0.004\,\text{s}$ / 250 Hz) and Embedded Coder DO-178C C / SPARK Ada code synthesis.
 
 2. Track B (Headless CI Digital Twin Engine):
-   - License-Free Discrete Execution Engine: Deliver standalone Python simulation engine (`models/python/<feature_slug>_domain.py` and `models/python/<feature_slug>_engine.py`) executing at identical discrete loop rate ($dt$) with exact transition guards, polynomial transfer curves, and 6-DOF kinematics.
-   - Zero License Blocker CI Harness: Deliver automated regression test suite `tests/test_<feature_slug>_simulation.py` running 100% offline in containerized CI environments without MathWorks licenses.
+   - License-Free Discrete Execution Engine: Deliver standalone native Rust simulation engine (`models/rust_twin/<feature_slug>_domain.rs` and `models/rust_twin/<feature_slug>_engine.rs`) executing at identical discrete loop rate ($dt$) with exact transition guards, polynomial transfer curves, and 6-DOF kinematics.
+   - Zero License Blocker CI Harness: Deliver automated regression test suite verified via `cargo test --workspace` running 100% offline in containerized CI environments without MathWorks licenses.
 
 3. Mathematical & Discrete Equivalence Mandate:
    - Numerical Tolerance Verification: Guarantee state vector and output trajectory error between Track A reference and Track B digital twin satisfies $\|x_{\text{Simulink}} - x_{\text{DigitalTwin}}\|_\infty \le 10^{-6}$.
@@ -645,12 +632,9 @@ models/
 ├── matlab/
 │   ├── <feature_slug>_params.m            # Track A: MATLAB physical plant & control parameters
 │   └── <feature_slug>_data.sldd           # Track A: Simulink Data Dictionary (data types & signals)
-└── python/
-    ├── <feature_slug>_domain.py           # Track B: Strongly-typed domain models & state vectors
-    └── <feature_slug>_engine.py           # Track B: Standalone discrete-time simulation engine
-
-tests/
-└── test_<feature_slug>_simulation.py      # Automated CI regression suite for Track B engine
+└── rust_twin/
+    ├── <feature_slug>_domain.rs           # Track B: Strongly-typed domain models & state vectors
+    └── <feature_slug>_engine.rs           # Track B: Standalone discrete-time simulation engine
 
 docs/reports/simulink_results/
 └── <FEATURE-ID>_simulation_results.md     # Formal DO-331 simulation & numerical parity report
@@ -664,11 +648,11 @@ docs/reports/simulink_results/
 2. **`models/matlab/<feature_slug>_params.m` & `.sldd` (Track A Dictionaries)**:
    Declares physical plant constants, control gains, rate limits, sensor noise variances, and discrete sample time ($dt = 0.004\,\text{s}$ / 250 Hz) in typed MATLAB structures and Simulink Data Dictionaries.
 
-3. **`models/python/<feature_slug>_domain.py` & `_engine.py` (Track B Digital Twin)**:
-   Pure Python, license-free, headless discrete simulation engine executing identical algebraic formulations, cubic polynomial blending curves ($\lambda(\tau) = 3\tau^2 - 2\tau^3$), and safety transition guards. Exposes typed state vectors and `step(dt, inputs) -> outputs` execution interface.
+3. **Track B Digital Twin Engine**:
+   License-free, headless discrete simulation engine executing identical algebraic formulations, cubic polynomial blending curves ($\lambda(\tau) = 3\tau^2 - 2\tau^3$), and safety transition guards. Exposes typed state vectors and `step(dt, inputs) -> outputs` execution interface.
 
-4. **`tests/test_<feature_slug>_simulation.py` (Automated CI Verification Suite)**:
-   Semantic acceptance verification suite executing offline in CI/CD runners without MathWorks license blockers. Validates nominal control tracks, fault-injection responses, emergency safety transitions, and state invariants.
+4. **Automated CI Verification Suite (`cargo test --workspace`)**:
+   Native Rust test suite executing offline in CI/CD runners without MathWorks license blockers. Validates nominal control tracks, fault-injection responses, emergency safety transitions, and state invariants.
 
 5. **`docs/reports/simulink_results/<FEATURE-ID>_simulation_results.md` (DO-331 Verification Report)**:
    Formal DO-178C / DO-331 verification deliverable documenting mathematical equivalence, step-by-step state transition logs, fault injection test results, and numerical tolerance parity ($\le 10^{-6}$).

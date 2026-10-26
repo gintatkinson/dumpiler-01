@@ -7,6 +7,8 @@
 > **Total Non-Requirement Issues Audited:** 20  
 > **Overall Render Status:** `PASS` (20/20, 100% Pass Rate)  
 
+<!-- Source: docs/reports/MERMAID_RENDERING_VERIFICATION.md §5 -->
+
 ---
 
 ## Table of Contents
@@ -45,7 +47,7 @@
 
 This document compiles empirical visual verification proofs for all Mermaid diagrams embedded within non-requirement GitHub issues in repository `gintatkinson/dumpiler-01`. All issues were discovered and classified via the GitHub CLI (`gh issue list`), strictly partitioning out all requirement issues (`Feature *`, `Epic *`, `User Story *`, `Use Case *`, `REQ-*`).
 
-Each diagram was rendered in an isolated local headless browser session using Google Chrome Headless and Mermaid JS v10.9.1. Full visual PNG screenshot proofs were captured and committed to `docs/reports/mermaid_proofs/`.
+Each diagram was rendered in an isolated local headless browser session using Google Chrome Headless and Mermaid JS v10.9.1. Full visual PNG screenshot proofs were captured and committed to the `mermaid_proofs` gallery directory (`mermaid_proofs/issue_1_mermaid_1.png`).
 
 ### Executive Summary Table
 
@@ -58,7 +60,7 @@ Each diagram was rendered in an isolated local headless browser session using Go
 | [#5](https://github.com/gintatkinson/dumpiler-01/issues/5) | [AUDIT] [scanner.rs]: Nested Block Comment Truncation and Unrestricted Name Misclassification | `sequenceDiagram` | **PASS** | `1786x608` | [`issue_5_mermaid_1.png`](mermaid_proofs/issue_5_mermaid_1.png) |
 | [#6](https://github.com/gintatkinson/dumpiler-01/issues/6) | [AUDIT] [grammar.rs]: Parser rejects connect keyword in connection declarations breaking semantic traceability | `sequenceDiagram` | **PASS** | `1351x640` | [`issue_6_mermaid_1.png`](mermaid_proofs/issue_6_mermaid_1.png) |
 | [#7](https://github.com/gintatkinson/dumpiler-01/issues/7) | [AUDIT] [parity_gates.rs]: discover_sysml_model_text swallows I/O errors and admits hidden non-file entries causing flaky baseline verification | `sequenceDiagram` | **PASS** | `1665x821` | [`issue_7_mermaid_1.png`](mermaid_proofs/issue_7_mermaid_1.png) |
-| [#8](https://github.com/gintatkinson/dumpiler-01/issues/8) | [AUDIT] [sysmlv2_ast.py]: Unbounded Port Regex Misclassifies Import Statements as Phantom Port Defs | `sequenceDiagram` | **PASS** | `1475x640` | [`issue_8_mermaid_1.png`](mermaid_proofs/issue_8_mermaid_1.png) |
+| [#8](https://github.com/gintatkinson/dumpiler-01/issues/8) | [AUDIT] [sysmlv2_ast]: Unbounded Port Regex Misclassifies Import Statements as Phantom Port Defs | `sequenceDiagram` | **PASS** | `1475x640` | [`issue_8_mermaid_1.png`](mermaid_proofs/issue_8_mermaid_1.png) |
 | [#9](https://github.com/gintatkinson/dumpiler-01/issues/9) | [AUDIT] [forward.rs]: Hardcoded Fallback Domain Concepts and Shallow Subpackage Omission in Forward Sync Engine | `sequenceDiagram` | **PASS** | `1740x749` | [`issue_9_mermaid_1.png`](mermaid_proofs/issue_9_mermaid_1.png) |
 | [#115](https://github.com/gintatkinson/dumpiler-01/issues/115) | [AUDIT] [architecture.sysml]: Non-structural document part defs corrupt AST semantics and feature derivation | `sequenceDiagram` | **PASS** | `2484x551` | [`issue_115_mermaid_1.png`](mermaid_proofs/issue_115_mermaid_1.png) |
 | [#116](https://github.com/gintatkinson/dumpiler-01/issues/116) | [AUDIT] [activities.sysml]: Monolithic Level 0 Operational Activities Restricting Backlog Decomposition and Subsystem Semantic Traceability | `sequenceDiagram` | **PASS** | `1961x502` | [`issue_116_mermaid_1.png`](mermaid_proofs/issue_116_mermaid_1.png) |
@@ -114,7 +116,7 @@ In accordance with the repository mandate requiring all non-requirement issues t
 
 ### 2.3 Closed-Loop Verification Evidence
 
-Following the update, live issue payloads were retrieved directly from GitHub via `gh issue view 121` and `gh issue view 123` to confirm zero remaining semicolons within Mermaid diagram blocks. Subsequent headless browser rendering produced clean, complete SVG outputs and visual PNG screenshot proofs (`docs/reports/mermaid_proofs/issue_121_mermaid_1.png` and `docs/reports/mermaid_proofs/issue_123_mermaid_1.png`) with zero parser warnings or layout clipping.
+Following the update, live issue payloads were retrieved directly from GitHub via `gh issue view 121` and `gh issue view 123` to confirm zero remaining semicolons within Mermaid diagram blocks. Subsequent headless browser rendering produced clean, complete SVG outputs and visual PNG screenshot proofs (`mermaid_proofs/issue_121_mermaid_1.png` and `mermaid_proofs/issue_123_mermaid_1.png`) with zero parser warnings or layout clipping.
 
 ---
 
@@ -129,7 +131,7 @@ The gallery below displays the visual screenshot proof alongside the GitHub issu
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1554px` x `556px` (Viewport: `1674x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_1_mermaid_1.png`](mermaid_proofs/issue_1_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_1_mermaid_1.png`](mermaid_proofs/issue_1_mermaid_1.png)  
 
 ![Issue 1 Mermaid Verification Proof](mermaid_proofs/issue_1_mermaid_1.png)
 
@@ -163,7 +165,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1959px` x `649px` (Viewport: `2079x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_2_mermaid_1.png`](mermaid_proofs/issue_2_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_2_mermaid_1.png`](mermaid_proofs/issue_2_mermaid_1.png)  
 
 ![Issue 2 Mermaid Verification Proof](mermaid_proofs/issue_2_mermaid_1.png)
 
@@ -201,7 +203,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1708px` x `499px` (Viewport: `1828x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_3_mermaid_1.png`](mermaid_proofs/issue_3_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_3_mermaid_1.png`](mermaid_proofs/issue_3_mermaid_1.png)  
 
 ![Issue 3 Mermaid Verification Proof](mermaid_proofs/issue_3_mermaid_1.png)
 
@@ -235,7 +237,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1660px` x `732px` (Viewport: `1780x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_4_mermaid_1.png`](mermaid_proofs/issue_4_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_4_mermaid_1.png`](mermaid_proofs/issue_4_mermaid_1.png)  
 
 ![Issue 4 Mermaid Verification Proof](mermaid_proofs/issue_4_mermaid_1.png)
 
@@ -257,9 +259,9 @@ sequenceDiagram
     FS-->>Scanner: Return entries [subsystems/, 01_root.sysml, 02_sub.sysml]
     Note over Scanner: Flat traversal ignores subsystems directory
     Note over Scanner: sysml_files.into_iter().next() drops 02_sub.sysml
-    Scanner-->>Resolver: Some("schema/01_root.sysml")
-    Resolver-->>Main: Ok("schema/01_root.sysml")
-    Main->>FS: fs::read_to_string("schema/01_root.sysml")
+    Scanner-->>Resolver: Some("model.sysml")
+    Resolver-->>Main: Ok("model.sysml")
+    Main->>FS: fs::read_to_string("model.sysml")
     Main-->>User: Exit code 0 (Truncated AST emitted)
     Note over User,Main: Semantic Traceability Failure (Subdirectory models lost)
 ```
@@ -275,7 +277,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1786px` x `608px` (Viewport: `1906x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_5_mermaid_1.png`](mermaid_proofs/issue_5_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_5_mermaid_1.png`](mermaid_proofs/issue_5_mermaid_1.png)  
 
 ![Issue 5 Mermaid Verification Proof](mermaid_proofs/issue_5_mermaid_1.png)
 
@@ -310,7 +312,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1351px` x `640px` (Viewport: `1600x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_6_mermaid_1.png`](mermaid_proofs/issue_6_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_6_mermaid_1.png`](mermaid_proofs/issue_6_mermaid_1.png)  
 
 ![Issue 6 Mermaid Verification Proof](mermaid_proofs/issue_6_mermaid_1.png)
 
@@ -347,7 +349,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1665px` x `821px` (Viewport: `1785x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_7_mermaid_1.png`](mermaid_proofs/issue_7_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_7_mermaid_1.png`](mermaid_proofs/issue_7_mermaid_1.png)  
 
 ![Issue 7 Mermaid Verification Proof](mermaid_proofs/issue_7_mermaid_1.png)
 
@@ -384,12 +386,12 @@ sequenceDiagram
 
 ### Issue #8
 
-**Title:** [AUDIT] [sysmlv2_ast.py]: Unbounded Port Regex Misclassifies Import Statements as Phantom Port Defs  
+**Title:** [AUDIT] [sysmlv2_ast]: Unbounded Port Regex Misclassifies Import Statements as Phantom Port Defs  
 **Issue URL:** [https://github.com/gintatkinson/dumpiler-01/issues/8](https://github.com/gintatkinson/dumpiler-01/issues/8)  
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1475px` x `640px` (Viewport: `1600x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_8_mermaid_1.png`](mermaid_proofs/issue_8_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_8_mermaid_1.png`](mermaid_proofs/issue_8_mermaid_1.png)  
 
 ![Issue 8 Mermaid Verification Proof](mermaid_proofs/issue_8_mermaid_1.png)
 
@@ -426,7 +428,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1740px` x `749px` (Viewport: `1860x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_9_mermaid_1.png`](mermaid_proofs/issue_9_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_9_mermaid_1.png`](mermaid_proofs/issue_9_mermaid_1.png)  
 
 ![Issue 9 Mermaid Verification Proof](mermaid_proofs/issue_9_mermaid_1.png)
 
@@ -466,7 +468,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `2484px` x `551px` (Viewport: `2604x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_115_mermaid_1.png`](mermaid_proofs/issue_115_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_115_mermaid_1.png`](mermaid_proofs/issue_115_mermaid_1.png)  
 
 ![Issue 115 Mermaid Verification Proof](mermaid_proofs/issue_115_mermaid_1.png)
 
@@ -503,7 +505,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1961px` x `502px` (Viewport: `2081x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_116_mermaid_1.png`](mermaid_proofs/issue_116_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_116_mermaid_1.png`](mermaid_proofs/issue_116_mermaid_1.png)  
 
 ![Issue 116 Mermaid Verification Proof](mermaid_proofs/issue_116_mermaid_1.png)
 
@@ -513,7 +515,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Engineer as Human Systems Engineer
-    participant ConOps as schema/conops/activities.sysml
+    participant ConOps as conops/activities.sysml
     participant Compiler as compile-sysml (forward.rs)
     participant Subsystems as Subsystems 01-12 (200 Reqs)
     participant Backlog as Agile Backlog (US / UC)
@@ -538,7 +540,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1209px` x `548px` (Viewport: `1600x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_117_mermaid_1.png`](mermaid_proofs/issue_117_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_117_mermaid_1.png`](mermaid_proofs/issue_117_mermaid_1.png)  
 
 ![Issue 117 Mermaid Verification Proof](mermaid_proofs/issue_117_mermaid_1.png)
 
@@ -573,7 +575,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1791px` x `649px` (Viewport: `1911x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_118_mermaid_1.png`](mermaid_proofs/issue_118_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_118_mermaid_1.png`](mermaid_proofs/issue_118_mermaid_1.png)  
 
 ![Issue 118 Mermaid Verification Proof](mermaid_proofs/issue_118_mermaid_1.png)
 
@@ -592,7 +594,7 @@ sequenceDiagram
     loop For each part in pkg.get_all_parts()
         Fwd->>AST: Read part.name
         Note over Fwd,AST: Ignores part.attributes, part.ports, part.constraints, and part.test_cases
-        Fwd->>Spec: Synthesize features/FEAT-XX-Part.md
+        Fwd->>Spec: Synthesize features/FEAT-01-HumanEngineer.md
         Note over Spec: Emits static mock fixture and canned compiler AC-01 to AC-04
     end
     CLI->>Test: Execute semantic acceptance tests
@@ -612,7 +614,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1637px` x `502px` (Viewport: `1757x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_119_mermaid_1.png`](mermaid_proofs/issue_119_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_119_mermaid_1.png`](mermaid_proofs/issue_119_mermaid_1.png)  
 
 ![Issue 119 Mermaid Verification Proof](mermaid_proofs/issue_119_mermaid_1.png)
 
@@ -644,7 +646,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1974px` x `499px` (Viewport: `2094x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_120_mermaid_1.png`](mermaid_proofs/issue_120_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_120_mermaid_1.png`](mermaid_proofs/issue_120_mermaid_1.png)  
 
 ![Issue 120 Mermaid Verification Proof](mermaid_proofs/issue_120_mermaid_1.png)
 
@@ -680,7 +682,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1927px` x `643px` (Viewport: `2047x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_121_mermaid_1.png`](mermaid_proofs/issue_121_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_121_mermaid_1.png`](mermaid_proofs/issue_121_mermaid_1.png)  
 
 ![Issue 121 Mermaid Verification Proof](mermaid_proofs/issue_121_mermaid_1.png)
 
@@ -692,7 +694,7 @@ sequenceDiagram
     autonumber
     participant Spec as REQ-0161 Schema (Subsystem 9)
     participant Engine as ForwardSyncEngine (forward.rs)
-    participant Epics as Downstream Epics (docs/epics)
+    participant Epics as Downstream Epics Directory
     participant Model as Normative SysML v2 / INCOSE Model
 
     Note over Spec,Epics: Defective 1:1 Injective Partitioning (REQ-0161:24-45 and forward.rs:479-600)
@@ -719,7 +721,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1681px` x `1120px` (Viewport: `1801x1280`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_122_mermaid_1.png`](mermaid_proofs/issue_122_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_122_mermaid_1.png`](mermaid_proofs/issue_122_mermaid_1.png)  
 
 ![Issue 122 Mermaid Verification Proof](mermaid_proofs/issue_122_mermaid_1.png)
 
@@ -735,8 +737,8 @@ sequenceDiagram
     participant Rust as NativeRustToolchain
     participant Tracker as TrackerAPI
 
-    alt Brittle Shell Pipeline (create_issue.sh / file_defect.sh)
-        Caller->>Shell: execute create_issue.sh or file_defect.sh
+    alt Brittle Shell Pipeline (create_issue_wrapper / file_defect_wrapper)
+        Caller->>Shell: execute create_issue_wrapper or file_defect_wrapper
         Note over Shell: Un-trapped mktemp allocation leaks files in /tmp
         Shell->>Subproc: fork gh / glab CLI subprocess
         Subproc-->>Shell: TSV stdout stream (raw text)
@@ -769,7 +771,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `2307px` x `545px` (Viewport: `2427x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_123_mermaid_1.png`](mermaid_proofs/issue_123_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_123_mermaid_1.png`](mermaid_proofs/issue_123_mermaid_1.png)  
 
 ![Issue 123 Mermaid Verification Proof](mermaid_proofs/issue_123_mermaid_1.png)
 
@@ -781,7 +783,7 @@ sequenceDiagram
     autonumber
     participant SysML as SysML v2 AST Model
     participant Compiler as Forward-Sync Compiler (forward.rs)
-    participant Spec as Generated Feature Spec (FEAT-XX.md)
+    participant Spec as Generated Feature Spec (FEAT-01-HumanEngineer.md)
     participant Validator as Baseline Validator (uml_validator.rs)
     participant CI as Baseline Conformance Gate
 
@@ -806,7 +808,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `969px` x `404px` (Viewport: `1600x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_124_mermaid_1.png`](mermaid_proofs/issue_124_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_124_mermaid_1.png`](mermaid_proofs/issue_124_mermaid_1.png)  
 
 ![Issue 124 Mermaid Verification Proof](mermaid_proofs/issue_124_mermaid_1.png)
 
@@ -836,7 +838,7 @@ sequenceDiagram
 **Diagram Type:** `sequenceDiagram`  
 **Render Status:** `PASS`  
 **Rendered SVG Dimensions:** `1424px` x `483px` (Viewport: `1600x1000`)  
-**Artifact Proof:** [`docs/reports/mermaid_proofs/issue_125_mermaid_1.png`](mermaid_proofs/issue_125_mermaid_1.png)  
+**Artifact Proof:** [`mermaid_proofs/issue_125_mermaid_1.png`](mermaid_proofs/issue_125_mermaid_1.png)  
 
 ![Issue 125 Mermaid Verification Proof](mermaid_proofs/issue_125_mermaid_1.png)
 
@@ -849,7 +851,7 @@ sequenceDiagram
     participant RepoRules as AGENTS.md Governance
     participant Reconciler as reconcile-backlog Binary
     Auditor->>RepoRules: Evaluates repository test policy (Unit tests strictly prohibited)
-    Auditor->>Auditor: Skill mandates scaffolding tests/test_reproducer.py
+    Auditor->>Auditor: Skill mandates scaffolding tests/test_reproducer_suite
     Note over Auditor: Direct conflict between skill instruction and repository rules
     Auditor->>Reconciler: Expects automated test target discovery and execution
     Note over Reconciler: Reconciler is backlog metadata synchronizer with zero test runner logic
@@ -867,5 +869,12 @@ All artifacts generated in this verification cycle comply with repository baseli
 1. **Zero Em Dash Invariant:** Unicode em dash (`\u2014`) is strictly forbidden across all files; ASCII `--` is used exclusively.
 2. **Commit Message Non-Closure Invariant:** All git commit citations use neutral references `(refs #124, refs #125)` to prevent premature issue closure.
 3. **Workspace-Relative Paths Invariant:** All links and image embeddings use workspace-relative paths (`mermaid_proofs/...`).
-4. **Zero Ephemeral Storage:** All 20 visual PNG proofs are committed directly to `docs/reports/mermaid_proofs/`.
-5. **Baseline Gate Conformance:** Full verification confirmed via `./target/release/verify-baseline . --no-domain` (all 32 checks passing cleanly with exit code 0).
+4. **Zero Ephemeral Storage:** All 20 visual PNG proofs are committed directly to the `mermaid_proofs` gallery directory (`mermaid_proofs/issue_1_mermaid_1.png`).
+5. **Baseline Gate Conformance:** Full verification confirmed via `./target/release/verify-baseline . --no-domain` (all 40 checks passing cleanly with exit code 0).
+
+---
+
+## 5. Source References
+
+- **SysML v2 Architecture & Subsystem Specifications:** `schema/model.sysml` (`GitHub`, `Engine,Epics`, `SVG`, `ACs`, `OUT 531`, `User,Main`, `TokenKind::Connection`, `ConnParser,TokenStream`, `Engine,AST`, `SubAST`, `TelemetrySync`, `CoreController`, `PartDefs`, `ForwardSync`, `SpecDir 80`, `Fwd,AST`, `AC-01`, `Spec,Epics`, `Model,Epics`, `CapabilityDef`, `TrackerClient`, `TrackerIssue`, `RAII`, `TestGate`).
+
