@@ -1,13 +1,13 @@
 {
   "upstream_repo": "gintatkinson/DEAP01-spec-core",
-  "commit_sha": "393f359cb874e510ed8fba6a71c89ce4ee02dd06",
-  "timestamp_utc": "2026-10-26T18:55:00Z",
+  "commit_sha": "9aefdb2b5709aecce5c8dcd6d2a5c969ba1d3a0f",
+  "timestamp_utc": "2026-10-28T13:28:27Z",
   "binaries": {
-    "assemble-conops": "862bfad59137945bb9235210706ab8e276671b6177791a7b109b768131d570c7",
-    "compile-sysml": "6517b58a63da58273c2ef41a337ed464cb2a856ed5bd5bf06f7d39aebb7ac052",
-    "ingest-sysml": "a3240b9c79722042f424f047c6154d06802363ceb06df2f1c2e6deee7db14315",
-    "reconcile-backlog": "a951a4f94ad861febded216bda422146a287278a7b3c7c11d61d26385c8a0d60",
-    "verify-baseline": "73334fa2e938790c800c6a955ce65024fd81e89a43b71dc95b79c92f6365c228"
+    "assemble-conops": "be4443f1d93c8d07cfb7f763f34a273c787a5434a1b7cca1a75d9a16803968e4",
+    "compile-sysml": "31d8612fefb7233505424f03879fc5671580b578a9ee02231cab6d9c8d2f1d02",
+    "ingest-sysml": "5572774e385c685f4f4627c2fd03448d76d54bdd4fb1b9820650ed3ed65e4384",
+    "reconcile-backlog": "8266e4dccf57c07d5f6f3aedb210be02dd04fa5e49f82e9e7e9e60642192b4c2",
+    "verify-baseline": "4036249d23b73aa493fdd3b556d24e987ee2cfed611269559065e2cbd05aef6a"
   },
   "rules_bundle_sha256": "856f9bf800117f33247e47d2caafb592902e7125aae2b9b8535b15175018b6fa"
 }
