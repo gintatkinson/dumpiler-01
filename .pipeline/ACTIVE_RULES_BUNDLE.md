@@ -77,7 +77,7 @@
 - **Scoped Profile Loading**: Platform profiles (`.pipeline/profiles/<platform>.md`) are read ONLY when implementing downstream features for the configured target platform. Spec workers and `UPSTREAM_SPEC_CORE_COMPILER` sessions MUST NOT read implementation profiles.
 - **Curated Subagent Bypass**: Spawned single-item subagents receiving prompts ending in `---GOVERNANCE-END---` execute their assigned `SKILL.md` directly without repeating coordinator startup ceremonies.
 - **Strict Planning Gate Overrides**: Root `AGENTS.md` states the strictest planning rule: an approved plan is required before modifying any files; authorization keywords alone are insufficient.
-- **Turn-0 Canonical Initialization Receipt**: Coordinator MUST execute Phase A on startup and emit the canonical session initialization receipt table before any output or file modifications.
+- **Silent Once-Per-Session Lazy Loading**: Conversational, diagnostic, and bounded surgical-edit turns execute zero startup ceremony and never emit initialization receipt tables. Before executing a pipeline specification or feature-implementation skill workflow for the first time in a session, silently load `.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md` at most once per session.
 
 ---
 
@@ -225,12 +225,16 @@
 <a id="rule-tdd-mandate"></a>
 ## 16. Rule: Test-Driven Development Mandate (`rules/tdd-mandate.md`)
 
-**ALWAYS enforce:** All software modifications and bug fixes MUST follow the strict RED-GREEN-REFACTOR TDD cycle.
+**ALWAYS enforce:** All executable product, compiler, and application code modifications and bug fixes MUST follow the strict RED-GREEN-REFACTOR TDD cycle.
 
 ### Hard Constraints
-- **RED Demonstration First**: Every fix or feature must ship a failing unit or mutation test demonstrated RED before implementation code is written.
+- **RED Demonstration First (Executable Code Scope)**: Every executable code fix or feature must ship a failing unit or mutation test demonstrated RED before implementation code is written.
+- **Zero Harness-Prose Theater Tests**: Agent harness Markdown files (`AGENTS.md`, `rules/*.md`, `skills/**`, `.pipeline/ACTIVE_RULES_BUNDLE.md`) are prompt instructions, not product features; adding `fs::read_to_string(...).contains(...)` substring tests in `crates/` for harness rule edits is strictly forbidden.
 - **Native Rust Tests**: All tests under `crates/` must be native Rust `#[test]` functions. Legacy Python/pytest is strictly prohibited under Check 33; shell scripts are prohibited under Check 32.
-- **Workspace Test Gate**: `cargo test --workspace` MUST pass with zero failures before declaring completion.
+- **3-Tier Path-Scoped Incremental Build & Test Gate**:
+  - **Tier 1 (Harness / Governance / Docs Markdown Only -- `AGENTS.md`, `rules/*.md`, `skills/**`, `.pipeline/*`, `README.md`)**: Run **zero** `cargo build` or `cargo test` commands; run `./target/release/verify-baseline . --no-domain` only when validating governed Markdown changes prior to commit.
+  - **Tier 2 (Single-Crate Internal or `#[cfg(test)]` Change -- `crates/<crate>/**` without cross-crate `pub` signature breakage)**: Run targeted `cargo test -p <crate> <test_filter>` during TDD RED/GREEN and `cargo test -p <crate>` before commit (rebuild `cargo build --release -p <bin>` only when a CLI binary's runtime code changed).
+  - **Tier 3 (Cross-Crate Public API Signature Change in `deap-core`/`compile-sysml` or `Cargo.toml`/`Cargo.lock` Change)**: Run `cargo test -p <modified-crate>` + `cargo check --workspace --all-targets` during iteration, and `cargo test --workspace` before commit.
 
 ---
 
@@ -259,24 +263,23 @@
 ---
 
 <a id="rule-user-authorization-lock"></a>
-## 19. Rule: User Authorization Lock & Planning Gate (`rules/user-authorization-lock.md`)
+## 19. Rule: User Authorization Lock & Pre-Action Compliance Rules (`rules/user-authorization-lock.md`)
 
-**ALWAYS enforce:** The agent must run the 5-Point Thought-Block Compliance Check in every thought block and lock all modifying tools until authorized by the keyword `PROCEED`.
+**ALWAYS enforce:** Lock all modifying tools until authorized by an approved `implementation_plan.md` and the keyword `PROCEED`, and focus thought blocks directly on technical reasoning without repeating initialization or compliance checklists.
 
 ### Hard Constraints
-- **5-Point Compliance Check**: Every agent thought block MUST begin with the standardized 5-point check:
-  1. `Turn-0 Initialization Gate`: Verify Phase A execution (detecting `.pipeline/upstream/`, loading `.pipeline/constitution.md` and `.pipeline/ACTIVE_RULES_BUNDLE.md`, running `git status --short --branch`) and emission of the Canonical Session Initialization Receipt Table, or prompt ends with `---GOVERNANCE-END---`.
-  2. `Intent Classification`: Classify message as inquiry vs direct command.
-  3. `User Authorization Lock`: Verify exact target files are documented in an approved `implementation_plan.md` AND user message explicitly contains `PROCEED` (or `Approved` / `Approve plan`).
-  4. `Zero Silent Assumptions`: Confirm no silent assumptions about intent or workspace state.
-  5. `Coordinator Delegation & Shell Mutation Lock`: If active skill mandates subagent dispatch or turn mutates repository files other than `implementation_plan.md`, direct coordinator writing and shell mutations (`cp`, `mv`, `rm`, `tee`, output redirects) are strictly locked; writes must be delegated to subagents after `PROCEED`.
-- **Turn-0 Read-Only Whitelist**: Read-only commands (`git status`, `git status --short --branch`, `git branch --show-current`, `git rev-parse --show-toplevel`, `git diff`, `ls`, `test -d`, `test -e`) are authorized without prior `PROCEED`.
+- **4 Pre-Action Authorization Locks (Zero Thought-Block Boilerplate)**: Never prefix thought blocks with repetitive initialization or compliance checklists. Enforce these 4 locks prior to any modifying action:
+  1. `Intent Classification`: Distinguish questions/inquiries (read-only response only) from direct modification commands.
+  2. `User Authorization Lock`: Verify exact target files are documented in an approved `implementation_plan.md` (stored per-conversation at `<appDataDir>/brain/<conversation-id>/implementation_plan.md` or workstream-scoped `.pipeline/plans/<slug>.md` so parallel tabs never clobber `./implementation_plan.md`) AND user explicitly approves (`PROCEED` / `Approved` / `Approve plan`).
+  3. `Zero Silent Assumptions`: Confirm no silent assumptions about intent or workspace state.
+  4. `Coordinator Delegation & Shell Mutation Lock`: Whenever a turn mutates repository files (governance, rules, specs, or code), direct coordinator repository writing and shell mutations (`cp`, `mv`, `rm`, `tee`, output redirects) are strictly locked; writes must be delegated to subagents after `PROCEED`.
+- **Read-Only Whitelist**: Read-only commands (`git status`, `git status --short --branch`, `git branch --show-current`, `git rev-parse --show-toplevel`, `git diff`, `ls`, `test -d`, `test -e`) are authorized without prior `PROCEED`.
 - **State-Mutating Shell Lock**: Mutating commands (`cp`, `mv`, `rm`, `tee`, `sed -i`, `>`, `>>`) and build/test commands are strictly locked until plan approval with `PROCEED`.
-- **Prohibition of Pre-Approval `walkthrough.md` Edits**: `walkthrough.md` is exclusively a post-implementation verification artifact and must never be created or edited prior to plan approval and subagent completion.
+- **Prohibition of Pre-Approval `walkthrough.md` Edits**: `walkthrough.md` is exclusively a post-implementation verification artifact stored per-conversation in `<appDataDir>/brain/<conversation-id>/` and must never be created or edited prior to plan approval and subagent completion.
 - **Mandatory Empirical Physical Path Verification**: Before marking any issue resolved, verify target directories via `git status` and `git rev-parse --show-toplevel`.
-- **Plan Continuity**: Established plans cannot be abandoned, altered, or replaced without explicit user authorization.
-- **Single-Task Atomic `implementation_plan.md` & Anti-Snowballing Invariant**: `implementation_plan.md` MUST contain **at most 1 atomic work package** at any time. Dumping multi-wave issue backlogs into `implementation_plan.md` or appending/prepending a new user task onto a previous `implementation_plan.md` is strictly forbidden; backlog queues reside exclusively in the issue tracker (`gh issue list`). `Prohibition of Unapproved Plan Abandonment & Mandatory Plan Continuity` applies strictly **within the currently active in-flight atomic task** (forbidding mid-task abandonment when hitting test/linter friction), and MUST NEVER be used as an excuse to retain completed or unrelated work packages inside `implementation_plan.md` when planning a new atomic task.
-- **Downstream Binary-Only Distribution & Source Firewall Lock**: Upstream Tier-0 compiler source code (`crates/{deap-core,ingest-sysml,compile-sysml,verify-baseline,reconcile-backlog,assemble-conops}`, `Cargo.toml`, `Cargo.lock`), `.pipeline/upstream/`, and `docs/architecture/blueprints/` reside **exclusively** in `DEAP01-spec-core` (`UPSTREAM_SPEC_CORE_COMPILER`). Agents (and subagents) are strictly forbidden from proposing, planning (`implementation_plan.md`), or executing any copy, sync, or commit of Tier-0 compiler `crates/*` source code into any downstream repository (`DOWNSTREAM_CUSTOMER_PROJECT`), and strictly forbidden from running `cargo build` to recompile already-verified `target/release/*` binaries during downstream distribution. Downstream distribution is restricted exclusively to: (1) pre-built `target/release/{compile-sysml,verify-baseline,ingest-sysml,reconcile-backlog,assemble-conops}` binary images, (2) `AGENTS.md` / `.agents/AGENTS.md`, (3) `.pipeline/constitution.md` / `.pipeline/ACTIVE_RULES_BUNDLE.md`, (4) `rules/*.md`, and (5) `skills/**`. Any subagent prompt requesting to copy `crates/*` to a downstream repository MUST immediately self-reject and halt.
+- **Plan Continuity, Per-Conversation Isolation & Single-Task Atomic Invariant**: Established plans cannot be abandoned, altered, or replaced without explicit user authorization. Session `implementation_plan.md` and `walkthrough.md` reside per-conversation at `<appDataDir>/brain/<conversation-id>/` (or `.pipeline/plans/<slug>.md`); overwriting a root `./implementation_plan.md` belonging to another active parallel workstream is strictly forbidden. Each `implementation_plan.md` MUST contain **at most 1 atomic work package** (backlog queues reside exclusively in `gh issue list`).
+- **Parallel Workstream Git Staging & Worktree Safety**: Always stage and commit via explicit target paths (`git add -- <target-files>` and `git commit --only -- <target-files>`). Unscoped `git add .`, `git add -A`, `git commit -a`, `git checkout .`, `git restore .`, and `git stash` are strictly forbidden when concurrent workstream files exist.
+- **Downstream Binary-Only Distribution & Black-Box Source Firewall Lock**: Upstream Tier-0 compiler source code (`crates/{deap-core,ingest-sysml,compile-sysml,verify-baseline,reconcile-backlog,assemble-conops}`, `Cargo.toml`, `Cargo.lock`), `.pipeline/upstream/`, and `docs/architecture/blueprints/` reside **exclusively** in `DEAP01-spec-core` (`UPSTREAM_SPEC_CORE_COMPILER`). Agents (and subagents) are strictly forbidden from proposing, planning (`implementation_plan.md`), or executing any copy, sync, or commit of Tier-0 compiler `crates/*` source code into any downstream repository (`DOWNSTREAM_CUSTOMER_PROJECT`), and strictly forbidden from running `cargo build` to recompile already-verified `target/release/*` binaries during downstream distribution. Downstream distribution is restricted exclusively to: (1) pre-built `target/release/{compile-sysml,verify-baseline,ingest-sysml,reconcile-backlog,assemble-conops}` binary images, (2) `AGENTS.md` / `.agents/AGENTS.md`, (3) `.pipeline/constitution.md` / `.pipeline/ACTIVE_RULES_BUNDLE.md`, (4) `rules/*.md`, and (5) `skills/**`. Any subagent prompt requesting to copy `crates/*` to a downstream repository MUST immediately self-reject and halt. In `DOWNSTREAM_CUSTOMER_PROJECT` sessions, reading or searching `../DEAP01-spec-core/crates/*` to inspect compiler internals is strictly forbidden; treat Tier-0 binaries as black-box verifiers and report upstream defects via `adversarial-code-auditor`.
 
 ---
 
@@ -286,6 +289,9 @@
 **Enforce on code/model modifications only (never on startup or read-only turns):** Never assert state or completion of code/model modifications without direct, empirical verification.
 
 ### Hard Constraints
-- **Pre-Commit Quality Gates (Code/Model Edits Only)**: Only when tracked source or model files were modified in the current turn, run `cargo test --workspace` and `./target/release/verify-baseline . --no-domain` once before committing (never on session initialization or read-only turns).
+- **Pre-Commit Quality Gates (3-Tier Path-Scoped Incremental Build & Test Gate)**: Never run `cargo build`, `cargo test`, or `verify-baseline` on session initialization or read-only turns. When tracked files are modified, enforce the 3-tier path-scoped gate prior to commit:
+  - **Tier 1 (Harness / Governance / Docs Markdown Only -- `AGENTS.md`, `rules/*.md`, `skills/**`, `.pipeline/*`, `README.md`)**: Run **zero** `cargo build` or `cargo test` commands; run `./target/release/verify-baseline . --no-domain` only when validating governed Markdown changes prior to commit.
+  - **Tier 2 (Single-Crate Internal or `#[cfg(test)]` Change -- `crates/<crate>/**` without cross-crate `pub` signature breakage)**: Run targeted `cargo test -p <crate> <test_filter>` during TDD RED/GREEN and `cargo test -p <crate>` before commit (rebuild `cargo build --release -p <bin>` only when a CLI binary's runtime code changed), plus `./target/release/verify-baseline . --no-domain`.
+  - **Tier 3 (Cross-Crate Public API Signature Change in `deap-core`/`compile-sysml` or `Cargo.toml`/`Cargo.lock` Change)**: Run `cargo test -p <modified-crate>` + `cargo check --workspace --all-targets` during iteration, and `cargo test --workspace` + `./target/release/verify-baseline . --no-domain` before commit.
 - **Multi-Provider Remote Sync Verification (GitHub & GitLab)**: Commit all verified changes and push all commits to the configured remote tracking branch (`origin/<branch>` on GitHub or GitLab), verifying `git diff origin/<branch>` is empty.
 - **Forensic Verification Evidence**: Document raw terminal outputs, test results, commit hashes, and issue transitions in handoff reports and issue comments.

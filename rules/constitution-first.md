@@ -6,7 +6,7 @@
 
 ## Required reads
 
-1. **Agent operating rules** (root `AGENTS.md`; `.agents/AGENTS.md` is an optional alias, matching Check 14 in `crates/deap-core/src/workspace.rs`) -- project-scoped agent rules, including the **Strict Planning Gate** that governs when file writes are permitted. Read this FIRST, before the constitution. It states the strictest authorization rule in the repository, and omitting it leads agents to act on weaker rules found elsewhere.
+1. **Agent operating rules** (root `AGENTS.md`; `.agents/AGENTS.md` is an optional alias) -- project-scoped agent rules, including the **Strict Planning Gate** that governs when file writes are permitted. Read this FIRST, before the constitution. It states the strictest authorization rule in the repository, and omitting it leads agents to act on weaker rules found elsewhere.
 2. **Functional constitution** (located at the path resolved from configuration, e.g., `.pipeline/constitution.md`) -- domain rules, spec standards, agent behavior, quality gates. Read this before ANY task (specification or implementation).
 3. **Implementation profile** (located under the profiles directory, e.g., `.pipeline/profiles/<platform>.md`) -- platform-specific coding standards, testing mandates, build config. Read this ONLY when implementing features, not during spec generation.
 
@@ -21,28 +21,10 @@
 - `.pipeline` and `.agents` are hidden directories and generic glob tools may exclude them. You MUST read root `AGENTS.md`, `.pipeline/constitution.md` and `.pipeline/profiles/` directly by their explicit paths. A file absent from this list and hidden from glob is effectively invisible -- that is how the strictest authorization rule came to be missed.
 - Baseline conformance is verified exclusively with the native Rust binary `./target/release/verify-baseline . --no-domain`; the retired `scripts/verify_downstream_baseline.py` MUST NOT be invoked (Check 33).
 
-## Canonical Turn-0 Session Initialization Receipt
+## Silent Once-Per-Session Lazy Loading (Zero Receipt Ceremony)
 
-On session startup (Turn 0), before executing file modifications or outputting implementation plans, the coordinator agent MUST complete Phase A of the Mandatory Session Initialization Gate and emit the following receipt table verbatim:
-
-### Mandatory Session Initialization Completed
-
-The coordinator initialization sequence has executed in accordance with `.pipeline/constitution.md` and `.agents/AGENTS.md`:
-
-| Step | Check / Gate | Status | Resolution / Details |
-| :--- | :--- | :--- | :--- |
-| **0** | **Repository Classification** | Verified | `<UPSTREAM_SPEC_CORE_COMPILER (.pipeline/upstream/ detected) OR DOWNSTREAM_CUSTOMER_PROJECT (.pipeline/upstream/ absent)>` |
-| **1** | **Governance Constitution** | Verified | Loaded `.pipeline/constitution.md` |
-| **2** | **Task Skill On-Demand** | Standby | `<Awaiting active task directive OR Loaded skills/<active-skill>/SKILL.md>` |
-| **3** | **Governance Rules Bundle** | Verified | Loaded `.pipeline/ACTIVE_RULES_BUNDLE.md` (`<N>` active rules) |
-| **4** | **Platform Profile** | `<Bypassed OR Standby>` | `<Not applicable for upstream spec core compiler sessions OR Deferred until downstream implementation phase (.pipeline/profiles/<platform>.md)>` |
-| **5** | **Baseline Gate** | Bypassed | Clean session startup; no tracked source or model files modified |
-
-- **Branch**: `<empirical branch from git status>`
-- **Working Tree**: `<Clean (git status clean) OR Dirty (N files modified/untracked)>`
-- **Role Invariant**: `<Pure schema-driven abstract compiler; clean landing zones maintained. OR Pure schema-driven downstream workspace; .pipeline/schema.sysml is 100% SSOT.>`
-
-Ready for instructions. What task or work package would you like to execute?
+- **Zero Startup Ceremony on Conversational/Read-Only Turns**: Agents MUST NOT interrupt or halt a user's prompt to run startup ceremonies, MUST NOT re-initialize across turns, and MUST NOT emit session initialization receipt tables or `"Ready for instructions"` prompts unless explicitly requested.
+- **Once-Per-Session Pipeline Context Load**: Before executing a pipeline specification or feature-implementation skill workflow for the first time in a session, the coordinator silently verifies `.pipeline/upstream/` presence, `git status --short --branch`, `.pipeline/constitution.md`, and `.pipeline/ACTIVE_RULES_BUNDLE.md` at most once per session (never re-reading files already present in conversation context, and skipping `.pipeline/constitution.md` / `.pipeline/ACTIVE_RULES_BUNDLE.md` during diagnostic/read-only turns and bounded surgical edits).
 
 ## Why
 
